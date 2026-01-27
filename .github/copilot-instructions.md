@@ -27,19 +27,20 @@ Source of truth: [`.github/agents/_shared/defaults.md`](.github/agents/_shared/d
 
 | Setting             | Value                                          | Notes                                              |
 | ------------------- | ---------------------------------------------- | -------------------------------------------------- |
-| **Default Region**  | `swedencentral`                                | EU GDPR-compliant; alt: `germanywestcentral`      |
-| **Required Tags**   | `Environment`, `ManagedBy`, `Project`, `Owner` | All resources must include these tags             |
-| **Unique Suffix**   | `uniqueString(resourceGroup().id)` in bicep   | Generate once in `main.bicep`, pass to all modules |
-| **Key Vault Name**  | `kv-{short}-{env}-{suffix}` (≤24 chars)       | Always include suffix to guarantee uniqueness     |
-| **Storage Account** | `st{short}{env}{suffix}` (≤24 chars, no `-`)  | Lowercase+numbers only; no hyphens               |
-| **SQL Server Auth** | Azure AD-only (`azureADOnlyAuthentication`)   | No SQL auth usernames/passwords                   |
-| **Zone Redundancy** | App Service Plans: P1v4+ only                 | Not S1/P1v2; required for HA                      |
+| **Default Region**  | `swedencentral`                                | EU GDPR-compliant; alt: `germanywestcentral`       |
+| **Required Tags**   | `Environment`, `ManagedBy`, `Project`, `Owner` | All resources must include these tags              |
+| **Unique Suffix**   | `uniqueString(resourceGroup().id)` in bicep    | Generate once in `main.bicep`, pass to all modules |
+| **Key Vault Name**  | `kv-{short}-{env}-{suffix}` (≤24 chars)        | Always include suffix to guarantee uniqueness      |
+| **Storage Account** | `st{short}{env}{suffix}` (≤24 chars, no `-`)   | Lowercase+numbers only; no hyphens                 |
+| **SQL Server Auth** | Azure AD-only (`azureADOnlyAuthentication`)    | No SQL auth usernames/passwords                    |
+| **Zone Redundancy** | App Service Plans: P1v4+ only                  | Not S1/P1v2; required for HA                       |
 
 ## Architecture Essentials
 
 ### Artifact Output Structure
 
 All agent outputs go to `agent-output/{project}/` with strict naming and H2 structure:
+
 - **01-requirements.md**: Project Overview, Functional Requirements, NFRs, Compliance, Budget, Operational, Regional
 - **02-architecture-assessment.md**: Requirements Validation, Executive Summary, WAF Pillars, SKU Recs, Decisions, Handoff
 - **04-implementation-plan.md**: Overview, Resource Inventory, Module Structure, Tasks, Dependencies, Naming, Security
@@ -94,28 +95,29 @@ az deployment group what-if --template-file main.json ...
 ### MCP Integration
 
 The Azure Pricing MCP server (`.mcp/azure-pricing-mcp/`) integrates with agents to fetch real-time SKU pricing:
+
 - Used by `architect` agent for cost estimations in WAF assessments
 - Used by `bicep-plan` agent for SKU recommendations
 - Enable in VS Code settings; pre-configured in `.vscode/mcp.json`
 
 ## Key Files & Directories
 
-| File/Dir                                | Purpose                                                      |
-| --------------------------------------- | ------------------------------------------------------------ |
-| `.github/agents/*.agent.md`             | Agent definitions with front matter (name, tools, handoffs) |
-| `.github/agents/_shared/defaults.md`    | Shared config: regions, tags, naming conventions, security   |
-| `.github/instructions/`                 | File-type rules (Bicep, Markdown, PowerShell, agents, etc.)  |
-| `.github/templates/`                    | H2 skeleton files for artifact generation                    |
-| `agent-output/{project}/`               | Project-scoped artifacts (01-07 sequentially)                |
-| `infra/bicep/{project}/`                | Bicep module library (main.bicep + modules/)                 |
-| `mcp/azure-pricing-mcp/`                | Azure Pricing MCP server for cost estimation                 |
-| `.vscode/mcp.json`                      | MCP server configuration (pre-configured)                    |
-| `scripts/validate-artifact-templates.mjs` | CI validation of artifact H2 structure                       |
+| File/Dir                                  | Purpose                                                     |
+| ----------------------------------------- | ----------------------------------------------------------- |
+| `.github/agents/*.agent.md`               | Agent definitions with front matter (name, tools, handoffs) |
+| `.github/agents/_shared/defaults.md`      | Shared config: regions, tags, naming conventions, security  |
+| `.github/instructions/`                   | File-type rules (Bicep, Markdown, PowerShell, agents, etc.) |
+| `.github/templates/`                      | H2 skeleton files for artifact generation                   |
+| `agent-output/{project}/`                 | Project-scoped artifacts (01-07 sequentially)               |
+| `infra/bicep/{project}/`                  | Bicep module library (main.bicep + modules/)                |
+| `mcp/azure-pricing-mcp/`                  | Azure Pricing MCP server for cost estimation                |
+| `.vscode/mcp.json`                        | MCP server configuration (pre-configured)                   |
+| `scripts/validate-artifact-templates.mjs` | CI validation of artifact H2 structure                      |
 
 ## Project Structure
 
 ```
-azure-agentic-infraops/
+azure-smb-landing-zone/
 ├── .github/
 │   ├── agents/                    # 9 agents: requirements, architect, bicep-plan,
 │   │                              # bicep-code, deploy, diagram, adr, docs, diagnose
@@ -214,23 +216,27 @@ npm run lint:md
 ## Agent-Specific Guidance
 
 ### Requirements Agent
+
 - Captures comprehensive infrastructure needs via `01-requirements.md`
 - Hands off to Architect for WAF assessment
 - Uses `@plan` context for initial requirements gathering
 
 ### Architect Agent
+
 - Creates WAF assessments aligned with Azure Well-Architected Framework
 - Integrates Azure Pricing MCP for real-time cost estimates
 - Generates `02-architecture-assessment.md` with SKU recommendations
 - Hands off to Bicep Plan or Design Artifacts agents
 
 ### Bicep Plan Agent
+
 - Discovers Azure Policy governance constraints (tag requirements, resource types allowed, etc.)
 - Creates detailed implementation plans in `04-implementation-plan.md`
 - Produces `04-governance-constraints.md` for compliance
 - Hands off to Bicep Code agent for implementation
 
 ### Bicep Code Agent
+
 - Generates Bicep modules in `infra/bicep/{project}/`
 - Follows Azure Verified Modules (AVM) standards
 - Ensures unique resource names via suffix pattern
@@ -238,25 +244,30 @@ npm run lint:md
 - Hands off to Deploy agent
 
 ### Deploy Agent
+
 - Executes `bicep build` and `what-if` analysis before deployment
 - Manages Azure authentication and subscription selection
 - Generates `06-deployment-summary.md` with deployed resource details
 - Validates post-deployment resources
 
 ### Diagram Agent
+
 - Generates Python architecture diagrams using `diagrams` library
 - Creates `03-des-diagram.py` (design) and `07-ab-diagram.py` (as-built)
 - Produces PNG files for visual documentation
 
 ### ADR Agent
+
 - Documents architecture decisions as formal ADRs
 - Creates `03-des-adr-*.md` (design) and `07-ab-adr-*.md` (as-built)
 - Includes WAF trade-offs and decision rationale
 
 ### Docs Agent
+
 - Generates comprehensive workload documentation
 - Creates `07-design-document.md`, `07-operations-runbook.md`, and related docs
 - Includes cost summaries, compliance matrices, backup/DR plans
+
 ---
 
 **Mission**: Azure infrastructure engineered by agents—from requirements to deployed templates,

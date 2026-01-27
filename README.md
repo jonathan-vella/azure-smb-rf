@@ -1,14 +1,47 @@
-# Agentic InfraOps Template
+# Azure SMB Landing Zone
 
-> **Azure infrastructure engineered by AI agents.** Template with custom Copilot agents, Dev Container,
-> and workflow automation.
+> **Repeatable Azure landing zone for SMB customers.** VMware-to-Azure migration ready,
+> policy-enforced, CAF-aligned. Designed for Microsoft partners hosting 1000+ small business customers.
 
 ## Overview
 
-Starter template for agentic Azure infrastructure development. Contains custom Copilot agents
-(architect, bicep-plan, bicep-implement), Azure Pricing MCP server, and the 7-step workflow.
+Single-subscription Azure environment optimized for:
 
-This template auto-syncs weekly from [azure-agentic-infraops](https://github.com/jonathan-vella/azure-agentic-infraops).
+- **VMware-to-Azure migrations** via Azure Migrate
+- **Cost-first design** - resilience traded for affordability
+- **Policy-enforced security** - 20 guardrail policies included
+- **Repeatable deployments** - no per-customer customization needed
+
+Built with the [Agentic InfraOps](https://github.com/jonathan-vella/azure-agentic-infraops) workflow
+using AI agents for requirements gathering, architecture assessment, and Bicep code generation.
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Single Subscription                       │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐    ┌─────────────────────────────────┐ │
+│  │    Hub VNet     │    │          Spoke VNet             │ │
+│  │                 │    │                                 │ │
+│  │ • Bastion (Dev) │◄──►│ • Workload Subnets              │ │
+│  │ • FW Subnet*    │    │ • NAT Gateway                   │ │
+│  │ • GW Subnet*    │    │ • Baseline NSG                  │ │
+│  │ • Private DNS   │    │                                 │ │
+│  └─────────────────┘    └─────────────────────────────────┘ │
+│           │                           │                      │
+│  ┌────────┴────────┐         ┌────────┴────────┐            │
+│  │   rg-hub-swc    │         │  rg-spoke-swc   │            │
+│  └─────────────────┘         └─────────────────┘            │
+│                                                              │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
+│  │  rg-migrate-swc │  │  rg-monitor-swc │  │ rg-backup-swc│ │
+│  │  • Azure Migrate│  │  • Log Analytics│  │ • RSV Vault  │ │
+│  └─────────────────┘  │  • Defender Free│  └──────────────┘ │
+│                       └─────────────────┘                    │
+└─────────────────────────────────────────────────────────────┘
+                    * Optional (prompted at deploy)
+```
 
 ## Quick Start
 
@@ -23,8 +56,8 @@ This template auto-syncs weekly from [azure-agentic-infraops](https://github.com
 
 ```bash
 # Clone repository
-git clone https://github.com/jonathan-vella/azure-agentic-infraops-accelerator.git
-cd azure-agentic-infraops-accelerator
+git clone https://github.com/jonathan-vella/azure-smb-landing-zone.git
+cd azure-smb-landing-zone
 
 # Open in VS Code
 code .
@@ -106,40 +139,126 @@ graph TB
 
 ## Workflow Steps
 
-| Step | Agent/Phase                 | Purpose                              | Creates                                   | Required |
-| ---- | --------------------------- | ------------------------------------ | ----------------------------------------- | -------- |
-| 1    | `@plan` (built-in)          | Gather requirements                  | `01-requirements.md`                      | ✅ Yes   |
-| 2    | `azure-principal-architect` | WAF assessment                       | `02-architecture-assessment.md`           | ✅ Yes   |
-| 3    | Design Artifacts            | Visualize design, document decisions | `03-des-*` diagrams + cost + ADRs         | Optional |
-| 4    | `bicep-plan`                | Implementation planning + governance | `04-*` plan + governance constraints      | ✅ Yes   |
-| 5    | `bicep-implement`           | Code generation                      | Bicep templates + `05-*` reference        | ✅ Yes   |
-| 6    | Deploy                      | Deploy to Azure                      | `06-deployment-summary.md`                | ✅ Yes   |
-| 7    | As-Built Artifacts          | Document final state                 | `07-ab-*` diagrams + ADRs + workload docs | Optional |
+| Step | Agent/Phase     | Purpose                     | Output                          |
+| ---- | --------------- | --------------------------- | ------------------------------- |
+| 1    | `@requirements` | Gather infrastructure needs | `01-requirements.md`            |
+| 2    | `@architect`    | WAF assessment + cost       | `02-architecture-assessment.md` |
+| 3    | Design          | Diagrams + ADRs             | `03-des-*` artifacts            |
+| 4    | `@bicep-plan`   | Implementation planning     | `04-implementation-plan.md`     |
+| 5    | `@bicep-code`   | Bicep generation            | `infra/bicep/smb-landing-zone/` |
+| 6    | `@deploy`       | Deploy to Azure             | `06-deployment-summary.md`      |
+| 7    | As-Built        | Final documentation         | `07-*` docs                     |
 
-**Usage:** Press `Ctrl+Shift+A` in VS Code to select an agent.
+**Usage:** `Ctrl+Shift+A` → Select agent → Use prompt from `.github/prompts/plan-smb-landing-zone.prompt.md`
+
+## Included Resources
+
+### Always Deployed
+
+| Resource                | Resource Group | Configuration                |
+| ----------------------- | -------------- | ---------------------------- |
+| Hub VNet                | rg-hub         | Pre-provisioned subnets      |
+| Spoke VNet              | rg-spoke       | Workload subnets + NSG       |
+| NAT Gateway             | rg-spoke       | Outbound internet            |
+| Azure Bastion Developer | rg-hub         | Secure VM access             |
+| Azure Private DNS       | rg-hub         | Auto-registration            |
+| Azure Migrate Project   | rg-migrate     | VMware assessment            |
+| Log Analytics Workspace | rg-monitor     | 500 MB/day, 30-day retention |
+| Recovery Services Vault | rg-backup      | VM backup                    |
+| Cost Management Budget  | subscription   | $500/month + alerts          |
+| Defender for Cloud      | subscription   | Free tier                    |
+
+### Optional (Prompted at Deploy)
+
+| Resource             | Notes                     |
+| -------------------- | ------------------------- |
+| Azure Firewall Basic | Enables hub-spoke peering |
+| Azure VPN Gateway    | Hybrid connectivity       |
+
+## Azure Policy (20 Guardrails)
+
+| Category   | Policies                                                |
+| ---------- | ------------------------------------------------------- |
+| Compute    | Allowed SKUs (B/D/E only), no public IPs, managed disks |
+| Network    | NSG required, management ports closed, no IP forwarding |
+| Storage    | HTTPS only, no public blob, TLS 1.2+                    |
+| Identity   | Azure AD-only SQL, no classic resources                 |
+| Compliance | Required tags, allowed locations, backup audit          |
 
 ## Project Structure
 
 ```
-├── .devcontainer/           # Dev container configuration
+├── .devcontainer/              # Dev container configuration
 ├── .github/
-│   ├── agents/              # Copilot agents
-│   ├── instructions/        # AI coding standards
-│   ├── prompts/             # Reusable prompt templates
-│   ├── templates/           # Artifact output templates
-│   └── copilot-instructions.md
-├── agent-output/            # Agent-generated artifacts
-├── infra/bicep/             # Bicep templates
-└── mcp/azure-pricing-mcp/   # Azure Pricing MCP server
+│   ├── agents/                 # Copilot agents (requirements, architect, bicep-*, deploy)
+│   ├── instructions/           # AI coding standards
+│   ├── prompts/
+│   │   └── plan-smb-landing-zone.prompt.md  # ⭐ Main prompt
+│   └── templates/              # Artifact output templates
+├── agent-output/
+│   └── smb-landing-zone/       # Generated artifacts for this project
+├── infra/bicep/
+│   └── smb-landing-zone/       # Bicep templates (generated by agents)
+└── mcp/azure-pricing-mcp/      # Azure Pricing MCP server
 ```
+
+## Key Design Decisions
+
+| Decision          | Choice                            | Rationale                    |
+| ----------------- | --------------------------------- | ---------------------------- |
+| Resilience        | Not required                      | Cost priority for SMB        |
+| SLA/RTO/RPO       | N/A                               | Rebuild from Bicep if needed |
+| VM Access         | Azure Bastion Developer           | No public IPs on VMs         |
+| Outbound Internet | NAT Gateway                       | Default outbound deprecated  |
+| DNS               | Azure Private DNS                 | Auto-registration for VMs    |
+| Regions           | swedencentral, germanywestcentral | EU GDPR compliant            |
+| Tags              | Environment, Owner (required)     | CAF-aligned tagging          |
+
+## Deploy-Time Prompts
+
+When deploying, you'll be prompted for:
+
+1. **Region** - swedencentral or germanywestcentral
+2. **Hub VNet address space** - e.g., 10.0.0.0/16
+3. **Spoke VNet address space** - e.g., 10.1.0.0/16
+4. **Deploy Azure Firewall?** - yes/no
+5. **Deploy VPN Gateway?** - yes/no
 
 ## Documentation
 
-- [Copilot Instructions](.github/copilot-instructions.md)
-- [Main Repository Docs](https://github.com/jonathan-vella/azure-agentic-infraops/tree/main/docs)
-- [Workflow Guide](https://github.com/jonathan-vella/azure-agentic-infraops/blob/main/docs/reference/workflow.md)
+- [SMB Landing Zone Prompt](.github/prompts/plan-smb-landing-zone.prompt.md) - Main requirements prompt
+- [Copilot Instructions](.github/copilot-instructions.md) - Agent workflow guide
+- [Infrastructure Template](.github/templates/01-requirements-infrastructure.template.md) - Requirements template
 
 ## Development
+
+### Prerequisites
+
+- Docker Desktop (or Podman/Colima/Rancher Desktop)
+- VS Code with Dev Containers + GitHub Copilot extensions
+- Azure subscription with Contributor access
+
+### Getting Started
+
+```bash
+# Clone and open in VS Code
+git clone https://github.com/jonathan-vella/azure-smb-landing-zone.git
+cd azure-smb-landing-zone
+code .
+
+# Reopen in Dev Container (F1 → "Dev Containers: Reopen in Container")
+# Wait 3-5 minutes for initial build
+
+# Authenticate
+az login
+az account set --subscription "<your-subscription-id>"
+```
+
+### Generate Landing Zone
+
+1. Press `Ctrl+Shift+A` → Select `@requirements`
+2. Paste content from `.github/prompts/plan-smb-landing-zone.prompt.md`
+3. Follow agent workflow through to deployment
 
 ### Validation Commands
 
@@ -169,8 +288,18 @@ cd infra/bicep/{project}
 
 ## Additional Resources
 
-For advanced usage, reference implementations, or additional documentation, see the main repository:
-[azure-agentic-infraops](https://github.com/jonathan-vella/azure-agentic-infraops)
+- [Agentic InfraOps Framework](https://github.com/jonathan-vella/azure-agentic-infraops) - Parent framework
+- [Azure Landing Zones](https://aka.ms/alz) - Microsoft reference architectures
+- [Azure Verified Modules](https://aka.ms/avm) - Bicep module registry
+- [Cloud Adoption Framework](https://aka.ms/caf) - Naming and governance standards
+
+## Target Audience
+
+This landing zone is designed for:
+
+- **Microsoft Partners** hosting SMB customers on VMware
+- **Managed Service Providers** standardizing Azure onboarding
+- **IT Consultants** delivering repeatable migration projects
 
 ## License
 

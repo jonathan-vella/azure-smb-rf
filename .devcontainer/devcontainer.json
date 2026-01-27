@@ -107,7 +107,7 @@
 
   // Mounts for credential/cache persistence across rebuilds
   // - Azure CLI: Host's ~/.azure (Linux/macOS) or %USERPROFILE%\.azure (Windows)
-  // - GitHub CLI: Docker volume (Windows uses keyring, can't be mounted; Linux/macOS use files)
+  // - GitHub CLI: Docker volume (Windows uses keyring which can't be mounted; authenticate once in container)
   // - UV cache: Docker volume for Python package cache
   "mounts": [
     {

@@ -51,10 +51,10 @@ The MCP server is pre-configured in `.vscode/mcp.json` for this workspace.
 This MCP server integrates with the custom agents in this repository to provide
 **real-time Azure pricing** during infrastructure planning:
 
-| Agent                       | Integration                            |
-| --------------------------- | -------------------------------------- |
-| `architect` | Cost estimation during WAF assessments |
-| `bicep-plan`                | SKU pricing for implementation plans   |
+| Agent        | Integration                            |
+| ------------ | -------------------------------------- |
+| `architect`  | Cost estimation during WAF assessments |
+| `bicep-plan` | SKU pricing for implementation plans   |
 
 ### How It Works
 
@@ -193,9 +193,9 @@ The MCP server is already configured in `.vscode/mcp.json`:
       "type": "stdio",
       "command": "${workspaceFolder}/mcp/azure-pricing-mcp/.venv/bin/python",
       "args": ["-m", "azure_pricing_mcp"],
-      "cwd": "${workspaceFolder}/mcp/azure-pricing-mcp/src"
-    }
-  }
+      "cwd": "${workspaceFolder}/mcp/azure-pricing-mcp/src",
+    },
+  },
 }
 ```
 
@@ -219,9 +219,9 @@ Create `.vscode/mcp.json` in your workspace:
       "type": "stdio",
       "command": "/absolute/path/to/mcp/azure-pricing-mcp/.venv/bin/python",
       "args": ["-m", "azure_pricing_mcp"],
-      "cwd": "/absolute/path/to/mcp/azure-pricing-mcp/src"
-    }
-  }
+      "cwd": "/absolute/path/to/mcp/azure-pricing-mcp/src",
+    },
+  },
 }
 ```
 
@@ -392,7 +392,7 @@ pytest tests/
 ## 📁 Project Structure
 
 ```
-mcp/azure-pricing-mcp/           # Location within azure-agentic-infraops repo
+mcp/azure-pricing-mcp/           # Location within azure-smb-landing-zone repo
 ├── .venv/                       # Virtual environment (auto-created)
 ├── src/
 │   └── azure_pricing_mcp/

@@ -102,7 +102,7 @@ Write-Host ""
 # Get repository root
 $RepoRoot = git rev-parse --show-toplevel 2>$null
 if (-not $RepoRoot) {
-    Write-Error "Not in a git repository. Run this script from within the azure-agentic-infraops repository."
+    Write-Error "Not in a git repository. Run this script from within the azure-smb-landing-zone repository."
     exit 1
 }
 
