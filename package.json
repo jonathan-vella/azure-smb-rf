@@ -1,0 +1,37 @@
+{
+  "name": "azure-agentic-infraops",
+  "version": "7.4.0",
+  "description": "Agentic InfraOps - Azure infrastructure engineered by agents. Verified. Well-Architected. Deployable.",
+  "private": true,
+  "scripts": {
+    "prepare": "lefthook install",
+    "lint:md": "markdownlint-cli2 '**/*.md' '#node_modules'",
+    "lint:md:fix": "markdownlint-cli2 --fix '**/*.md' '#node_modules'",
+    "lint:links": "find docs -name '*.md' ! -path 'docs/_superseded/*' | xargs -I {} markdown-link-check {} --config .markdown-link-check.json",
+    "lint:cost-estimate-templates": "node scripts/validate-cost-estimate-templates.mjs",
+    "lint:artifact-templates": "node scripts/validate-artifact-templates.mjs"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.0.0",
+    "@commitlint/config-conventional": "^19.0.0",
+    "lefthook": "^1.6.0",
+    "markdown-link-check": "^3.12.0",
+    "markdownlint-cli2": "^0.20.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jonathan-vella/azure-agentic-infraops.git"
+  },
+  "keywords": [
+    "azure",
+    "bicep",
+    "github-copilot",
+    "infrastructure-as-code",
+    "agents",
+    "agentic",
+    "well-architected",
+    "azure-verified-modules"
+  ],
+  "author": "Jonathan Vella",
+  "license": "MIT"
+}
