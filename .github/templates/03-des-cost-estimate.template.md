@@ -1,9 +1,10 @@
 # Azure Cost Estimate: {Project Name}
 
-**Generated**: {YYYY-MM-DD}
-**Region**: {primary-region}
-**Environment**: {Production|Staging|Development}
-**MCP Tools Used**: {azure_price_search, azure_cost_estimate, azure_region_recommend, azure_sku_discovery}
+**Generated**: {YYYY-MM-DD}  
+**Artifact Version**: {artifact-version}  
+**Region**: {primary-region}  
+**Environment**: {Production|Staging|Development}  
+**MCP Tools Used**: {azure_price_search, azure_cost_estimate, azure_region_recommend, azure_sku_discovery}  
 **Architecture Reference**: {relative link to assessment doc, if available}
 
 ## 💰 Cost At-a-Glance

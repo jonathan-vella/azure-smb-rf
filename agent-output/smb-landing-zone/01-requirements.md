@@ -1,6 +1,8 @@
 # SMB Landing Zone - Requirements
 
 > **Agentic InfraOps** - Azure infrastructure engineered by agents. Verified. Well-Architected. Deployable.
+>
+> Artifact v0.1 | 2026-01-27
 
 ## Project Overview
 

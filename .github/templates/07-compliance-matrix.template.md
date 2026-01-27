@@ -1,7 +1,7 @@
 # Compliance Matrix: {project-name}
 
 **Generated**: {date}
-**Version**: 1.0
+**Version**: {artifact-version}
 **Environment**: {environment}
 **Primary Compliance Framework**: {compliance-framework}
 

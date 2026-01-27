@@ -306,9 +306,9 @@ function validateTemplate(artifactName) {
     const missing = required.filter((r) => !coreFound.includes(r));
     error(
       `Template ${templatePath} is missing required H2 headings: ${missing.join(
-        ", "
+        ", ",
       )}`,
-      { filePath: templatePath, line: 1 }
+      { filePath: templatePath, line: 1 },
     );
     return;
   }
@@ -320,7 +320,7 @@ function validateTemplate(artifactName) {
         `Template ${templatePath} has headings out of order. Expected '${
           required[i]
         }' at position ${i + 1}, found '${coreFound[i]}'.`,
-        { filePath: templatePath, line: 1 }
+        { filePath: templatePath, line: 1 },
       );
       break;
     }
@@ -332,9 +332,9 @@ function validateTemplate(artifactName) {
   if (extraH2.length > 0) {
     warn(
       `Template ${templatePath} contains extra H2 headings: ${extraH2.join(
-        ", "
+        ", ",
       )}`,
-      { filePath: templatePath, line: 1 }
+      { filePath: templatePath, line: 1 },
     );
   }
 }
@@ -358,13 +358,13 @@ function validateAgentLinks() {
     // Check that agent links to template
     const relativeTemplatePath = path.relative(
       path.dirname(agentPath),
-      templatePath
+      templatePath,
     );
 
     if (!agentText.includes(relativeTemplatePath)) {
       error(
         `Agent ${agentPath} must reference template ${relativeTemplatePath}`,
-        { filePath: agentPath, line: 1 }
+        { filePath: agentPath, line: 1 },
       );
     }
   }
@@ -386,7 +386,7 @@ function validateNoEmbeddedSkeletons() {
       if (foundInBlock.length >= 3) {
         error(
           `Agent ${agentPath} appears to embed a ${artifactName} skeleton (found ${foundInBlock.length} headings in a fenced block).`,
-          { filePath: agentPath, line: 1 }
+          { filePath: agentPath, line: 1 },
         );
         break;
       }
@@ -410,7 +410,7 @@ function validateStandardsReference() {
   if (!text.includes("template") && !text.includes(".template.md")) {
     warn(
       `Standards file ${STANDARD_DOC} should reference template-first approach`,
-      { filePath: STANDARD_DOC, line: 1 }
+      { filePath: STANDARD_DOC, line: 1 },
     );
   }
 }
@@ -420,7 +420,7 @@ function validateArtifactCompliance(relPath) {
 
   // Check if this is a recognized artifact type
   const artifactType = Object.keys(ARTIFACT_HEADINGS).find((key) =>
-    basename.endsWith(key)
+    basename.endsWith(key),
   );
 
   if (!artifactType) {
@@ -451,9 +451,9 @@ function validateArtifactCompliance(relPath) {
     const reportFn = strictness === "standard" ? error : warn;
     reportFn(
       `Artifact ${relPath} is missing required H2 headings: ${missing.join(
-        ", "
+        ", ",
       )}`,
-      { filePath: relPath, line: 1 }
+      { filePath: relPath, line: 1 },
     );
   }
 
@@ -467,7 +467,7 @@ function validateArtifactCompliance(relPath) {
         `Artifact ${relPath} has required headings out of order: '${
           presentRequired[i]
         }' should come before '${presentRequired[i + 1]}'.`,
-        { filePath: relPath, line: 1 }
+        { filePath: relPath, line: 1 },
       );
       break;
     }
@@ -480,7 +480,7 @@ function validateArtifactCompliance(relPath) {
       if (optPos !== -1 && optPos < anchorPos) {
         warn(
           `Artifact ${relPath} has optional heading '${optional}' before anchor '${anchor}' (consider moving it).`,
-          { filePath: relPath, line: 1 }
+          { filePath: relPath, line: 1 },
         );
       }
     }
@@ -492,7 +492,7 @@ function validateArtifactCompliance(relPath) {
   if (extras.length > 0 && strictness === "standard") {
     warn(
       `Artifact ${relPath} contains extra H2 headings: ${extras.join(", ")}`,
-      { filePath: relPath, line: 1 }
+      { filePath: relPath, line: 1 },
     );
   }
 }

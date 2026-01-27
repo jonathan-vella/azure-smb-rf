@@ -1,10 +1,11 @@
 # As-Built Cost Estimate: {Project Name}
 
-**Generated**: {YYYY-MM-DD}
-**Source**: Implemented Bicep Templates
-**Region**: {primary-region}
-**Environment**: {Production|Staging|Development}
-**MCP Tools Used**: {azure_price_search, azure_cost_estimate}
+**Generated**: {YYYY-MM-DD}  
+**Artifact Version**: {artifact-version}  
+**Source**: Implemented Bicep Templates  
+**Region**: {primary-region}  
+**Environment**: {Production|Staging|Development}  
+**MCP Tools Used**: {azure_price_search, azure_cost_estimate}  
 **IaC Reference**: {relative link to infra/bicep/{project}/, if available}
 
 ## 💰 Cost At-a-Glance

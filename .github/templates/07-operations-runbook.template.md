@@ -1,6 +1,6 @@
 # Operations Runbook: {project-name}
 
-**Version**: 1.0
+**Version**: {artifact-version}
 **Date**: {date}
 **Environment**: {environment}
 **Region**: {region}

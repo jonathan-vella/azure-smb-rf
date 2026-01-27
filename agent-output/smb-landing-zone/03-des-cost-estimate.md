@@ -1,6 +1,7 @@
 # Azure Cost Estimate: SMB Landing Zone
 
 **Generated**: 2026-01-27  
+**Artifact Version**: 0.1  
 **Region**: swedencentral  
 **Environment**: Production  
 **MCP Tools Used**: azure_cost_estimate, azure_price_compare, azure_documentation  

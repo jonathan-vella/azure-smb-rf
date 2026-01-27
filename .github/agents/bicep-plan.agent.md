@@ -155,13 +155,57 @@ For each resource, document WAF alignment:
 
 ---
 
-## Azure Policy Governance Discovery (MANDATORY)
+## Azure Policy Governance Strategy
 
-**Before creating the implementation plan, discover Azure Policy constraints that affect deployment.**
+**Default: Greenfield** — Policies are defined in requirements and deployed by this project.
 
-This step prevents deployment failures by identifying policy-enforced requirements upfront.
+Use greenfield mode unless the user explicitly requests brownfield (existing subscription scan).
 
-### Discovery Process
+### Greenfield Mode (Default)
+
+**Assumption**: Policies are defined in `01-requirements.md` and will be deployed via Bicep.
+
+1. **Extract policies from `01-requirements.md`:**
+   - Read the `### Azure Policy` section
+   - Parse policy tables (Compute, Network, Storage, Identity, Monitoring guardrails)
+   - Extract Built-in IDs, effects, and parameters
+
+2. **Generate governance constraints from requirements:**
+   - No Azure Resource Graph query needed
+   - Constraints are derived from the project's own policy definitions
+   - Document that policies will be **deployed** as part of this project
+
+3. **Output format for greenfield:**
+
+   ```markdown
+   ## Azure Policy Compliance
+
+   **Governance Source**: Project-defined (policies deployed by this project)
+
+   These policies will be assigned at subscription scope as part of the Bicep deployment.
+   Policy cleanup script: `scripts/Remove-{project-name}Policies.ps1`
+
+   | #   | Policy          | Built-in ID  | Effect | Bicep Assignment Name |
+   | --- | --------------- | ------------ | ------ | --------------------- |
+   | 1   | Allowed VM SKUs | cccc23c7-... | Deny   | {project}-compute-01  |
+   ```
+
+4. **Include in implementation plan:**
+   - Add `modules/policy-assignments.bicep` to module structure
+   - Document policy deployment as Phase 1 task (before resources)
+   - Reference policy parameters from requirements
+
+### Brownfield Mode (Override Only)
+
+**Trigger**: User explicitly says "scan existing policies", "brownfield", or "check subscription policies".
+
+**When to use brownfield:**
+
+- Deploying to an existing managed subscription with pre-defined governance
+- Enterprise landing zone with centralized policy management
+- User explicitly requests policy discovery
+
+**Brownfield process:**
 
 1. **Get target subscription context:**
 
@@ -195,7 +239,7 @@ This step prevents deployment failures by identifying policy-enforced requiremen
 4. **Generate governance constraints file:**
 
    Save discovered constraints to `agent-output/{project-name}/04-governance-constraints.md` AND
-   `agent-output/{project-name}/04-governance-constraints.json` (dual format for human and machine readability).
+   `agent-output/{project-name}/04-governance-constraints.json`.
 
 ### Governance Constraints Output Format
 

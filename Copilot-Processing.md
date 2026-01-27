@@ -2,89 +2,53 @@
 
 ## User Request
 
-Capture requirements for an SMB Landing Zone - Azure Migrate Ready environment based on the prompt file `.github/prompts/plan-smb-landing-zone.prompt.md`.
+Create detailed implementation plan for SMB Landing Zone based on ADR-0001 and architecture assessment.
 
 **Project**: smb-landing-zone
-**Context**: Microsoft partner/VMware hosting provider with 1000+ SMB customers building repeatable
-single-subscription Azure environments for VMware-to-Azure migrations.
+**Current Step**: Step 4 (bicep-plan) of 7-step workflow
 
 ## Action Plan
 
-### Phase 1: Context Gathering ✅
+### Phase 1: Read Templates ✅
 
-- [x] Reviewed prompt file with comprehensive requirements
-- [x] Identified regional defaults (swedencentral, germanywestcentral)
-- [x] Captured all 20 Azure Policies with built-in IDs
+- [x] Read `04-implementation-plan.template.md`
+- [x] Extract H2 structure requirements
 
-### Phase 2: Requirements Drafting ✅
+### Phase 2: Resource Analysis ✅
 
-- [x] Created requirements with all H2 sections
-- [x] Included resource tables, policies, budget, and operational requirements
-- [x] User approved structure
+- [x] Extract all resources from ADR-0001 and requirements
+- [x] Identify 21 Azure resources
+- [x] Define 12 Bicep modules
+- [x] Map dependencies and deployment order
 
-### Phase 3: File Creation ✅
+### Phase 3: Implementation Plan Creation ✅
 
-- [x] Created `agent-output/smb-landing-zone/01-requirements.md`
+- [x] Created `04-implementation-plan.md` - comprehensive plan with:
+  - 21 Azure resources in inventory
+  - 12 Bicep modules defined
+  - 6 deployment phases with Mermaid graph
+  - Naming conventions table
+  - Security configuration matrix
+  - Cost estimate summary
+  - Estimated implementation time (~31 min baseline, ~78 min with optionals)
 
----
-
-## Phase 4: WAF Assessment (Step 2) ✅
-
-### Tasks
-
-- [x] Query Azure Pricing MCP for all services
-- [x] Evaluate all 5 WAF pillars with scores
-- [x] Generate cost estimates for required + optional services
-- [x] Create `02-architecture-assessment.md`
-- [x] Create `03-des-cost-estimate.md`
-
-## Phase 5: SKU Validation ✅
-
-### Validated SKUs against Azure Documentation (Jan 2026)
-
-| Service        | Original  | Updated      | Change Reason                                                     |
-| -------------- | --------- | ------------ | ----------------------------------------------------------------- |
-| VPN Gateway    | VpnGw1    | **VpnGw1AZ** | Non-AZ SKUs deprecated Sept 2026; can't create new after Nov 2025 |
-| NAT Gateway    | Standard  | Standard     | ✅ Correct - StandardV2 has regional limitations                  |
-| Azure Bastion  | Developer | Developer    | ✅ Correct - 4 tiers: Developer, Basic, Standard, Premium         |
-| Azure Firewall | Basic     | Basic        | ✅ Correct - Basic tier still available                           |
-
-### Files Updated
-
-- [x] `01-requirements.md` - VPN Gateway SKU
-- [x] `02-architecture-assessment.md` - VPN Gateway SKU (diagram, tables, decisions)
-- [x] `03-des-cost-estimate.md` - VPN Gateway SKU (cost tables, decision matrix)
-
-## Phase 6: VPN Gateway Basic SKU ✅
-
-### Research Findings
-
-- **Basic SKU**: ~$27/month - cheapest option, 100 Mbps, max 10 S2S tunnels, no BGP, no zone-redundancy
-- **VpnGw1AZ**: ~$140/month - 650 Mbps, 30 tunnels, BGP support, zone-redundant
-
-### Files Updated
-
-- [x] `.github/prompts/plan-smb-landing-zone.prompt.md` - Added VPN Gateway SKU comparison table
-- [x] `01-requirements.md` - Added Basic/VpnGw1AZ options
-- [x] `02-architecture-assessment.md` - Updated SKU recommendations, cost table (~$363/mo total)
-- [x] `03-des-cost-estimate.md` - All pricing updated to Basic SKU (~$27/mo)
+- [x] Created `04-governance-constraints.md` - policy compliance with:
+  - 20 Azure Policy assignments documented
+  - Categories: Compute (4), Network (4), Storage (5), Identity (2), Tagging (2), Governance (1), Monitoring (2)
+  - Policy cleanup script reference
 
 ---
 
 ## Summary
 
-All artifacts updated with VPN Gateway Basic SKU (~$27/month) as the cheapest option:
+Implementation planning complete. Two artifacts created:
 
-| Artifact       | VPN Gateway Change                             |
-| -------------- | ---------------------------------------------- |
-| Prompt file    | Added SKU comparison table (Basic vs VpnGw1AZ) |
-| Requirements   | Both options documented with trade-offs        |
-| WAF Assessment | Basic as default, VpnGw1AZ for zone-redundancy |
-| Cost Estimate  | All pricing uses Basic ($27/mo vs $140/mo)     |
+| Artifact                       | Purpose                     | Resources                |
+| ------------------------------ | --------------------------- | ------------------------ |
+| `04-implementation-plan.md`    | Bicep module specifications | 21 resources, 12 modules |
+| `04-governance-constraints.md` | Policy compliance matrix    | 20 policies              |
 
-**Cost Impact**: Maximum total reduced from ~$476/mo to ~$363/mo
-
-**Next Step**: Reply **"approve"** to proceed to `@bicep-plan` for implementation planning.
+**Next Step**: Reply **"approve"** to proceed to `@bicep-code` for actual Bicep code generation.
 
 ---
 

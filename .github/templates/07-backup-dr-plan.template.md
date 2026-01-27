@@ -1,7 +1,7 @@
 # Backup and Disaster Recovery Plan: {project-name}
 
 **Generated**: {date}
-**Version**: 1.0
+**Version**: {artifact-version}
 **Environment**: {environment}
 **Primary Region**: {primary-region}
 **Secondary Region**: {secondary-region}

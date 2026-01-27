@@ -1,6 +1,6 @@
 # Step 6: Deployment Summary - {project-name}
 
-> Generated: {date}  
+> Generated: {date} | Artifact v{artifact-version}  
 > Status: **{STATUS}** (Succeeded/Failed/Simulated)
 
 ## Deployment Details

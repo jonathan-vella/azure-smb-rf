@@ -1,6 +1,7 @@
 # Resource Inventory: {project-name}
 
 **Generated**: {date}
+**Version**: {artifact-version}
 **Source**: Infrastructure as Code (Bicep)
 **Environment**: {environment}
 **Region**: {region}

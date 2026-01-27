@@ -1,7 +1,7 @@
 # {project-name} - Workload Documentation
 
 **Generated**: {date}
-**Version**: 1.0
+**Version**: {artifact-version}
 **Status**: Draft
 
 ---

@@ -1,6 +1,6 @@
 {
   "name": "azure-smb-landing-zone",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Repeatable Azure landing zone for SMB customers - VMware-to-Azure migration ready, policy-enforced, CAF-aligned.",
   "private": true,
   "scripts": {
