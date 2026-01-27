@@ -165,25 +165,18 @@ const GLOBAL_STRICTNESS = process.env.STRICTNESS;
 
 // Core artifacts validated by agents
 const AGENTS = {
-  "01-requirements.md": ".github/agents/project-planner.agent.md",
-  "02-architecture-assessment.md":
-    ".github/agents/azure-principal-architect.agent.md",
+  "01-requirements.md": ".github/agents/requirements.agent.md",
+  "02-architecture-assessment.md": ".github/agents/architect.agent.md",
   "04-implementation-plan.md": ".github/agents/bicep-plan.agent.md",
   "04-governance-constraints.md": ".github/agents/bicep-plan.agent.md",
+  "05-implementation-reference.md": ".github/agents/bicep-code.agent.md",
   "06-deployment-summary.md": ".github/agents/deploy.agent.md",
-  "05-implementation-reference.md": ".github/agents/bicep-implement.agent.md",
-  "07-design-document.md":
-    ".github/agents/workload-documentation-generator.agent.md",
-  "07-operations-runbook.md":
-    ".github/agents/workload-documentation-generator.agent.md",
-  "07-resource-inventory.md":
-    ".github/agents/workload-documentation-generator.agent.md",
-  "07-backup-dr-plan.md":
-    ".github/agents/workload-documentation-generator.agent.md",
-  "07-compliance-matrix.md":
-    ".github/agents/workload-documentation-generator.agent.md",
-  "07-documentation-index.md":
-    ".github/agents/workload-documentation-generator.agent.md",
+  "07-design-document.md": ".github/agents/docs.agent.md",
+  "07-operations-runbook.md": ".github/agents/docs.agent.md",
+  "07-resource-inventory.md": ".github/agents/docs.agent.md",
+  "07-backup-dr-plan.md": ".github/agents/docs.agent.md",
+  "07-compliance-matrix.md": ".github/agents/docs.agent.md",
+  "07-documentation-index.md": ".github/agents/docs.agent.md",
 };
 
 const TEMPLATES = {

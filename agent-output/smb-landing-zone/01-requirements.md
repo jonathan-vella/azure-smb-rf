@@ -128,6 +128,17 @@ User can select any combination: both, one, or none.
 
 ## Compliance & Security Requirements
 
+### Policy Deployment Strategy
+
+| Aspect            | Decision                                                 |
+| ----------------- | -------------------------------------------------------- |
+| Deployment method | **Bicep** - `Microsoft.Authorization/policyAssignments`  |
+| Policy type       | Built-in definitions only (no custom policies)           |
+| Assignment scope  | Subscription level                                       |
+| Naming convention | `smb-lz-{category}-{number}` (e.g., `smb-lz-compute-01`) |
+| Metadata tags     | `Project: smb-landing-zone`, `ManagedBy: Bicep`          |
+| Cleanup script    | `scripts/Remove-SmbLandingZonePolicies.ps1`              |
+
 ### Mandatory Tags
 
 | Tag         | Description               | Enforcement         |
