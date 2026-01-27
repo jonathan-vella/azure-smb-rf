@@ -81,10 +81,15 @@ VMs. Building a repeatable, single-subscription Azure environment for VMware-to-
 
 User can select any combination: both, one, or none.
 
-| Service              | Resource Group | Notes                            |
-| -------------------- | -------------- | -------------------------------- |
-| Azure Firewall Basic | rg-hub         | If deployed, enable VNet peering |
-| Azure VPN Gateway    | rg-hub         | If deployed, enable VNet peering |
+| Service           | Resource Group | SKU Options                            | Notes                            |
+| ----------------- | -------------- | -------------------------------------- | -------------------------------- |
+| Azure Firewall    | rg-hub         | Basic                                  | If deployed, enable VNet peering |
+| Azure VPN Gateway | rg-hub         | Basic (~$27/mo) or VpnGw1AZ (~$140/mo) | If deployed, enable VNet peering |
+
+> **VPN Gateway SKU Guidance**:
+>
+> - **Basic** (~$27/mo): 100 Mbps, max 10 S2S tunnels, no BGP, no zone-redundancy. Best for simple SMB connectivity.
+> - **VpnGw1AZ** (~$140/mo): 650 Mbps, max 30 tunnels, BGP support, zone-redundant. Best for production/growth.
 
 ## Availability & Resilience (Explicit N/A)
 
@@ -153,17 +158,20 @@ User can select any combination: both, one, or none.
   "allowedLocations": ["swedencentral", "germanywestcentral", "global"],
   "allowedVmSkus": [
     "Standard_B*",
-    "Standard_D*v4",
     "Standard_D*v5",
-    "Standard_E*v4",
-    "Standard_E*v5",
-    "Standard_D*s_v4",
     "Standard_D*s_v5",
-    "Standard_E*s_v4",
-    "Standard_E*s_v5"
+    "Standard_D*v6",
+    "Standard_D*s_v6",
+    "Standard_E*v5",
+    "Standard_E*s_v5",
+    "Standard_E*v6",
+    "Standard_E*s_v6"
   ]
 }
 ```
+
+> **Note**: v5 series is the current mainstream generation; v6 is the latest (2024+).
+> B-series provides burstable, cost-effective compute for SMB workloads.
 
 ## Deploy-Time Prompts Summary
 
