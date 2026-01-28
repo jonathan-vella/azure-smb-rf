@@ -190,7 +190,57 @@ Run `./deploy.ps1 -DeployFirewall -DeployVpnGateway` to test the complete firewa
 
 ---
 
-**Status**: ✅ Phase 2 implementation complete - Ready for testing
+## 📋 Testing Plan for Tomorrow (2026-01-29)
+
+### Deployment Scenarios to Validate
+
+| # | Scenario | Firewall | VPN | NAT GW | Peering | UDR |
+|---|----------|----------|-----|--------|---------|-----|
+| 1 | Hub-Spoke with Firewall | ✅ | ❌ | ❌ | ✅ | ✅ |
+| 2 | Hub-Spoke with VPN Gateway | ❌ | ✅ | ❌ | ✅ | ✅ |
+| 3 | Hub-Spoke with Firewall + VPN | ✅ | ✅ | ❌ | ✅ | ✅ |
+| 4 | Hub-Spoke with NAT Gateway only | ❌ | ❌ | ✅ | ❌ | ❌ |
+
+### Additional Validation Tests
+
+- [ ] **Bastion connectivity**: SSH/RDP to spoke VM via Bastion Developer
+- [ ] **DNS resolution**: Private DNS zone auto-registration working
+- [ ] **Outbound traffic flow**: Verify traffic routes through Firewall (when deployed)
+- [ ] **Policy assignments**: All 20 policies applied and compliant
+- [ ] **Budget alerts**: Cost Management budget created
+- [ ] **Log Analytics**: Firewall logs flowing to workspace
+- [ ] **Route table validation**: Next-hop is Firewall private IP
+
+### Test Commands
+
+```powershell
+# Scenario 1: Firewall only
+./deploy.ps1 -DeployFirewall
+
+# Scenario 2: VPN only
+./deploy.ps1 -DeployVpnGateway
+
+# Scenario 3: Both Firewall and VPN
+./deploy.ps1 -DeployFirewall -DeployVpnGateway
+
+# Scenario 4: Baseline (NAT Gateway, no Firewall/VPN)
+./deploy.ps1
+```
+
+### Pre-Test Cleanup
+
+```bash
+# Delete existing test RG if needed
+az group delete -n rg-fw-test-swc --yes --no-wait
+
+# Delete existing landing zone RGs
+az group delete -n rg-hub-slz-swc --yes --no-wait
+az group delete -n rg-spoke-prod-swc --yes --no-wait
+```
+
+---
+
+**Status**: ✅ Phase 2 implementation complete - Ready for testing tomorrow
 
 ---
 
