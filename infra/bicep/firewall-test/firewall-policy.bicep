@@ -101,6 +101,40 @@ resource networkRuleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleColl
               '123'
             ]
           }
+          {
+            ruleType: 'NetworkRule'
+            name: 'AllowHTTP'
+            description: 'Allow HTTP outbound traffic'
+            ipProtocols: [
+              'TCP'
+            ]
+            sourceAddresses: [
+              sourceAddressSpace
+            ]
+            destinationAddresses: [
+              '*'
+            ]
+            destinationPorts: [
+              '80'
+            ]
+          }
+          {
+            ruleType: 'NetworkRule'
+            name: 'AllowHTTPS'
+            description: 'Allow HTTPS outbound traffic'
+            ipProtocols: [
+              'TCP'
+            ]
+            sourceAddresses: [
+              sourceAddressSpace
+            ]
+            destinationAddresses: [
+              '*'
+            ]
+            destinationPorts: [
+              '443'
+            ]
+          }
         ]
       }
     ]

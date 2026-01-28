@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.39.26.7824",
-      "templateHash": "1443477126647555507"
+      "templateHash": "9062606300804377554"
     }
   },
   "parameters": {
@@ -221,7 +221,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "13655309084923920042"
+              "templateHash": "8609511439037793880"
             }
           },
           "parameters": {
@@ -311,6 +311,40 @@
                         ],
                         "destinationPorts": [
                           "123"
+                        ]
+                      },
+                      {
+                        "ruleType": "NetworkRule",
+                        "name": "AllowHTTP",
+                        "description": "Allow HTTP outbound traffic",
+                        "ipProtocols": [
+                          "TCP"
+                        ],
+                        "sourceAddresses": [
+                          "[parameters('sourceAddressSpace')]"
+                        ],
+                        "destinationAddresses": [
+                          "*"
+                        ],
+                        "destinationPorts": [
+                          "80"
+                        ]
+                      },
+                      {
+                        "ruleType": "NetworkRule",
+                        "name": "AllowHTTPS",
+                        "description": "Allow HTTPS outbound traffic",
+                        "ipProtocols": [
+                          "TCP"
+                        ],
+                        "sourceAddresses": [
+                          "[parameters('sourceAddressSpace')]"
+                        ],
+                        "destinationAddresses": [
+                          "*"
+                        ],
+                        "destinationPorts": [
+                          "443"
                         ]
                       }
                     ]

@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.39.26.7824",
-      "templateHash": "13993711931891032380"
+      "templateHash": "11908866823580751777"
     }
   },
   "parameters": {
@@ -1957,7 +1957,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "5204637003465522012"
+              "templateHash": "4731607410147101338"
             }
           },
           "parameters": {
@@ -2176,102 +2176,6 @@
                         ],
                         "destinationPorts": [
                           "443"
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
-                    "action": {
-                      "type": "Allow"
-                    },
-                    "name": "AllowAzureServices",
-                    "priority": 200,
-                    "rules": [
-                      {
-                        "ruleType": "NetworkRule",
-                        "name": "AllowAzureMonitor",
-                        "description": "Allow Azure Monitor for logging and metrics",
-                        "ipProtocols": [
-                          "TCP"
-                        ],
-                        "sourceAddresses": [
-                          "[parameters('spokeAddressSpace')]"
-                        ],
-                        "destinationAddresses": [
-                          "AzureMonitor"
-                        ],
-                        "destinationPorts": [
-                          "443"
-                        ]
-                      },
-                      {
-                        "ruleType": "NetworkRule",
-                        "name": "AllowAzureBackup",
-                        "description": "Allow Azure Backup service",
-                        "ipProtocols": [
-                          "TCP"
-                        ],
-                        "sourceAddresses": [
-                          "[parameters('spokeAddressSpace')]"
-                        ],
-                        "destinationAddresses": [
-                          "AzureBackup"
-                        ],
-                        "destinationPorts": [
-                          "443"
-                        ]
-                      },
-                      {
-                        "ruleType": "NetworkRule",
-                        "name": "AllowAzureStorage",
-                        "description": "Allow Azure Storage for various services",
-                        "ipProtocols": [
-                          "TCP"
-                        ],
-                        "sourceAddresses": [
-                          "[parameters('spokeAddressSpace')]"
-                        ],
-                        "destinationAddresses": [
-                          "Storage"
-                        ],
-                        "destinationPorts": [
-                          "443"
-                        ]
-                      },
-                      {
-                        "ruleType": "NetworkRule",
-                        "name": "AllowAzureActiveDirectory",
-                        "description": "Allow Azure AD for authentication",
-                        "ipProtocols": [
-                          "TCP"
-                        ],
-                        "sourceAddresses": [
-                          "[parameters('spokeAddressSpace')]"
-                        ],
-                        "destinationAddresses": [
-                          "AzureActiveDirectory"
-                        ],
-                        "destinationPorts": [
-                          "443"
-                        ]
-                      },
-                      {
-                        "ruleType": "NetworkRule",
-                        "name": "AllowAzureKMS",
-                        "description": "Allow Windows activation via Azure KMS",
-                        "ipProtocols": [
-                          "TCP"
-                        ],
-                        "sourceAddresses": [
-                          "[parameters('spokeAddressSpace')]"
-                        ],
-                        "destinationAddresses": [
-                          "23.102.135.246",
-                          "20.118.99.224"
-                        ],
-                        "destinationPorts": [
-                          "1688"
                         ]
                       }
                     ]
