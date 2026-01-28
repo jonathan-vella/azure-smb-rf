@@ -1,7 +1,7 @@
 // ============================================================================
 // Firewall Test Lab - Main Orchestrator
 // ============================================================================
-// Purpose: Deploy isolated Azure Firewall Basic and VPN Gateway for testing
+// Purpose: Deploy isolated Azure Firewall Basic and VPN Gateway VpnGw1AZ for testing
 // ============================================================================
 // Deployment Order:
 // 1. Resource Group (subscription scope)

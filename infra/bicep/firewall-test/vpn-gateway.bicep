@@ -1,11 +1,12 @@
 // ============================================================================
-// Firewall Test Lab - VPN Gateway (Basic SKU)
+// Firewall Test Lab - VPN Gateway (VpnGw1AZ SKU)
 // ============================================================================
-// Purpose: Test VPN Gateway Basic with Standard/Static public IP
+// Purpose: Test VPN Gateway VpnGw1AZ (zone-redundant)
 // ============================================================================
-// Azure Requirement (2024+):
-// "New Basic SKU VPN gateways use the Static allocation method for public IP
-// address and the Standard public IP address SKU."
+// VpnGw1AZ requires:
+// - Standard public IP with Static allocation
+// - Zones ['1', '2', '3'] for zone-redundancy
+// - Generation1 gateway
 // ============================================================================
 
 @description('Azure region for deployment')
@@ -25,12 +26,7 @@ var gatewayName = 'vpng-test-${location}'
 var publicIpName = 'pip-vpn-test-${location}'
 
 // ============================================================================
-// VPN Gateway Public IP
-// ============================================================================
-// Per Azure docs: Basic SKU VPN gateways now require Standard public IP
-// with Static allocation method
-// Note: Basic VPN SKU doesn't support zone-redundancy, so we omit zones
-// However, some regions enforce zones for Standard IPs - in that case use VpnGw1AZ
+// VPN Gateway Public IP (Zone-Redundant)
 // ============================================================================
 
 resource vpnPublicIp 'Microsoft.Network/publicIPAddresses@2024-01-01' = {
@@ -38,20 +34,18 @@ resource vpnPublicIp 'Microsoft.Network/publicIPAddresses@2024-01-01' = {
   location: location
   tags: tags
   sku: {
-    name: 'Standard'  // Required for new Basic SKU VPN gateways
+    name: 'Standard'
     tier: 'Regional'
   }
-  // Zones required in regions that enforce it for Standard IPs
-  // This makes the gateway effectively zone-pinned, but Basic SKU accepts it
-  zones: ['1']
+  zones: ['1', '2', '3']  // Zone-redundant for VpnGw1AZ
   properties: {
-    publicIPAllocationMethod: 'Static'  // Required for new Basic SKU VPN gateways
+    publicIPAllocationMethod: 'Static'
     publicIPAddressVersion: 'IPv4'
   }
 }
 
 // ============================================================================
-// VPN Gateway (Basic SKU)
+// VPN Gateway (VpnGw1AZ - Zone-Redundant)
 // ============================================================================
 
 resource vpnGateway 'Microsoft.Network/virtualNetworkGateways@2024-01-01' = {
@@ -61,9 +55,10 @@ resource vpnGateway 'Microsoft.Network/virtualNetworkGateways@2024-01-01' = {
   properties: {
     gatewayType: 'Vpn'
     vpnType: 'RouteBased'
+    vpnGatewayGeneration: 'Generation1'
     sku: {
-      name: 'Basic'
-      tier: 'Basic'
+      name: 'VpnGw1AZ'
+      tier: 'VpnGw1AZ'
     }
     enableBgp: false
     activeActive: false

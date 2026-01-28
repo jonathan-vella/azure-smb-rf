@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.39.26.7824",
-      "templateHash": "13566849602433393467"
+      "templateHash": "1443477126647555507"
     }
   },
   "parameters": {
@@ -575,7 +575,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "75250376482732586"
+              "templateHash": "2178017103329872166"
             }
           },
           "parameters": {
@@ -615,7 +615,9 @@
                 "tier": "Regional"
               },
               "zones": [
-                "1"
+                "1",
+                "2",
+                "3"
               ],
               "properties": {
                 "publicIPAllocationMethod": "Static",
@@ -631,9 +633,10 @@
               "properties": {
                 "gatewayType": "Vpn",
                 "vpnType": "RouteBased",
+                "vpnGatewayGeneration": "Generation1",
                 "sku": {
-                  "name": "Basic",
-                  "tier": "Basic"
+                  "name": "VpnGw1AZ",
+                  "tier": "VpnGw1AZ"
                 },
                 "enableBgp": false,
                 "activeActive": false,
