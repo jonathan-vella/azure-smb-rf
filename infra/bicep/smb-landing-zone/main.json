@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.39.26.7824",
-      "templateHash": "16952246049897073082"
+      "templateHash": "1577433463061823286"
     }
   },
   "parameters": {
@@ -77,13 +77,11 @@
         "description": "VPN Gateway SKU (Basic for dev/test, VpnGw1AZ for production)"
       }
     },
-    "logAnalyticsDailyCapMb": {
-      "type": "int",
-      "defaultValue": 500,
-      "minValue": 100,
-      "maxValue": 5000,
+    "logAnalyticsDailyCapGb": {
+      "type": "string",
+      "defaultValue": "0.5",
       "metadata": {
-        "description": "Log Analytics daily ingestion cap in MB"
+        "description": "Log Analytics daily ingestion cap in GB (decimal, e.g. 0.5 for ~500MB)"
       }
     },
     "budgetAmount": {
@@ -161,7 +159,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "4156678372408846525"
+              "templateHash": "14525703166816057413"
             }
           },
           "parameters": {
@@ -240,7 +238,7 @@
               "storageTls12": "/providers/Microsoft.Authorization/policyDefinitions/fe83a0eb-a853-422d-aac2-1bffd182c5d0",
               "restrictStorageNetwork": "/providers/Microsoft.Authorization/policyDefinitions/34c877ad-507e-4c82-993e-3452a6e0ad3c",
               "storageArmMigration": "/providers/Microsoft.Authorization/policyDefinitions/37e0d2fe-28a5-43d6-a273-67d37d1f5606",
-              "sqlAzureAdOnly": "/providers/Microsoft.Authorization/policyDefinitions/abda6d70-9778-44e7-84a8-06f9e9f5b64b",
+              "sqlAzureAdOnly": "/providers/Microsoft.Authorization/policyDefinitions/b3a22bc9-66de-45fb-98fa-00f5df42f41a",
               "sqlNoPublicAccess": "/providers/Microsoft.Authorization/policyDefinitions/1b8ca024-1d5c-4dec-8995-b1a932b41780",
               "requireTag": "/providers/Microsoft.Authorization/policyDefinitions/871b6d14-10aa-478d-b590-94f262ecfa99",
               "allowedLocations": "/providers/Microsoft.Authorization/policyDefinitions/e56962a6-4747-49cd-b67b-bf8b01975c4c",
@@ -563,7 +561,21 @@
                 "displayName": "SMB LZ: Diagnostic Settings Required",
                 "description": "Audit resources that do not have diagnostic settings configured",
                 "policyDefinitionId": "[variables('policyDefinitions').diagnosticSettings]",
-                "enforcementMode": "Default"
+                "enforcementMode": "Default",
+                "parameters": {
+                  "listOfResourceTypes": {
+                    "value": [
+                      "Microsoft.Compute/virtualMachines",
+                      "Microsoft.Network/virtualNetworks",
+                      "Microsoft.Network/networkSecurityGroups",
+                      "Microsoft.Network/azureFirewalls",
+                      "Microsoft.Network/bastionHosts",
+                      "Microsoft.KeyVault/vaults",
+                      "Microsoft.RecoveryServices/vaults",
+                      "Microsoft.Sql/servers"
+                    ]
+                  }
+                }
               },
               "metadata": {
                 "description": "Audit resources without diagnostic settings"
@@ -984,7 +996,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "4792450834795792872"
+              "templateHash": "6312996058290688948"
             }
           },
           "parameters": {
@@ -1033,7 +1045,7 @@
             "bastionSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 26, 0)]",
             "firewallSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 26, 1)]",
             "gatewaySubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 27, 4)]",
-            "managementSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 24, 1)]"
+            "managementSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 26, 3)]"
           },
           "resources": [
             {
@@ -1281,7 +1293,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "8156311563602296527"
+              "templateHash": "15979012821941782590"
             }
           },
           "parameters": {
@@ -1328,9 +1340,9 @@
             "nsgName": "[format('nsg-spoke-{0}-{1}', parameters('environment'), parameters('regionShort'))]",
             "natGatewayName": "[format('nat-spoke-{0}-{1}', parameters('environment'), parameters('regionShort'))]",
             "natPublicIpName": "[format('pip-nat-{0}-{1}', parameters('environment'), parameters('regionShort'))]",
-            "workloadSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 24, 0)]",
-            "dataSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 24, 1)]",
-            "appSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 24, 2)]"
+            "workloadSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 25, 0)]",
+            "dataSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 25, 1)]",
+            "appSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 25, 2)]"
           },
           "resources": [
             {
@@ -1578,8 +1590,8 @@
           "regionShort": {
             "value": "[variables('regionShort')]"
           },
-          "dailyCapMb": {
-            "value": "[parameters('logAnalyticsDailyCapMb')]"
+          "dailyCapGb": {
+            "value": "[parameters('logAnalyticsDailyCapGb')]"
           },
           "tags": {
             "value": "[variables('sharedServicesTags')]"
@@ -1592,7 +1604,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "12142591026945721097"
+              "templateHash": "18252502359208825681"
             }
           },
           "parameters": {
@@ -1621,13 +1633,11 @@
                 "description": "Region abbreviation for naming"
               }
             },
-            "dailyCapMb": {
-              "type": "int",
-              "defaultValue": 500,
-              "minValue": 100,
-              "maxValue": 5000,
+            "dailyCapGb": {
+              "type": "string",
+              "defaultValue": "0.5",
               "metadata": {
-                "description": "Daily ingestion cap in MB"
+                "description": "Daily ingestion cap in GB (0 = no cap, minimum 0.023 GB if set). Use decimal values e.g., 0.5 for ~500MB"
               }
             },
             "tags": {
@@ -1638,7 +1648,8 @@
             }
           },
           "variables": {
-            "workspaceName": "[format('log-smblz-{0}-{1}', parameters('environment'), parameters('regionShort'))]"
+            "workspaceName": "[format('log-smblz-{0}-{1}', parameters('environment'), parameters('regionShort'))]",
+            "dailyQuotaGbValue": "[json(parameters('dailyCapGb'))]"
           },
           "resources": [
             {
@@ -1652,9 +1663,7 @@
                   "name": "PerGB2018"
                 },
                 "retentionInDays": 30,
-                "workspaceCapping": {
-                  "dailyQuotaGb": "[div(parameters('dailyCapMb'), 1024)]"
-                },
+                "workspaceCapping": "[if(greater(variables('dailyQuotaGbValue'), 0), createObject('dailyQuotaGb', variables('dailyQuotaGbValue')), null())]",
                 "features": {
                   "enableLogAccessUsingOnlyResourcePermissions": true
                 },
@@ -1729,7 +1738,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "16574328131334574224"
+              "templateHash": "12941598578613445886"
             }
           },
           "parameters": {
@@ -1790,21 +1799,6 @@
               },
               "metadata": {
                 "description": "Recovery Services Vault for VM backup with LRS storage"
-              }
-            },
-            {
-              "type": "Microsoft.RecoveryServices/vaults/backupstorageconfig",
-              "apiVersion": "2024-04-01",
-              "name": "[format('{0}/{1}', variables('vaultName'), 'vaultstorageconfig')]",
-              "properties": {
-                "storageModelType": "LocallyRedundant",
-                "crossRegionRestoreFlag": false
-              },
-              "dependsOn": [
-                "[resourceId('Microsoft.RecoveryServices/vaults', variables('vaultName'))]"
-              ],
-              "metadata": {
-                "description": "Configure vault storage replication to LRS"
               }
             }
           ],

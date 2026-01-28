@@ -7,6 +7,12 @@ echo "🚀 Running post-create setup for Agentic InfraOps..."
 exec 1> >(tee -a ~/.devcontainer-install.log)
 exec 2>&1
 
+# Upgrade Bicep to latest version (Azure CLI bundles older version)
+echo "🔧 Upgrading Bicep CLI to latest..."
+az bicep upgrade 2>/dev/null || az bicep install
+BICEP_VERSION=$(bicep --version 2>&1 | grep -oP 'version \K[0-9.]+' || echo "unknown")
+echo "  ✅ Bicep CLI v${BICEP_VERSION}"
+
 # Create directories
 echo "📂 Creating cache directories..."
 mkdir -p "${HOME}/.cache"

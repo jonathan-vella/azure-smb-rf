@@ -42,13 +42,15 @@ var natGatewayName = 'nat-spoke-${environment}-${regionShort}'
 var natPublicIpName = 'pip-nat-${environment}-${regionShort}'
 
 // Subnet address ranges (derived from VNet address space)
-// Assuming 10.1.0.0/16:
-// - WorkloadSubnet: 10.1.0.0/24 (256 addresses)
-// - DataSubnet: 10.1.1.0/24 (256 addresses)
-// - AppSubnet: 10.1.2.0/24 (256 addresses)
-var workloadSubnetPrefix = cidrSubnet(vnetAddressSpace, 24, 0)
-var dataSubnetPrefix = cidrSubnet(vnetAddressSpace, 24, 1)
-var appSubnetPrefix = cidrSubnet(vnetAddressSpace, 24, 2)
+// Using /25 subnets (128 addresses each) to fit within /23 VNet:
+// For 10.0.2.0/23:
+// - WorkloadSubnet: 10.0.2.0/25 (128 addresses)
+// - DataSubnet: 10.0.2.128/25 (128 addresses)
+// - AppSubnet: 10.0.3.0/25 (128 addresses)
+// - Reserved: 10.0.3.128/25 (128 addresses for future use)
+var workloadSubnetPrefix = cidrSubnet(vnetAddressSpace, 25, 0)
+var dataSubnetPrefix = cidrSubnet(vnetAddressSpace, 25, 1)
+var appSubnetPrefix = cidrSubnet(vnetAddressSpace, 25, 2)
 
 // ============================================================================
 // NAT Gateway Public IP

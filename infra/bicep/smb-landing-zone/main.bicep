@@ -49,10 +49,8 @@ param deployVpnGateway bool = false
 ])
 param vpnGatewaySku string = 'Basic'
 
-@description('Log Analytics daily ingestion cap in MB')
-@minValue(100)
-@maxValue(5000)
-param logAnalyticsDailyCapMb int = 500
+@description('Log Analytics daily ingestion cap in GB (decimal, e.g. 0.5 for ~500MB)')
+param logAnalyticsDailyCapGb string = '0.5'
 
 @description('Monthly budget amount in USD')
 @minValue(100)
@@ -200,7 +198,7 @@ module monitoring 'modules/monitoring.bicep' = {
     location: location
     environment: 'slz'
     regionShort: regionShort
-    dailyCapMb: logAnalyticsDailyCapMb
+    dailyCapGb: logAnalyticsDailyCapGb
     tags: sharedServicesTags
   }
   dependsOn: [

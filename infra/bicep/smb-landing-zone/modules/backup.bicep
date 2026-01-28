@@ -56,17 +56,9 @@ resource recoveryVault 'Microsoft.RecoveryServices/vaults@2024-04-01' = {
         softDeleteRetentionPeriodInDays: 14
       }
     }
-  }
-}
-
-// Configure vault storage to LRS for cost optimization
-@description('Configure vault storage replication to LRS')
-resource vaultStorageConfig 'Microsoft.RecoveryServices/vaults/backupstorageconfig@2024-04-01' = {
-  parent: recoveryVault
-  name: 'vaultstorageconfig'
-  properties: {
-    storageModelType: 'LocallyRedundant'
-    crossRegionRestoreFlag: false
+    // Note: Storage redundancy (LRS/GRS) is configured at vault creation and cannot be changed
+    // For new vaults, default is GRS. For cost optimization, use Azure CLI during initial setup:
+    // az backup vault backup-properties set --resource-group $rg --name $vault --backup-storage-redundancy LocallyRedundant
   }
 }
 

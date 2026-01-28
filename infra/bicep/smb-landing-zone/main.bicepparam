@@ -13,8 +13,8 @@ param owner = ''  // e.g., 'partner-ops@contoso.com'
 // Optional parameters with sensible defaults
 param location = 'swedencentral'
 param environment = 'prod'
-param hubVnetAddressSpace = '10.0.0.0/16'
-param spokeVnetAddressSpace = '10.1.0.0/16'
+param hubVnetAddressSpace = '10.0.0.0/23'
+param spokeVnetAddressSpace = '10.0.2.0/23'
 
 // Optional services - disabled by default for cost optimization
 param deployFirewall = false
@@ -22,5 +22,5 @@ param deployVpnGateway = false
 param vpnGatewaySku = 'Basic'
 
 // Monitoring and cost controls
-param logAnalyticsDailyCapMb = 500
+param logAnalyticsDailyCapGb = '0.5'  // ~500 MB/day
 param budgetAmount = 500

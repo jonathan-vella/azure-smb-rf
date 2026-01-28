@@ -5,7 +5,39 @@
 **Project**: smb-landing-zone  
 **Project Version**: 0.1.0  
 **Artifact Version**: v0.1  
-**Current Step**: Step 5 complete → Step 6 (deploy) next
+**Current Step**: ✅ Step 6 (deploy) COMPLETE
+
+---
+
+## Deployment Completed Successfully
+
+**Deployment Name**: `smb-lz-prod-20260128-125505`  
+**Duration**: 2.2 minutes  
+**Subscription**: noalz (00858ffc-dded-4f0f-8bbf-e17fff0d47d9)  
+**Region**: swedencentral
+
+### Deployed Resources
+
+| Resource           | Name                                     | Resource Group       |
+| ------------------ | ---------------------------------------- | -------------------- |
+| Hub VNet           | `vnet-hub-slz-swc`                       | `rg-hub-slz-swc`     |
+| Spoke VNet         | `vnet-spoke-prod-swc`                    | `rg-spoke-prod-swc`  |
+| Bastion            | `bas-hub-slz-swc`                        | `rg-hub-slz-swc`     |
+| NAT Gateway        | `nat-spoke-prod-swc` (IP: 20.91.244.149) | `rg-spoke-prod-swc`  |
+| Log Analytics      | `log-smblz-slz-swc`                      | `rg-monitor-slz-swc` |
+| Recovery Vault     | `rsv-smblz-slz-swc`                      | `rg-backup-slz-swc`  |
+| Migrate Project    | `migrate-smblz-slz-swc`                  | `rg-migrate-slz-swc` |
+| Policy Assignments | 20 `smb-lz-*` policies                   | Subscription scope   |
+| Budget             | `budget-smb-lz-monthly` ($500/mo)        | Subscription scope   |
+
+### Issues Fixed During Deployment
+
+| Issue                                                       | Fix Applied                                                      |
+| ----------------------------------------------------------- | ---------------------------------------------------------------- |
+| Policy `smb-lz-identity-01` referenced deprecated ID        | Updated to `b3a22bc9-66de-45fb-98fa-00f5df42f41a`                |
+| Policy `smb-lz-monitoring-01` missing `listOfResourceTypes` | Added required parameter with 8 resource types                   |
+| Log Analytics `dailyQuotaGb` integer division = 0           | Changed param from int (MB) to string (GB) with `json()` parsing |
+| Recovery Services Vault `backupstorageconfig` API conflict  | Removed conflicting child resource                               |
 
 ---
 
@@ -72,36 +104,17 @@
 | `ba8211b` | Initial requirements, assessment, cost estimate       |
 | `a3635d3` | Pre-commit fixes, agent modifications                 |
 | `9f12f57` | Versioning (0.1.0), ADR, diagram, implementation plan |
-| (pending) | Step 5: Bicep implementation + slz naming update      |
+| (pending) | Step 5 + 6: Bicep implementation + deployment fixes   |
 
 ---
 
-## Ready for Deployment
+## Next Steps
 
-**Next Action**: Deploy infrastructure to Azure → proceed to `@deploy` agent
-
-```bash
-# What-if preview:
-cd /workspaces/agentic-infraops-smb/infra/bicep/smb-landing-zone
-az deployment sub what-if --location swedencentral \
-  --template-file main.bicep --parameters main.bicepparam
-
-# To deploy:
-az deployment sub create --location swedencentral \
-  --template-file main.bicep --parameters main.bicepparam \
-  --name "smb-landing-zone-$(date +%Y%m%d%H%M)"
-```
-
-**Resource Groups to be created**:
-
-| Resource Group       | Environment Tag | Purpose                 |
-| -------------------- | --------------- | ----------------------- |
-| `rg-hub-slz-swc`     | slz             | Hub networking, Bastion |
-| `rg-spoke-prod-swc`  | prod            | Spoke workload VMs      |
-| `rg-monitor-slz-swc` | slz             | Log Analytics           |
-| `rg-backup-slz-swc`  | slz             | Recovery Services Vault |
-| `rg-migrate-slz-swc` | slz             | Azure Migrate project   |
+1. ✅ **Deployment complete** - all resources deployed to Azure
+2. 🔄 Commit and push latest Bicep fixes
+3. 📝 Generate `06-deployment-summary.md` artifact
+4. 📝 Generate as-built documentation (Step 7)
 
 ---
 
-**Status**: ✅ Ready for deployment - Bicep validated, naming updated
+**Status**: ✅ Deployment successful - Infrastructure live in Azure

@@ -84,7 +84,7 @@ var policyDefinitions = {
   storageArmMigration: '/providers/Microsoft.Authorization/policyDefinitions/37e0d2fe-28a5-43d6-a273-67d37d1f5606'
 
   // Identity policies
-  sqlAzureAdOnly: '/providers/Microsoft.Authorization/policyDefinitions/abda6d70-9778-44e7-84a8-06f9e9f5b64b'
+  sqlAzureAdOnly: '/providers/Microsoft.Authorization/policyDefinitions/b3a22bc9-66de-45fb-98fa-00f5df42f41a'
   sqlNoPublicAccess: '/providers/Microsoft.Authorization/policyDefinitions/1b8ca024-1d5c-4dec-8995-b1a932b41780'
 
   // Tagging policies
@@ -379,6 +379,20 @@ resource policyMonitoring01 'Microsoft.Authorization/policyAssignments@2024-04-0
     description: 'Audit resources that do not have diagnostic settings configured'
     policyDefinitionId: policyDefinitions.diagnosticSettings
     enforcementMode: 'Default'
+    parameters: {
+      listOfResourceTypes: {
+        value: [
+          'Microsoft.Compute/virtualMachines'
+          'Microsoft.Network/virtualNetworks'
+          'Microsoft.Network/networkSecurityGroups'
+          'Microsoft.Network/azureFirewalls'
+          'Microsoft.Network/bastionHosts'
+          'Microsoft.KeyVault/vaults'
+          'Microsoft.RecoveryServices/vaults'
+          'Microsoft.Sql/servers'
+        ]
+      }
+    }
   }
 }
 

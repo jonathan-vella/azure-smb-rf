@@ -41,15 +41,17 @@ var bastionName = 'bas-hub-${environment}-${regionShort}'
 var privateDnsZoneName = 'privatelink.azure.com'
 
 // Subnet address ranges (derived from VNet address space)
-// Assuming 10.0.0.0/16:
-// - AzureBastionSubnet: 10.0.0.0/26 (64 addresses)
-// - AzureFirewallSubnet: 10.0.0.64/26 (64 addresses, reserved)
-// - GatewaySubnet: 10.0.0.128/27 (32 addresses, reserved)
-// - ManagementSubnet: 10.0.1.0/24 (256 addresses)
-var bastionSubnetPrefix = cidrSubnet(vnetAddressSpace, 26, 0)      // /26
-var firewallSubnetPrefix = cidrSubnet(vnetAddressSpace, 26, 1)     // /26
-var gatewaySubnetPrefix = cidrSubnet(vnetAddressSpace, 27, 4)      // /27
-var managementSubnetPrefix = cidrSubnet(vnetAddressSpace, 24, 1)   // /24
+// Designed for /23 VNet (512 IPs):
+// For 10.0.0.0/23 (10.0.0.0 - 10.0.1.255):
+// - AzureBastionSubnet: 10.0.0.0/26 (64 addresses, 0-63)
+// - AzureFirewallSubnet: 10.0.0.64/26 (64 addresses, 64-127, reserved)
+// - GatewaySubnet: 10.0.0.128/27 (32 addresses, 128-159, reserved)
+// - ManagementSubnet: 10.0.0.192/26 (64 addresses, 192-255)
+// Remaining: 10.0.1.0/24 (256 addresses for future use)
+var bastionSubnetPrefix = cidrSubnet(vnetAddressSpace, 26, 0)      // /26 = 64 IPs
+var firewallSubnetPrefix = cidrSubnet(vnetAddressSpace, 26, 1)     // /26 = 64 IPs
+var gatewaySubnetPrefix = cidrSubnet(vnetAddressSpace, 27, 4)      // /27 = 32 IPs (starts at .128)
+var managementSubnetPrefix = cidrSubnet(vnetAddressSpace, 26, 3)   // /26 = 64 IPs (starts at .192)
 
 // ============================================================================
 // Network Security Group

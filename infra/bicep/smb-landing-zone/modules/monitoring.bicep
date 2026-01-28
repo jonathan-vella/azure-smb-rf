@@ -25,10 +25,8 @@ param environment string
 @description('Region abbreviation for naming')
 param regionShort string
 
-@description('Daily ingestion cap in MB')
-@minValue(100)
-@maxValue(5000)
-param dailyCapMb int = 500
+@description('Daily ingestion cap in GB (0 = no cap, minimum 0.023 GB if set). Use decimal values e.g., 0.5 for ~500MB')
+param dailyCapGb string = '0.5'
 
 @description('Tags to apply to all resources')
 param tags object
@@ -39,6 +37,10 @@ param tags object
 
 // Resource naming
 var workspaceName = 'log-smblz-${environment}-${regionShort}'
+
+// Parse daily cap from string to allow decimal values
+// Minimum Azure allows is 0.023 GB (~24 MB). If dailyCapGb is '0', omit the cap.
+var dailyQuotaGbValue = json(dailyCapGb)
 
 // ============================================================================
 // Log Analytics Workspace
@@ -54,9 +56,9 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
       name: 'PerGB2018'
     }
     retentionInDays: 30
-    workspaceCapping: {
-      dailyQuotaGb: dailyCapMb / 1024
-    }
+    workspaceCapping: dailyQuotaGbValue > 0 ? {
+      dailyQuotaGb: dailyQuotaGbValue
+    } : null
     features: {
       enableLogAccessUsingOnlyResourcePermissions: true
     }
