@@ -567,21 +567,21 @@ graph TD
 
 ## Naming Conventions
 
-| Resource Type    | Pattern                        | Example               |
-| ---------------- | ------------------------------ | --------------------- |
-| Resource Group   | rg-{workload}-{env}-{region}   | rg-hub-prod-swc       |
-| Virtual Network  | vnet-{workload}-{env}-{region} | vnet-hub-prod-swc     |
-| Subnet           | snet-{purpose}                 | snet-workload         |
-| NSG              | nsg-{workload}-{env}-{region}  | nsg-hub-prod-swc      |
-| NAT Gateway      | nat-{workload}-{env}-{region}  | nat-spoke-prod-swc    |
-| Public IP        | pip-{purpose}-{env}-{region}   | pip-nat-prod-swc      |
-| Azure Bastion    | bas-{workload}-{env}-{region}  | bas-hub-prod-swc      |
-| Azure Firewall   | fw-{workload}-{env}-{region}   | fw-hub-prod-swc       |
-| VPN Gateway      | vpng-{workload}-{env}-{region} | vpng-hub-prod-swc     |
-| Log Analytics    | log-{project}-{env}-{region}   | log-smblz-prod-swc    |
-| Recovery Vault   | rsv-{project}-{env}-{region}   | rsv-smblz-prod-swc    |
-| Private DNS Zone | {service}.azure.com            | privatelink.azure.com |
-| Budget           | budget-{project}-monthly       | budget-smb-lz-monthly |
+| Resource Type    | Pattern                        | Example               | Notes                            |
+| ---------------- | ------------------------------ | --------------------- | -------------------------------- |
+| Resource Group   | rg-{workload}-{env}-{region}   | rg-hub-slz-swc        | Shared services use `slz` as env |
+| Virtual Network  | vnet-{workload}-{env}-{region} | vnet-hub-slz-swc      | Hub uses `slz`, spoke uses env   |
+| Subnet           | snet-{purpose}                 | snet-workload         |                                  |
+| NSG              | nsg-{workload}-{env}-{region}  | nsg-hub-slz-swc       | Shared services use `slz`        |
+| NAT Gateway      | nat-{workload}-{env}-{region}  | nat-spoke-prod-swc    | Spoke uses environment parameter |
+| Public IP        | pip-{purpose}-{env}-{region}   | pip-nat-prod-swc      |                                  |
+| Azure Bastion    | bas-{workload}-{env}-{region}  | bas-hub-slz-swc       | Shared services use `slz`        |
+| Azure Firewall   | fw-{workload}-{env}-{region}   | fw-hub-slz-swc        | Shared services use `slz`        |
+| VPN Gateway      | vpng-{workload}-{env}-{region} | vpng-hub-slz-swc      | Shared services use `slz`        |
+| Log Analytics    | log-{project}-{env}-{region}   | log-smblz-slz-swc     | Shared services use `slz`        |
+| Recovery Vault   | rsv-{project}-{env}-{region}   | rsv-smblz-slz-swc     | Shared services use `slz`        |
+| Private DNS Zone | {service}.azure.com            | privatelink.azure.com |                                  |
+| Budget           | budget-{project}-monthly       | budget-smb-lz-monthly |                                  |
 
 **Region Abbreviations**:
 

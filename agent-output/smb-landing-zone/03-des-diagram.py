@@ -63,7 +63,7 @@ with Diagram(
             policies = Tags("20 Azure Policies\n(Deny/Audit)")
 
         # Hub Resource Group
-        with Cluster("rg-hub-swedencentral-001"):
+        with Cluster("rg-hub-slz-swc"):
 
             with Cluster("Hub VNet (10.0.0.0/16)"):
 
@@ -81,7 +81,7 @@ with Diagram(
             hub_nsg = NetworkSecurityGroupsClassic("Hub NSG\nDefault Deny")
 
         # Spoke Resource Group
-        with Cluster("rg-spoke-swedencentral-001"):
+        with Cluster("rg-spoke-prod-swc"):
 
             with Cluster("Spoke VNet (10.1.0.0/16)"):
 
@@ -94,15 +94,15 @@ with Diagram(
                     ]
 
         # Migration Resource Group
-        with Cluster("rg-migrate-swedencentral-001"):
+        with Cluster("rg-migrate-slz-swc"):
             migrate = MigrationProjects("Azure Migrate\nVMware Assessment")
 
         # Monitor Resource Group
-        with Cluster("rg-monitor-swedencentral-001"):
+        with Cluster("rg-monitor-slz-swc"):
             logs = ApplicationInsights("Log Analytics\n500MB/day cap")
 
         # Backup Resource Group
-        with Cluster("rg-backup-swedencentral-001"):
+        with Cluster("rg-backup-slz-swc"):
             vault = RecoveryServicesVaults("Recovery Services\nVault")
 
     # Data flow connections
