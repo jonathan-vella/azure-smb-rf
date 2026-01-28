@@ -24,7 +24,7 @@
 ## ✅ Decision Summary
 
 - ✅ **Approved**: Baseline infrastructure (~$48/mo) with all required services
-- ⏳ **Deferred**: Azure Firewall (+$288/mo), VPN Gateway Basic (+$27/mo) - deploy on demand
+- ⏳ **Deferred**: Azure Firewall (+$288/mo), VPN Gateway VpnGw1AZ (+$140/mo) - deploy on demand
 - 🔁 **Redesign Trigger**: SLA requirement > 99.9% forces zone-redundant SKUs
 
 **Confidence**: High | **Expected Variance**: ±15% (NAT Gateway data processing varies by workload)
@@ -37,15 +37,15 @@
 | Cost < $500/month   | Bastion Developer, Log Analytics cap, Free Defender | Enables budget compliance | Yes       |
 | Secure VM access    | Azure Bastion Developer                             | $0/month                  | Yes       |
 | Outbound internet   | NAT Gateway Standard                                | +$32/month                | Yes       |
-| Hybrid connectivity | VPN Gateway Basic (optional)                        | +$27/month                | No        |
+| Hybrid connectivity | VPN Gateway VpnGw1AZ (optional)                     | +$140/month               | No        |
 | Network inspection  | Azure Firewall Basic (optional)                     | +$288/month               | No        |
 
 ## 📊 Top 5 Cost Drivers
 
 | Rank | Resource                        | Monthly Cost | % of Total | Trend               |
 | ---- | ------------------------------- | ------------ | ---------- | ------------------- |
-| 1️⃣   | Azure Firewall Basic (optional) | $288         | 80%        | ➡️ Fixed            |
-| 2️⃣   | VPN Gateway Basic (optional)    | $27          | 8%         | ➡️ Fixed            |
+| 1️⃣   | Azure Firewall Basic (optional) | $288         | 67%        | ➡️ Fixed            |
+| 2️⃣   | VPN Gateway VpnGw1AZ (optional) | $140         | 33%        | ➡️ Fixed            |
 | 3️⃣   | NAT Gateway Standard            | $32          | 7%         | 📈 Data-dependent   |
 | 4️⃣   | Log Analytics Ingestion         | $10          | 2%         | ➡️ Capped           |
 | 5️⃣   | Recovery Services Vault         | $5           | 1%         | 📈 Backup-dependent |
@@ -92,7 +92,7 @@ pie showData
 
 - ❌ **Zone redundancy** - Requires premium SKUs (+$100+/month)
 - ❌ **Azure Firewall** - Deploy when network inspection required (+$288/month)
-- ❌ **VPN Gateway** - Deploy when on-premises connectivity required (+$27/month with Basic SKU)
+- ❌ **VPN Gateway** - Deploy when on-premises connectivity required (+$140/month with VpnGw1AZ)
 - ❌ **Private endpoints** - Not needed for baseline; add for PaaS integration
 - ❌ **Defender for Servers** - Free tier only; add for advanced threat protection (+$15/VM/month)
 - ❌ **Application Gateway/WAF** - Not in scope; add for web workloads
@@ -119,15 +119,14 @@ pie showData
 
 _"If you need X, expect to pay Y more"_
 
-| Requirement                 | Additional Cost | SKU Change                        | Notes                                            |
-| --------------------------- | --------------- | --------------------------------- | ------------------------------------------------ |
-| Hybrid VPN connectivity     | +$27/month      | Add VPN Gateway Basic             | 100 Mbps; max 10 S2S tunnels; on-premises access |
-| Zone-redundant VPN          | +$140/month     | Add VPN Gateway VpnGw1AZ          | 650 Mbps; BGP support; zone-redundant            |
-| Network traffic inspection  | +$288/month     | Add Azure Firewall Basic          | Required for compliance/security                 |
-| Zone redundancy             | +$50-150/month  | Upgrade NAT Gateway to StandardV2 | Requires architecture review                     |
-| Concurrent Bastion sessions | +$138/month     | Upgrade Bastion to Basic          | Developer supports 1 connection only             |
-| Advanced threat protection  | +$15/VM/month   | Defender for Servers P1           | Per-VM pricing                                   |
-| Higher VPN throughput       | +$140/month     | Upgrade to VpnGw2AZ               | 1 Gbps vs 650 Mbps; zone-redundant               |
+| Requirement                 | Additional Cost | SKU Change                        | Notes                                        |
+| --------------------------- | --------------- | --------------------------------- | -------------------------------------------- |
+| Hybrid VPN connectivity     | +$140/month     | Add VPN Gateway VpnGw1AZ          | 650 Mbps; max 30 S2S tunnels; zone-redundant |
+| Network traffic inspection  | +$288/month     | Add Azure Firewall Basic          | Required for compliance/security             |
+| Zone redundancy             | +$50-150/month  | Upgrade NAT Gateway to StandardV2 | Requires architecture review                 |
+| Concurrent Bastion sessions | +$138/month     | Upgrade Bastion to Basic          | Developer supports 1 connection only         |
+| Advanced threat protection  | +$15/VM/month   | Defender for Servers P1           | Per-VM pricing                               |
+| Higher VPN throughput       | +$140/month     | Upgrade to VpnGw2AZ               | 1 Gbps vs 650 Mbps; zone-redundant           |
 
 ## 💰 Savings Opportunities
 
@@ -179,18 +178,18 @@ _"If you need X, expect to pay Y more"_
 | Category        | Service        | SKU / Meter  | Quantity / Units      | Est. Monthly |
 | --------------- | -------------- | ------------ | --------------------- | ------------ |
 | 🔥 Security     | Azure Firewall | Basic        | 730 hours @ $0.395/hr | **$288.35**  |
-| 🔗 Connectivity | VPN Gateway    | Basic        | 730 hours @ $0.036/hr | **$26.28**   |
+| 🔗 Connectivity | VPN Gateway    | VpnGw1AZ     | 730 hours @ $0.19/hr  | **$138.70**  |
 | 🌐 Networking   | VNet Peering   | Intra-region | 2 peerings            | **$0.00**    |
-|                 |                |              | **OPTIONAL TOTAL**    | **~$314.63** |
+|                 |                |              | **OPTIONAL TOTAL**    | **~$427.05** |
 
 ### Total Cost Summary
 
-| Scenario                   | Monthly | Annual  | vs. Budget         |
-| -------------------------- | ------- | ------- | ------------------ |
-| **Baseline only**          | ~$48    | ~$576   | ✅ 10% utilization |
-| **Baseline + Firewall**    | ~$336   | ~$4,032 | ✅ 67% utilization |
-| **Baseline + VPN (Basic)** | ~$75    | ~$900   | ✅ 15% utilization |
-| **All services**           | ~$363   | ~$4,356 | ✅ 73% utilization |
+| Scenario                      | Monthly | Annual  | vs. Budget         |
+| ----------------------------- | ------- | ------- | ------------------ |
+| **Baseline only**             | ~$48    | ~$576   | ✅ 10% utilization |
+| **Baseline + Firewall**       | ~$336   | ~$4,032 | ✅ 67% utilization |
+| **Baseline + VPN (VpnGw1AZ)** | ~$187   | ~$2,244 | ✅ 37% utilization |
+| **All services**              | ~$476   | ~$5,712 | ✅ 95% utilization |
 
 ### Notes
 

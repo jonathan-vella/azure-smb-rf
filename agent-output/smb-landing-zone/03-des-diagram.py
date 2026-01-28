@@ -74,7 +74,7 @@ with Diagram(
                     firewall = Firewall("Azure Firewall\nBasic (Optional)")
 
                 with Cluster("GatewaySubnet (/27) [reserved]"):
-                    vpn = VirtualNetworkGateways("VPN Gateway\nBasic (Optional)")
+                    vpn = VirtualNetworkGateways("VPN Gateway\nVpnGw1AZ (Optional)")
 
             # Hub supporting services
             dns = DNSPrivateZones("Private DNS Zone\nauto-registration")

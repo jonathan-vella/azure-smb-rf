@@ -150,22 +150,22 @@ This architecture delivers a **cost-optimized, repeatable Azure landing zone** f
 
 ### 💰 Cost Assessment (9/10)
 
-| Service                 | SKU                    | Monthly Cost    | Notes                               |
-| ----------------------- | ---------------------- | --------------- | ----------------------------------- |
-| Azure Bastion           | Developer              | **$0**          | Free tier; shared infrastructure    |
-| NAT Gateway             | Standard               | **~$32**        | $0.045/hr + $0.045/GB processed     |
-| Log Analytics           | Per-GB (500MB/day cap) | **~$10**        | ~15GB/month @ $2.76/GB ingestion    |
-| Recovery Services Vault | Standard               | **~$5**         | Base cost; backup storage extra     |
-| Private DNS Zone        | Standard               | **~$0.50**      | $0.50/zone/month                    |
-| Cost Management Budget  | N/A                    | **$0**          | Free feature                        |
-| Defender for Cloud      | Free                   | **$0**          | CSPM basics only                    |
-| Hub VNet + Spoke VNet   | N/A                    | **$0**          | VNets are free                      |
-| NSGs (2x)               | N/A                    | **$0**          | NSGs are free                       |
-| Azure Migrate Project   | N/A                    | **$0**          | Assessment is free                  |
-| **Baseline Total**      |                        | **~$48/month**  | Without optional services           |
-| Azure Firewall          | Basic                  | **+$288/month** | Optional                            |
-| VPN Gateway             | Basic                  | **+$27/month**  | Optional; cheapest tier (~$0.04/hr) |
-| **Maximum Total**       |                        | **~$363/month** | All optional services (Basic SKUs)  |
+| Service                 | SKU                    | Monthly Cost    | Notes                                |
+| ----------------------- | ---------------------- | --------------- | ------------------------------------ |
+| Azure Bastion           | Developer              | **$0**          | Free tier; shared infrastructure     |
+| NAT Gateway             | Standard               | **~$32**        | $0.045/hr + $0.045/GB processed      |
+| Log Analytics           | Per-GB (500MB/day cap) | **~$10**        | ~15GB/month @ $2.76/GB ingestion     |
+| Recovery Services Vault | Standard               | **~$5**         | Base cost; backup storage extra      |
+| Private DNS Zone        | Standard               | **~$0.50**      | $0.50/zone/month                     |
+| Cost Management Budget  | N/A                    | **$0**          | Free feature                         |
+| Defender for Cloud      | Free                   | **$0**          | CSPM basics only                     |
+| Hub VNet + Spoke VNet   | N/A                    | **$0**          | VNets are free                       |
+| NSGs (2x)               | N/A                    | **$0**          | NSGs are free                        |
+| Azure Migrate Project   | N/A                    | **$0**          | Assessment is free                   |
+| **Baseline Total**      |                        | **~$48/month**  | Without optional services            |
+| Azure Firewall          | Basic                  | **+$288/month** | Optional                             |
+| VPN Gateway             | VpnGw1AZ               | **+$140/month** | Optional; zone-redundant (~$0.19/hr) |
+| **Maximum Total**       |                        | **~$476/month** | All optional services                |
 
 **Cost Optimization Applied:**
 
@@ -201,30 +201,30 @@ This architecture delivers a **cost-optimized, repeatable Azure landing zone** f
 
 ## Resource SKU Recommendations
 
-| Service                 | Recommended SKU      | Configuration                   | Justification                                                                |
-| ----------------------- | -------------------- | ------------------------------- | ---------------------------------------------------------------------------- |
-| Azure Bastion           | **Developer**        | Shared infrastructure           | Free tier; sufficient for SMB single-VM access                               |
-| NAT Gateway             | **Standard**         | 1 public IP                     | Cost-effective outbound; upgrade to StandardV2 for zone-redundancy if needed |
-| Log Analytics           | **Per-GB**           | 500MB/day cap, 30-day retention | Prevents cost overrun; sufficient for SMB visibility                         |
-| Recovery Services Vault | **Standard**         | LRS redundancy                  | Adequate for non-critical backup; GRS available if needed                    |
-| Azure Firewall          | **Basic** (optional) | Default rules                   | Cheapest inspection tier; sufficient for SMB traffic patterns                |
-| VPN Gateway             | **Basic** (optional) | 100 Mbps, max 10 tunnels        | Cheapest option (~$27/mo); upgrade to VpnGw1AZ for BGP/zone-redundancy       |
-| Private DNS Zone        | **Standard**         | 1 zone, auto-registration       | Simple internal DNS; links to spoke VNet                                     |
+| Service                 | Recommended SKU         | Configuration                   | Justification                                                                |
+| ----------------------- | ----------------------- | ------------------------------- | ---------------------------------------------------------------------------- |
+| Azure Bastion           | **Developer**           | Shared infrastructure           | Free tier; sufficient for SMB single-VM access                               |
+| NAT Gateway             | **Standard**            | 1 public IP                     | Cost-effective outbound; upgrade to StandardV2 for zone-redundancy if needed |
+| Log Analytics           | **Per-GB**              | 500MB/day cap, 30-day retention | Prevents cost overrun; sufficient for SMB visibility                         |
+| Recovery Services Vault | **Standard**            | LRS redundancy                  | Adequate for non-critical backup; GRS available if needed                    |
+| Azure Firewall          | **Basic** (optional)    | Default rules                   | Cheapest inspection tier; sufficient for SMB traffic patterns                |
+| VPN Gateway             | **VpnGw1AZ** (optional) | 650 Mbps, max 30 tunnels        | Zone-redundant (~$140/mo); BGP support for hybrid connectivity               |
+| Private DNS Zone        | **Standard**            | 1 zone, auto-registration       | Simple internal DNS; links to spoke VNet                                     |
 
 ---
 
 ## Architecture Decision Summary
 
-| Decision           | Choice                       | Rationale                                                                |
-| ------------------ | ---------------------------- | ------------------------------------------------------------------------ |
-| Region             | swedencentral                | EU GDPR-compliant, sustainable operations, cost-effective                |
-| Bastion SKU        | Developer (free)             | Cost priority; single-connection limit acceptable for SMB                |
-| NAT Gateway        | Standard (zonal)             | Cost-effective; zone-redundant StandardV2 available for upgrade          |
-| Azure Firewall     | Optional (Basic)             | Not required unless hub services or inspection mandated                  |
-| VPN Gateway        | Optional (Basic or VpnGw1AZ) | Basic (~$27/mo) is cheapest; VpnGw1AZ for BGP/zone-redundancy            |
-| Zone Redundancy    | No (except VPN)              | Explicit cost trade-off; VPN uses AZ SKU per Azure requirements          |
-| Policy Enforcement | Deny > Audit                 | Strong guardrails for compute, storage, network, tagging                 |
-| Backup Strategy    | Post-migration               | Recovery Services Vault deployed; policies configured after VM migration |
+| Decision           | Choice              | Rationale                                                                |
+| ------------------ | ------------------- | ------------------------------------------------------------------------ |
+| Region             | swedencentral       | EU GDPR-compliant, sustainable operations, cost-effective                |
+| Bastion SKU        | Developer (free)    | Cost priority; single-connection limit acceptable for SMB                |
+| NAT Gateway        | Standard (zonal)    | Cost-effective; zone-redundant StandardV2 available for upgrade          |
+| Azure Firewall     | Optional (Basic)    | Not required unless hub services or inspection mandated                  |
+| VPN Gateway        | Optional (VpnGw1AZ) | Zone-redundant (~$140/mo); BGP support; high availability                |
+| Zone Redundancy    | No (except VPN)     | Explicit cost trade-off; VPN uses AZ SKU per Azure requirements          |
+| Policy Enforcement | Deny > Audit        | Strong guardrails for compute, storage, network, tagging                 |
+| Backup Strategy    | Post-migration      | Recovery Services Vault deployed; policies configured after VM migration |
 
 ---
 

@@ -39,15 +39,11 @@ param spokeVnetAddressSpace string = '10.1.0.0/16'
 @description('Deploy Azure Firewall Basic (adds ~$277/month)')
 param deployFirewall bool = false
 
-@description('Deploy VPN Gateway for hybrid connectivity')
+@description('Deploy VPN Gateway for hybrid connectivity (VpnGw1AZ - zone-redundant)')
 param deployVpnGateway bool = false
 
-@description('VPN Gateway SKU (Basic for dev/test, VpnGw1AZ for production)')
-@allowed([
-  'Basic'
-  'VpnGw1AZ'
-])
-param vpnGatewaySku string = 'Basic'
+@description('On-premises network address space CIDR (for VPN routing)')
+param onPremisesAddressSpace string = ''
 
 @description('Log Analytics daily ingestion cap in GB (decimal, e.g. 0.5 for ~500MB)')
 param logAnalyticsDailyCapGb string = '0.5'
@@ -79,6 +75,9 @@ var regionShort = regionAbbreviations[location]
 
 // Determine if peering is needed (requires Firewall or VPN Gateway)
 var deployPeering = deployFirewall || deployVpnGateway
+
+// Determine if NAT Gateway should be deployed (only when no firewall)
+var deploySpokeNatGateway = !deployFirewall
 
 // Tags for shared services (hub, monitor, backup, migrate) - hardcoded 'slz'
 var sharedServicesTags = {
@@ -154,7 +153,7 @@ module resourceGroups 'modules/resource-groups.bicep' = {
 // Phase 3: Core Networking
 // ----------------------------------------------------------------------------
 
-@description('Deploy hub VNet with Bastion, NSG, and Private DNS Zone')
+@description('Deploy hub VNet with NSG and Private DNS Zone')
 module networkingHub 'modules/networking-hub.bicep' = {
   name: 'networking-hub-${uniqueSuffix}'
   scope: resourceGroup(rgNames.hub)
@@ -170,7 +169,7 @@ module networkingHub 'modules/networking-hub.bicep' = {
   ]
 }
 
-@description('Deploy spoke VNet with NAT Gateway and NSG')
+@description('Deploy spoke VNet with conditional NAT Gateway')
 module networkingSpoke 'modules/networking-spoke.bicep' = {
   name: 'networking-spoke-${uniqueSuffix}'
   scope: resourceGroup(rgNames.spoke)
@@ -179,6 +178,9 @@ module networkingSpoke 'modules/networking-spoke.bicep' = {
     environment: environment
     regionShort: regionShort
     vnetAddressSpace: spokeVnetAddressSpace
+    deployNatGateway: deploySpokeNatGateway
+    #disable-next-line BCP318
+    routeTableId: deployFirewall ? routeTables.outputs.spokeRouteTableId : ''
     tags: spokeTags
   }
   dependsOn: [
@@ -237,10 +239,10 @@ module migrate 'modules/migrate.bicep' = {
 }
 
 // ----------------------------------------------------------------------------
-// Phase 5: Optional Services (Firewall, VPN Gateway)
+// Phase 5: Optional Services (Firewall, Route Tables, VPN Gateway)
 // ----------------------------------------------------------------------------
 
-@description('Deploy Azure Firewall Basic (optional)')
+@description('Deploy Azure Firewall Basic with best-practice rules (optional)')
 module firewall 'modules/firewall.bicep' = if (deployFirewall) {
   name: 'firewall-${uniqueSuffix}'
   scope: resourceGroup(rgNames.hub)
@@ -249,11 +251,30 @@ module firewall 'modules/firewall.bicep' = if (deployFirewall) {
     environment: 'slz'
     regionShort: regionShort
     firewallSubnetId: networkingHub.outputs.firewallSubnetId
+    firewallManagementSubnetId: networkingHub.outputs.firewallManagementSubnetId
+    spokeAddressSpace: spokeVnetAddressSpace
+    onPremisesAddressSpace: onPremisesAddressSpace
     tags: sharedServicesTags
   }
 }
 
-@description('Deploy VPN Gateway (optional)')
+@description('Deploy route tables for firewall routing (conditional)')
+module routeTables 'modules/route-tables.bicep' = if (deployFirewall) {
+  name: 'route-tables-${uniqueSuffix}'
+  scope: resourceGroup(rgNames.hub)
+  params: {
+    location: location
+    environment: 'slz'
+    regionShort: regionShort
+    #disable-next-line BCP318
+    firewallPrivateIp: firewall.outputs.firewallPrivateIp
+    spokeAddressSpace: spokeVnetAddressSpace
+    onPremisesAddressSpace: onPremisesAddressSpace
+    tags: sharedServicesTags
+  }
+}
+
+@description('Deploy VPN Gateway VpnGw1AZ (optional, zone-redundant)')
 module vpnGateway 'modules/vpn-gateway.bicep' = if (deployVpnGateway) {
   name: 'vpn-gateway-${uniqueSuffix}'
   scope: resourceGroup(rgNames.hub)
@@ -262,7 +283,6 @@ module vpnGateway 'modules/vpn-gateway.bicep' = if (deployVpnGateway) {
     environment: 'slz'
     regionShort: regionShort
     gatewaySubnetId: networkingHub.outputs.gatewaySubnetId
-    vpnGatewaySku: vpnGatewaySku
     tags: sharedServicesTags
   }
 }
@@ -283,6 +303,8 @@ module networkingPeering 'modules/networking-peering.bicep' = if (deployPeering)
     spokeResourceGroupName: rgNames.spoke
     useRemoteGateway: deployVpnGateway
   }
+  // When using remote gateway, peering must wait for VPN Gateway to be deployed
+  dependsOn: deployVpnGateway ? [vpnGateway] : []
 }
 
 // ============================================================================
@@ -307,10 +329,7 @@ output recoveryServicesVaultId string = backup.outputs.vaultId
 @description('Azure Migrate Project ID')
 output migrateProjectId string = migrate.outputs.projectId
 
-@description('Azure Bastion name (for connection reference)')
-output bastionName string = networkingHub.outputs.bastionName
-
-@description('NAT Gateway public IP address')
+@description('NAT Gateway public IP address (if deployed)')
 output natGatewayPublicIp string = networkingSpoke.outputs.natGatewayPublicIp
 
 @description('Azure Firewall private IP (if deployed)')

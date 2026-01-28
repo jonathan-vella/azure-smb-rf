@@ -1,8 +1,12 @@
 // ============================================================================
 // SMB Landing Zone - Spoke Networking
 // ============================================================================
-// Purpose: Deploy spoke VNet with NAT Gateway and NSG
-// Version: v0.1
+// Purpose: Deploy spoke VNet with conditional NAT Gateway or UDR for firewall
+// Version: v0.2
+// ============================================================================
+// Routing Logic:
+// - If firewall deployed: Use UDR to route traffic through firewall
+// - If no firewall: Use NAT Gateway for outbound internet
 // ============================================================================
 
 // ============================================================================
@@ -18,7 +22,6 @@ param location string
   'staging'
   'prod'
   'slz'
-  'slz'
 ])
 param environment string
 
@@ -27,6 +30,12 @@ param regionShort string
 
 @description('Spoke VNet address space CIDR')
 param vnetAddressSpace string
+
+@description('Deploy NAT Gateway (false when firewall handles outbound)')
+param deployNatGateway bool = true
+
+@description('Route table ID to associate with subnets (when using firewall)')
+param routeTableId string = ''
 
 @description('Tags to apply to all resources')
 param tags object
@@ -52,12 +61,15 @@ var workloadSubnetPrefix = cidrSubnet(vnetAddressSpace, 25, 0)
 var dataSubnetPrefix = cidrSubnet(vnetAddressSpace, 25, 1)
 var appSubnetPrefix = cidrSubnet(vnetAddressSpace, 25, 2)
 
+// Determine if UDR should be applied
+var hasRouteTable = !empty(routeTableId)
+
 // ============================================================================
-// NAT Gateway Public IP
+// NAT Gateway Public IP (Conditional)
 // ============================================================================
 
-@description('Public IP for NAT Gateway (Standard SKU, Static allocation)')
-resource natPublicIp 'Microsoft.Network/publicIPAddresses@2024-01-01' = {
+@description('Public IP for NAT Gateway (only deployed when no firewall)')
+resource natPublicIp 'Microsoft.Network/publicIPAddresses@2024-01-01' = if (deployNatGateway) {
   name: natPublicIpName
   location: location
   tags: tags
@@ -72,11 +84,11 @@ resource natPublicIp 'Microsoft.Network/publicIPAddresses@2024-01-01' = {
 }
 
 // ============================================================================
-// NAT Gateway
+// NAT Gateway (Conditional)
 // ============================================================================
 
-@description('NAT Gateway for secure outbound internet access')
-resource natGateway 'Microsoft.Network/natGateways@2024-01-01' = {
+@description('NAT Gateway for outbound internet (only deployed when no firewall)')
+resource natGateway 'Microsoft.Network/natGateways@2024-01-01' = if (deployNatGateway) {
   name: natGatewayName
   location: location
   tags: tags
@@ -154,7 +166,7 @@ resource spokeNsg 'Microsoft.Network/networkSecurityGroups@2024-01-01' = {
 // Spoke Virtual Network
 // ============================================================================
 
-@description('Spoke VNet with workload subnets and NAT Gateway')
+@description('Spoke VNet with workload subnets')
 resource spokeVnet 'Microsoft.Network/virtualNetworks@2024-01-01' = {
   name: vnetName
   location: location
@@ -173,9 +185,14 @@ resource spokeVnet 'Microsoft.Network/virtualNetworks@2024-01-01' = {
           networkSecurityGroup: {
             id: spokeNsg.id
           }
-          natGateway: {
+          // Use NAT Gateway if deployed, otherwise rely on UDR for firewall routing
+          natGateway: deployNatGateway ? {
             id: natGateway.id
-          }
+          } : null
+          // Apply route table if provided (when using firewall)
+          routeTable: hasRouteTable ? {
+            id: routeTableId
+          } : null
         }
       }
       {
@@ -185,9 +202,12 @@ resource spokeVnet 'Microsoft.Network/virtualNetworks@2024-01-01' = {
           networkSecurityGroup: {
             id: spokeNsg.id
           }
-          natGateway: {
+          natGateway: deployNatGateway ? {
             id: natGateway.id
-          }
+          } : null
+          routeTable: hasRouteTable ? {
+            id: routeTableId
+          } : null
         }
       }
       {
@@ -197,9 +217,12 @@ resource spokeVnet 'Microsoft.Network/virtualNetworks@2024-01-01' = {
           networkSecurityGroup: {
             id: spokeNsg.id
           }
-          natGateway: {
+          natGateway: deployNatGateway ? {
             id: natGateway.id
-          }
+          } : null
+          routeTable: hasRouteTable ? {
+            id: routeTableId
+          } : null
         }
       }
     ]
@@ -228,8 +251,10 @@ output appSubnetId string = spokeVnet.properties.subnets[2].id
 @description('Spoke NSG resource ID')
 output nsgId string = spokeNsg.id
 
-@description('NAT Gateway resource ID')
-output natGatewayId string = natGateway.id
+@description('NAT Gateway resource ID (empty if firewall deployed)')
+#disable-next-line BCP318
+output natGatewayId string = deployNatGateway ? natGateway.id : ''
 
-@description('NAT Gateway public IP address')
-output natGatewayPublicIp string = natPublicIp.properties.ipAddress
+@description('NAT Gateway public IP address (empty if firewall deployed)')
+#disable-next-line BCP318
+output natGatewayPublicIp string = deployNatGateway ? natPublicIp.properties.ipAddress : ''

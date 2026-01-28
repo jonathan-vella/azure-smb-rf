@@ -32,12 +32,12 @@
 
 ### Issues Fixed During Deployment
 
-| Issue                                                       | Fix Applied                                                      |
-| ----------------------------------------------------------- | ---------------------------------------------------------------- |
-| Policy `smb-lz-identity-01` referenced deprecated ID        | Updated to `b3a22bc9-66de-45fb-98fa-00f5df42f41a`                |
-| Policy `smb-lz-monitoring-01` missing `listOfResourceTypes` | Added required parameter with 8 resource types                   |
-| Log Analytics `dailyQuotaGb` integer division = 0           | Changed param from int (MB) to string (GB) with `json()` parsing |
-| Recovery Services Vault `backupstorageconfig` API conflict  | Removed conflicting child resource                               |
+| Issue                                  | Fix Applied                                       |
+| -------------------------------------- | ------------------------------------------------- |
+| Policy `smb-lz-identity-01` deprecated | Updated to `b3a22bc9-66de-45fb-98fa-00f5df42f41a` |
+| Policy `smb-lz-monitoring-01` missing  | Added `listOfResourceTypes` with 8 resource types |
+| Log Analytics `dailyQuotaGb` = 0       | Changed param from int (MB) to string (GB)        |
+| Recovery Vault `backupstorageconfig`   | Removed conflicting child resource                |
 
 ---
 
@@ -117,4 +117,81 @@
 
 ---
 
-**Status**: ✅ Deployment successful - Infrastructure live in Azure
+## Phase 2: Firewall + VPN Implementation (2026-01-28)
+
+### Completed Tasks ✅
+
+1. **Hub Networking Updated**
+   - Added `AzureFirewallManagementSubnet` (/26) - required for Basic SKU
+   - Subnet layout: Bastion /26, Firewall /26, FirewallMgmt /26, Management /26, Gateway /27
+   - New output: `firewallManagementSubnetId`
+
+2. **Firewall Module Fixed**
+   - Added management public IP (`pip-fw-mgmt-*`)
+   - Added `managementIpConfiguration` property
+   - Comprehensive network rules: DNS, NTP, ICMP (all), Azure services
+   - Conditional on-prem rules for bi-directional traffic
+   - Application rules: Windows Update, Azure Backup, HTTP/HTTPS
+
+3. **UDR Module Created** (`route-tables.bicep`)
+   - Spoke UDR: 0.0.0.0/0 → Firewall, on-prem CIDR → Firewall
+   - Gateway UDR (conditional): spoke CIDR → Firewall
+
+4. **Spoke Networking Updated**
+   - `deployNatGateway` parameter (false when firewall deployed)
+   - `routeTableId` parameter for UDR association
+   - NAT Gateway resources now conditional
+
+5. **Main Orchestration Updated**
+   - Added `onPremisesAddressSpace` parameter
+   - Added `deploySpokeNatGateway` variable
+   - Reordered: Firewall → Route Tables → Spoke
+   - Fixed BCP318 warnings with disable comments
+
+6. **Deploy Script Updated**
+   - Added `OnPremisesAddressSpace` parameter
+   - Prompt for on-prem CIDR when VPN selected
+   - Three-way CIDR overlap validation
+
+7. **Validation Passed**
+   - `bicep build main.bicep` - clean with no warnings
+
+### VPN Gateway SKU Update ✅
+
+**Change**: Removed VPN Gateway SKU selection - **always use VpnGw1AZ**
+
+**Rationale**: VPN Gateway Basic requires different Public IP configuration than zone-redundant
+regions support. VpnGw1AZ is zone-redundant, more reliable, and simplifies deployment.
+
+**Files Updated**:
+
+- ✅ `main.bicep` - Removed `vpnGatewaySku` parameter
+- ✅ `modules/vpn-gateway.bicep` - Hardcoded VpnGw1AZ settings
+- ✅ `main.bicepparam` - Removed `vpnGatewaySku` line
+- ✅ `deploy.ps1` - Removed SKU parameter and prompts
+- ✅ `03-des-diagram.py` - Updated VPN Gateway label
+
+**VpnGw1AZ Configuration**:
+
+- Public IP: Standard SKU, Static allocation, zones `['1','2','3']`
+- Gateway Generation: `Generation1`
+- SKU: `VpnGw1AZ` (tier: `VpnGw1AZ`)
+- Cost: ~$140/month (vs Basic ~$27/month)
+
+**Documentation files** (still reference Basic SKU - can update separately):
+
+- `01-requirements.md`, `02-architecture-assessment.md`
+- `03-des-cost-estimate.md`, `03-des-adr-0001-*.md`
+- `04-implementation-plan.md`
+
+### Ready for Testing
+
+Run `./deploy.ps1 -DeployFirewall -DeployVpnGateway` to test the complete firewall/VPN deployment.
+
+---
+
+**Status**: ✅ Phase 2 implementation complete - Ready for testing
+
+---
+
+_Please review and remove this file when done._

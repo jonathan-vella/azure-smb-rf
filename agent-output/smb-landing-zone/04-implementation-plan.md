@@ -33,29 +33,29 @@ This plan complies with governance constraints defined in `01-requirements.md` (
 
 ## Resource Inventory
 
-| #   | Resource                   | Type                                                     | SKU            | Resource Group   | Dependencies              |
-| --- | -------------------------- | -------------------------------------------------------- | -------------- | ---------------- | ------------------------- |
-| 1   | Policy Assignments (20)    | Microsoft.Authorization/policyAssignments                | N/A            | Subscription     | None                      |
-| 2   | Hub Resource Group         | Microsoft.Resources/resourceGroups                       | N/A            | N/A              | Policy Assignments        |
-| 3   | Spoke Resource Group       | Microsoft.Resources/resourceGroups                       | N/A            | N/A              | Policy Assignments        |
-| 4   | Monitor Resource Group     | Microsoft.Resources/resourceGroups                       | N/A            | N/A              | Policy Assignments        |
-| 5   | Backup Resource Group      | Microsoft.Resources/resourceGroups                       | N/A            | N/A              | Policy Assignments        |
-| 6   | Migrate Resource Group     | Microsoft.Resources/resourceGroups                       | N/A            | N/A              | Policy Assignments        |
-| 7   | Hub VNet                   | Microsoft.Network/virtualNetworks                        | N/A            | rg-hub           | Resource Group            |
-| 8   | Spoke VNet                 | Microsoft.Network/virtualNetworks                        | N/A            | rg-spoke         | Resource Group            |
-| 9   | Hub NSG                    | Microsoft.Network/networkSecurityGroups                  | N/A            | rg-hub           | Resource Group            |
-| 10  | Spoke NSG                  | Microsoft.Network/networkSecurityGroups                  | N/A            | rg-spoke         | Resource Group            |
-| 11  | Azure Bastion              | Microsoft.Network/bastionHosts                           | Developer      | rg-hub           | Hub VNet, Bastion Subnet  |
-| 12  | NAT Gateway                | Microsoft.Network/natGateways                            | Standard       | rg-spoke         | Spoke VNet                |
-| 13  | NAT Gateway Public IP      | Microsoft.Network/publicIPAddresses                      | Standard       | rg-spoke         | Resource Group            |
-| 14  | Private DNS Zone           | Microsoft.Network/privateDnsZones                        | N/A            | rg-hub           | Hub VNet                  |
-| 15  | Log Analytics Workspace    | Microsoft.OperationalInsights/workspaces                 | PerGB2018      | rg-monitor       | Resource Group            |
-| 16  | Recovery Services Vault    | Microsoft.RecoveryServices/vaults                        | Standard       | rg-backup        | Resource Group            |
-| 17  | Azure Migrate Project      | Microsoft.Migrate/migrateProjects                        | N/A            | rg-migrate       | Resource Group            |
-| 18  | Cost Management Budget     | Microsoft.Consumption/budgets                            | N/A            | Subscription     | None                      |
-| 19  | Azure Firewall (optional)  | Microsoft.Network/azureFirewalls                         | Basic          | rg-hub           | Hub VNet, Firewall Subnet |
-| 20  | VPN Gateway (optional)     | Microsoft.Network/virtualNetworkGateways                 | Basic/VpnGw1AZ | rg-hub           | Hub VNet, Gateway Subnet  |
-| 21  | VNet Peering (conditional) | Microsoft.Network/virtualNetworks/virtualNetworkPeerings | N/A            | rg-hub, rg-spoke | Firewall or VPN deployed  |
+| #   | Resource                   | Type                                                     | SKU       | Resource Group   | Dependencies              |
+| --- | -------------------------- | -------------------------------------------------------- | --------- | ---------------- | ------------------------- |
+| 1   | Policy Assignments (20)    | Microsoft.Authorization/policyAssignments                | N/A       | Subscription     | None                      |
+| 2   | Hub Resource Group         | Microsoft.Resources/resourceGroups                       | N/A       | N/A              | Policy Assignments        |
+| 3   | Spoke Resource Group       | Microsoft.Resources/resourceGroups                       | N/A       | N/A              | Policy Assignments        |
+| 4   | Monitor Resource Group     | Microsoft.Resources/resourceGroups                       | N/A       | N/A              | Policy Assignments        |
+| 5   | Backup Resource Group      | Microsoft.Resources/resourceGroups                       | N/A       | N/A              | Policy Assignments        |
+| 6   | Migrate Resource Group     | Microsoft.Resources/resourceGroups                       | N/A       | N/A              | Policy Assignments        |
+| 7   | Hub VNet                   | Microsoft.Network/virtualNetworks                        | N/A       | rg-hub           | Resource Group            |
+| 8   | Spoke VNet                 | Microsoft.Network/virtualNetworks                        | N/A       | rg-spoke         | Resource Group            |
+| 9   | Hub NSG                    | Microsoft.Network/networkSecurityGroups                  | N/A       | rg-hub           | Resource Group            |
+| 10  | Spoke NSG                  | Microsoft.Network/networkSecurityGroups                  | N/A       | rg-spoke         | Resource Group            |
+| 11  | Azure Bastion              | Microsoft.Network/bastionHosts                           | Developer | rg-hub           | Hub VNet, Bastion Subnet  |
+| 12  | NAT Gateway                | Microsoft.Network/natGateways                            | Standard  | rg-spoke         | Spoke VNet                |
+| 13  | NAT Gateway Public IP      | Microsoft.Network/publicIPAddresses                      | Standard  | rg-spoke         | Resource Group            |
+| 14  | Private DNS Zone           | Microsoft.Network/privateDnsZones                        | N/A       | rg-hub           | Hub VNet                  |
+| 15  | Log Analytics Workspace    | Microsoft.OperationalInsights/workspaces                 | PerGB2018 | rg-monitor       | Resource Group            |
+| 16  | Recovery Services Vault    | Microsoft.RecoveryServices/vaults                        | Standard  | rg-backup        | Resource Group            |
+| 17  | Azure Migrate Project      | Microsoft.Migrate/migrateProjects                        | N/A       | rg-migrate       | Resource Group            |
+| 18  | Cost Management Budget     | Microsoft.Consumption/budgets                            | N/A       | Subscription     | None                      |
+| 19  | Azure Firewall (optional)  | Microsoft.Network/azureFirewalls                         | Basic     | rg-hub           | Hub VNet, Firewall Subnet |
+| 20  | VPN Gateway (optional)     | Microsoft.Network/virtualNetworkGateways                 | VpnGw1AZ  | rg-hub           | Hub VNet, Gateway Subnet  |
+| 21  | VNet Peering (conditional) | Microsoft.Network/virtualNetworks/virtualNetworkPeerings | N/A       | rg-hub, rg-spoke | Firewall or VPN deployed  |
 
 ---
 
@@ -147,18 +147,18 @@ param requiredTags array = ['Environment', 'Owner']
 
 **Parameters**:
 
-| Parameter             | Type   | Default       | Description                         |
-| --------------------- | ------ | ------------- | ----------------------------------- |
-| location              | string | swedencentral | Primary deployment region           |
-| environment           | string | prod          | Environment tag value               |
-| owner                 | string | (required)    | Owner tag value                     |
-| hubVnetAddressSpace   | string | 10.0.0.0/16   | Hub VNet CIDR                       |
-| spokeVnetAddressSpace | string | 10.1.0.0/16   | Spoke VNet CIDR                     |
-| deployFirewall        | bool   | false         | Deploy Azure Firewall Basic         |
-| deployVpnGateway      | bool   | false         | Deploy VPN Gateway                  |
-| vpnGatewaySku         | string | Basic         | VPN Gateway SKU (Basic or VpnGw1AZ) |
-| logAnalyticsDailyCap  | int    | 500           | Log Analytics daily cap in MB       |
-| budgetAmount          | int    | 500           | Monthly budget in USD               |
+| Parameter             | Type   | Default       | Description                 |
+| --------------------- | ------ | ------------- | --------------------------- |
+| location              | string | swedencentral | Primary deployment region   |
+| environment           | string | prod          | Environment tag value       |
+| owner                 | string | (required)    | Owner tag value             |
+| hubVnetAddressSpace   | string | 10.0.0.0/16   | Hub VNet CIDR               |
+| spokeVnetAddressSpace | string | 10.1.0.0/16   | Spoke VNet CIDR             |
+| deployFirewall        | bool   | false         | Deploy Azure Firewall Basic |
+| deployVpnGateway      | bool   | false         | Deploy VPN Gateway          |
+
+| logAnalyticsDailyCap | int | 500 | Log Analytics daily cap in MB |
+| budgetAmount | int | 500 | Monthly budget in USD |
 
 **Variables**:
 
@@ -439,10 +439,10 @@ resource budget 'Microsoft.Consumption/budgets@2023-11-01' = {
 
 **Resources**:
 
-| Resource          | Name Pattern            | Configuration     |
-| ----------------- | ----------------------- | ----------------- |
-| Gateway Public IP | pip-vpn-{env}-{region}  | Standard, Static  |
-| VPN Gateway       | vpng-hub-{env}-{region} | Basic or VpnGw1AZ |
+| Resource          | Name Pattern            | Configuration              |
+| ----------------- | ----------------------- | -------------------------- |
+| Gateway Public IP | pip-vpn-{env}-{region}  | Standard, Static, Zone 1-3 |
+| VPN Gateway       | vpng-hub-{env}-{region} | VpnGw1AZ (zone-redundant)  |
 
 **Key Configuration**:
 
@@ -453,9 +453,10 @@ resource vpnGateway 'Microsoft.Network/virtualNetworkGateways@2024-01-01' = {
   properties: {
     gatewayType: 'Vpn'
     vpnType: 'RouteBased'
+    vpnGatewayGeneration: 'Generation1'
     sku: {
-      name: vpnGatewaySku  // 'Basic' or 'VpnGw1AZ'
-      tier: vpnGatewaySku
+      name: 'VpnGw1AZ'
+      tier: 'VpnGw1AZ'
     }
     ipConfigurations: [...]
   }

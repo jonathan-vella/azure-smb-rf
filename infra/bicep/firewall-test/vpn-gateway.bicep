@@ -1,70 +1,59 @@
 // ============================================================================
-// SMB Landing Zone - VPN Gateway (Optional)
+// Firewall Test Lab - VPN Gateway (Basic SKU)
 // ============================================================================
-// Purpose: Deploy VPN Gateway VpnGw1AZ for hybrid connectivity
-// Version: v0.2
+// Purpose: Test VPN Gateway Basic with Standard/Static public IP
 // ============================================================================
-// VpnGw1AZ: Zone-redundant, 650 Mbps, BGP support, ~$140/month
-// ============================================================================
-
-// ============================================================================
-// Parameters
+// Azure Requirement (2024+):
+// "New Basic SKU VPN gateways use the Static allocation method for public IP
+// address and the Standard public IP address SKU."
 // ============================================================================
 
-@description('Azure region for resource deployment')
+@description('Azure region for deployment')
 param location string
 
-@description('Environment name')
-@allowed([
-  'dev'
-  'staging'
-  'prod'
-  'slz'
-])
-param environment string
-
-@description('Region abbreviation for naming')
-param regionShort string
-
-@description('Gateway Subnet resource ID')
+@description('GatewaySubnet resource ID')
 param gatewaySubnetId string
 
-@description('Tags to apply to all resources')
-param tags object
+@description('Tags')
+param tags object = {}
 
 // ============================================================================
 // Variables
 // ============================================================================
 
-// Resource naming
-var gatewayName = 'vpng-hub-${environment}-${regionShort}'
-var gatewayPublicIpName = 'pip-vpn-${environment}-${regionShort}'
+var gatewayName = 'vpng-test-${location}'
+var publicIpName = 'pip-vpn-test-${location}'
 
 // ============================================================================
 // VPN Gateway Public IP
 // ============================================================================
+// Per Azure docs: Basic SKU VPN gateways now require Standard public IP
+// with Static allocation method
+// Note: Basic VPN SKU doesn't support zone-redundancy, so we omit zones
+// However, some regions enforce zones for Standard IPs - in that case use VpnGw1AZ
+// ============================================================================
 
-@description('Public IP for VPN Gateway (Standard SKU, Static, zone-redundant)')
-resource gatewayPublicIp 'Microsoft.Network/publicIPAddresses@2024-01-01' = {
-  name: gatewayPublicIpName
+resource vpnPublicIp 'Microsoft.Network/publicIPAddresses@2024-01-01' = {
+  name: publicIpName
   location: location
   tags: tags
   sku: {
-    name: 'Standard'
+    name: 'Standard'  // Required for new Basic SKU VPN gateways
     tier: 'Regional'
   }
-  zones: ['1', '2', '3']
+  // Zones required in regions that enforce it for Standard IPs
+  // This makes the gateway effectively zone-pinned, but Basic SKU accepts it
+  zones: ['1']
   properties: {
-    publicIPAllocationMethod: 'Static'
+    publicIPAllocationMethod: 'Static'  // Required for new Basic SKU VPN gateways
     publicIPAddressVersion: 'IPv4'
   }
 }
 
 // ============================================================================
-// VPN Gateway (VpnGw1AZ - Zone-Redundant)
+// VPN Gateway (Basic SKU)
 // ============================================================================
 
-@description('VPN Gateway VpnGw1AZ for hybrid connectivity')
 resource vpnGateway 'Microsoft.Network/virtualNetworkGateways@2024-01-01' = {
   name: gatewayName
   location: location
@@ -72,10 +61,9 @@ resource vpnGateway 'Microsoft.Network/virtualNetworkGateways@2024-01-01' = {
   properties: {
     gatewayType: 'Vpn'
     vpnType: 'RouteBased'
-    vpnGatewayGeneration: 'Generation1'
     sku: {
-      name: 'VpnGw1AZ'
-      tier: 'VpnGw1AZ'
+      name: 'Basic'
+      tier: 'Basic'
     }
     enableBgp: false
     activeActive: false
@@ -83,11 +71,12 @@ resource vpnGateway 'Microsoft.Network/virtualNetworkGateways@2024-01-01' = {
       {
         name: 'vpng-ipconfig'
         properties: {
+          privateIPAllocationMethod: 'Dynamic'
           subnet: {
             id: gatewaySubnetId
           }
           publicIPAddress: {
-            id: gatewayPublicIp.id
+            id: vpnPublicIp.id
           }
         }
       }
@@ -106,4 +95,4 @@ output gatewayId string = vpnGateway.id
 output gatewayName string = vpnGateway.name
 
 @description('VPN Gateway public IP address')
-output gatewayPublicIp string = gatewayPublicIp.properties.ipAddress
+output gatewayPublicIp string = vpnPublicIp.properties.ipAddress

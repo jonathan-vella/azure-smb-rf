@@ -79,15 +79,13 @@
 
 User can select any combination: both, one, or none.
 
-| Service           | Resource Group | SKU Options                            | Default | Notes                            |
-| ----------------- | -------------- | -------------------------------------- | ------- | -------------------------------- |
-| Azure Firewall    | rg-hub         | Basic                                  | Basic   | If deployed, enable VNet peering |
-| Azure VPN Gateway | rg-hub         | Basic (~$27/mo) or VpnGw1AZ (~$140/mo) | Basic   | If deployed, enable VNet peering |
+| Service           | Resource Group | SKU Options | Default  | Notes                            |
+| ----------------- | -------------- | ----------- | -------- | -------------------------------- |
+| Azure Firewall    | rg-hub         | Basic       | Basic    | If deployed, enable VNet peering |
+| Azure VPN Gateway | rg-hub         | VpnGw1AZ    | VpnGw1AZ | If deployed, enable VNet peering |
 
-> **VPN Gateway SKU Guidance**:
->
-> - **Basic** (~$27/mo): 100 Mbps, max 10 S2S tunnels, no BGP, no zone-redundancy. Best for simple SMB connectivity.
-> - **VpnGw1AZ** (~$140/mo): 650 Mbps, max 30 tunnels, BGP support, zone-redundant. Best for production/growth.
+> **VPN Gateway**: VpnGw1AZ (~$140/mo) - 650 Mbps, max 30 S2S tunnels, BGP support, zone-redundant.
+> Zone-redundant SKU ensures high availability across Azure availability zones.
 
 ### Deploy-Time Parameters
 

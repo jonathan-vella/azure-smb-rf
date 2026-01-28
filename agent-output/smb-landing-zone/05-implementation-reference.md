@@ -120,12 +120,11 @@ cd infra/bicep/smb-landing-zone
 ### With Optional Services
 
 ```powershell
-# Deploy with Azure Firewall and VPN Gateway
+# Deploy with Azure Firewall and VPN Gateway (VpnGw1AZ)
 ./deploy.ps1 `
     -Owner "partner-ops@contoso.com" `
     -DeployFirewall `
-    -DeployVpnGateway `
-    -VpnGatewaySku "VpnGw1AZ"
+    -DeployVpnGateway
 ```
 
 ## Key Implementation Notes

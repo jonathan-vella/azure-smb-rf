@@ -1,0 +1,738 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.39.26.7824",
+      "templateHash": "13566849602433393467"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "swedencentral",
+      "allowedValues": [
+        "swedencentral",
+        "germanywestcentral"
+      ],
+      "metadata": {
+        "description": "Azure region for deployment"
+      }
+    },
+    "resourceGroupName": {
+      "type": "string",
+      "defaultValue": "rg-fw-test-swc",
+      "metadata": {
+        "description": "Resource group name"
+      }
+    },
+    "vnetAddressSpace": {
+      "type": "string",
+      "defaultValue": "10.100.0.0/24",
+      "metadata": {
+        "description": "VNet address space"
+      }
+    },
+    "deployVpnGateway": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Deploy VPN Gateway for testing"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {
+        "Environment": "test",
+        "Purpose": "firewall-validation",
+        "ManagedBy": "Bicep"
+      },
+      "metadata": {
+        "description": "Tags"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2024-03-01",
+      "name": "[parameters('resourceGroupName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]"
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "vnet-deployment",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "addressSpace": {
+            "value": "[parameters('vnetAddressSpace')]"
+          },
+          "includeGatewaySubnet": {
+            "value": "[parameters('deployVpnGateway')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.39.26.7824",
+              "templateHash": "17728758574840331968"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for deployment"
+              }
+            },
+            "addressSpace": {
+              "type": "string",
+              "defaultValue": "10.100.0.0/24",
+              "metadata": {
+                "description": "VNet address space"
+              }
+            },
+            "includeGatewaySubnet": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Include GatewaySubnet for VPN testing"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Tags"
+              }
+            }
+          },
+          "variables": {
+            "vnetName": "[format('vnet-fw-test-{0}', parameters('location'))]",
+            "firewallSubnetPrefix": "[cidrSubnet(parameters('addressSpace'), 26, 0)]",
+            "firewallMgmtSubnetPrefix": "[cidrSubnet(parameters('addressSpace'), 26, 1)]",
+            "gatewaySubnetPrefix": "[cidrSubnet(parameters('addressSpace'), 27, 4)]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/virtualNetworks",
+              "apiVersion": "2024-01-01",
+              "name": "[variables('vnetName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "addressSpace": {
+                  "addressPrefixes": [
+                    "[parameters('addressSpace')]"
+                  ]
+                },
+                "subnets": "[concat(createArray(createObject('name', 'AzureFirewallSubnet', 'properties', createObject('addressPrefix', variables('firewallSubnetPrefix'))), createObject('name', 'AzureFirewallManagementSubnet', 'properties', createObject('addressPrefix', variables('firewallMgmtSubnetPrefix')))), if(parameters('includeGatewaySubnet'), createArray(createObject('name', 'GatewaySubnet', 'properties', createObject('addressPrefix', variables('gatewaySubnetPrefix')))), createArray()))]"
+              }
+            }
+          ],
+          "outputs": {
+            "vnetId": {
+              "type": "string",
+              "metadata": {
+                "description": "VNet resource ID"
+              },
+              "value": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]"
+            },
+            "vnetName": {
+              "type": "string",
+              "metadata": {
+                "description": "VNet name"
+              },
+              "value": "[variables('vnetName')]"
+            },
+            "firewallSubnetId": {
+              "type": "string",
+              "metadata": {
+                "description": "AzureFirewallSubnet resource ID"
+              },
+              "value": "[reference(resourceId('Microsoft.Network/virtualNetworks', variables('vnetName')), '2024-01-01').subnets[0].id]"
+            },
+            "firewallManagementSubnetId": {
+              "type": "string",
+              "metadata": {
+                "description": "AzureFirewallManagementSubnet resource ID"
+              },
+              "value": "[reference(resourceId('Microsoft.Network/virtualNetworks', variables('vnetName')), '2024-01-01').subnets[1].id]"
+            },
+            "gatewaySubnetId": {
+              "type": "string",
+              "metadata": {
+                "description": "GatewaySubnet resource ID (empty if not included)"
+              },
+              "value": "[if(parameters('includeGatewaySubnet'), reference(resourceId('Microsoft.Network/virtualNetworks', variables('vnetName')), '2024-01-01').subnets[2].id, '')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ],
+      "metadata": {
+        "description": "Deploy VNet with firewall subnets (+ GatewaySubnet if VPN enabled)"
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "firewall-policy-deployment",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "sourceAddressSpace": {
+            "value": "[parameters('vnetAddressSpace')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.39.26.7824",
+              "templateHash": "13655309084923920042"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for deployment"
+              }
+            },
+            "sourceAddressSpace": {
+              "type": "string",
+              "defaultValue": "10.100.0.0/24",
+              "metadata": {
+                "description": "Source address space for rules (VNet CIDR)"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Tags"
+              }
+            }
+          },
+          "variables": {
+            "policyName": "[format('fwpol-test-{0}', parameters('location'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/firewallPolicies",
+              "apiVersion": "2024-01-01",
+              "name": "[variables('policyName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "sku": {
+                  "tier": "Basic"
+                },
+                "threatIntelMode": "Alert"
+              }
+            },
+            {
+              "type": "Microsoft.Network/firewallPolicies/ruleCollectionGroups",
+              "apiVersion": "2024-01-01",
+              "name": "[format('{0}/{1}', variables('policyName'), 'DefaultNetworkRuleCollectionGroup')]",
+              "properties": {
+                "priority": 200,
+                "ruleCollections": [
+                  {
+                    "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                    "name": "AllowInfrastructure",
+                    "priority": 100,
+                    "action": {
+                      "type": "Allow"
+                    },
+                    "rules": [
+                      {
+                        "ruleType": "NetworkRule",
+                        "name": "AllowDNS",
+                        "description": "Allow DNS queries to Azure DNS",
+                        "ipProtocols": [
+                          "UDP",
+                          "TCP"
+                        ],
+                        "sourceAddresses": [
+                          "[parameters('sourceAddressSpace')]"
+                        ],
+                        "destinationAddresses": [
+                          "168.63.129.16"
+                        ],
+                        "destinationPorts": [
+                          "53"
+                        ]
+                      },
+                      {
+                        "ruleType": "NetworkRule",
+                        "name": "AllowNTP",
+                        "description": "Allow NTP for time synchronization",
+                        "ipProtocols": [
+                          "UDP"
+                        ],
+                        "sourceAddresses": [
+                          "[parameters('sourceAddressSpace')]"
+                        ],
+                        "destinationAddresses": [
+                          "*"
+                        ],
+                        "destinationPorts": [
+                          "123"
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/firewallPolicies', variables('policyName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "policyId": {
+              "type": "string",
+              "metadata": {
+                "description": "Firewall Policy resource ID"
+              },
+              "value": "[resourceId('Microsoft.Network/firewallPolicies', variables('policyName'))]"
+            },
+            "policyName": {
+              "type": "string",
+              "metadata": {
+                "description": "Firewall Policy name"
+              },
+              "value": "[variables('policyName')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
+      ],
+      "metadata": {
+        "description": "Deploy Firewall Policy with minimal rules"
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "firewall-deployment",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "firewallSubnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet-deployment'), '2025-04-01').outputs.firewallSubnetId.value]"
+          },
+          "firewallManagementSubnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet-deployment'), '2025-04-01').outputs.firewallManagementSubnetId.value]"
+          },
+          "firewallPolicyId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'firewall-policy-deployment'), '2025-04-01').outputs.policyId.value]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.39.26.7824",
+              "templateHash": "4773948830478807954"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for deployment"
+              }
+            },
+            "firewallSubnetId": {
+              "type": "string",
+              "metadata": {
+                "description": "AzureFirewallSubnet resource ID"
+              }
+            },
+            "firewallManagementSubnetId": {
+              "type": "string",
+              "metadata": {
+                "description": "AzureFirewallManagementSubnet resource ID"
+              }
+            },
+            "firewallPolicyId": {
+              "type": "string",
+              "metadata": {
+                "description": "Firewall Policy resource ID"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Tags"
+              }
+            }
+          },
+          "variables": {
+            "firewallName": "[format('fw-test-{0}', parameters('location'))]",
+            "publicIpName": "[format('pip-fw-test-{0}', parameters('location'))]",
+            "mgmtPublicIpName": "[format('pip-fw-mgmt-test-{0}', parameters('location'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/publicIPAddresses",
+              "apiVersion": "2024-01-01",
+              "name": "[variables('publicIpName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "Standard",
+                "tier": "Regional"
+              },
+              "properties": {
+                "publicIPAllocationMethod": "Static",
+                "publicIPAddressVersion": "IPv4"
+              }
+            },
+            {
+              "type": "Microsoft.Network/publicIPAddresses",
+              "apiVersion": "2024-01-01",
+              "name": "[variables('mgmtPublicIpName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "Standard",
+                "tier": "Regional"
+              },
+              "properties": {
+                "publicIPAllocationMethod": "Static",
+                "publicIPAddressVersion": "IPv4"
+              }
+            },
+            {
+              "type": "Microsoft.Network/azureFirewalls",
+              "apiVersion": "2024-01-01",
+              "name": "[variables('firewallName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "sku": {
+                  "name": "AZFW_VNet",
+                  "tier": "Basic"
+                },
+                "firewallPolicy": {
+                  "id": "[parameters('firewallPolicyId')]"
+                },
+                "ipConfigurations": [
+                  {
+                    "name": "fw-ipconfig",
+                    "properties": {
+                      "subnet": {
+                        "id": "[parameters('firewallSubnetId')]"
+                      },
+                      "publicIPAddress": {
+                        "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpName'))]"
+                      }
+                    }
+                  }
+                ],
+                "managementIpConfiguration": {
+                  "name": "fw-mgmt-ipconfig",
+                  "properties": {
+                    "subnet": {
+                      "id": "[parameters('firewallManagementSubnetId')]"
+                    },
+                    "publicIPAddress": {
+                      "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('mgmtPublicIpName'))]"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('mgmtPublicIpName'))]",
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "firewallId": {
+              "type": "string",
+              "metadata": {
+                "description": "Firewall resource ID"
+              },
+              "value": "[resourceId('Microsoft.Network/azureFirewalls', variables('firewallName'))]"
+            },
+            "firewallName": {
+              "type": "string",
+              "metadata": {
+                "description": "Firewall name"
+              },
+              "value": "[variables('firewallName')]"
+            },
+            "firewallPrivateIp": {
+              "type": "string",
+              "metadata": {
+                "description": "Firewall private IP address"
+              },
+              "value": "[reference(resourceId('Microsoft.Network/azureFirewalls', variables('firewallName')), '2024-01-01').ipConfigurations[0].properties.privateIPAddress]"
+            },
+            "firewallPublicIp": {
+              "type": "string",
+              "metadata": {
+                "description": "Firewall public IP address"
+              },
+              "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpName')), '2024-01-01').ipAddress]"
+            },
+            "firewallMgmtPublicIp": {
+              "type": "string",
+              "metadata": {
+                "description": "Firewall management public IP address"
+              },
+              "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('mgmtPublicIpName')), '2024-01-01').ipAddress]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'firewall-policy-deployment')]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet-deployment')]"
+      ],
+      "metadata": {
+        "description": "Deploy Azure Firewall Basic"
+      }
+    },
+    {
+      "condition": "[parameters('deployVpnGateway')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "vpn-gateway-deployment",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "gatewaySubnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet-deployment'), '2025-04-01').outputs.gatewaySubnetId.value]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.39.26.7824",
+              "templateHash": "75250376482732586"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for deployment"
+              }
+            },
+            "gatewaySubnetId": {
+              "type": "string",
+              "metadata": {
+                "description": "GatewaySubnet resource ID"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Tags"
+              }
+            }
+          },
+          "variables": {
+            "gatewayName": "[format('vpng-test-{0}', parameters('location'))]",
+            "publicIpName": "[format('pip-vpn-test-{0}', parameters('location'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/publicIPAddresses",
+              "apiVersion": "2024-01-01",
+              "name": "[variables('publicIpName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "Standard",
+                "tier": "Regional"
+              },
+              "zones": [
+                "1"
+              ],
+              "properties": {
+                "publicIPAllocationMethod": "Static",
+                "publicIPAddressVersion": "IPv4"
+              }
+            },
+            {
+              "type": "Microsoft.Network/virtualNetworkGateways",
+              "apiVersion": "2024-01-01",
+              "name": "[variables('gatewayName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "gatewayType": "Vpn",
+                "vpnType": "RouteBased",
+                "sku": {
+                  "name": "Basic",
+                  "tier": "Basic"
+                },
+                "enableBgp": false,
+                "activeActive": false,
+                "ipConfigurations": [
+                  {
+                    "name": "vpng-ipconfig",
+                    "properties": {
+                      "privateIPAllocationMethod": "Dynamic",
+                      "subnet": {
+                        "id": "[parameters('gatewaySubnetId')]"
+                      },
+                      "publicIPAddress": {
+                        "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpName'))]"
+                      }
+                    }
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "gatewayId": {
+              "type": "string",
+              "metadata": {
+                "description": "VPN Gateway resource ID"
+              },
+              "value": "[resourceId('Microsoft.Network/virtualNetworkGateways', variables('gatewayName'))]"
+            },
+            "gatewayName": {
+              "type": "string",
+              "metadata": {
+                "description": "VPN Gateway name"
+              },
+              "value": "[variables('gatewayName')]"
+            },
+            "gatewayPublicIp": {
+              "type": "string",
+              "metadata": {
+                "description": "VPN Gateway public IP address"
+              },
+              "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpName')), '2024-01-01').ipAddress]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet-deployment')]"
+      ],
+      "metadata": {
+        "description": "Deploy VPN Gateway Basic (optional)"
+      }
+    }
+  ],
+  "outputs": {
+    "resourceGroupName": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource group name"
+      },
+      "value": "[parameters('resourceGroupName')]"
+    },
+    "vnetId": {
+      "type": "string",
+      "metadata": {
+        "description": "VNet resource ID"
+      },
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vnet-deployment'), '2025-04-01').outputs.vnetId.value]"
+    },
+    "firewallPolicyId": {
+      "type": "string",
+      "metadata": {
+        "description": "Firewall Policy resource ID"
+      },
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'firewall-policy-deployment'), '2025-04-01').outputs.policyId.value]"
+    },
+    "firewallPrivateIp": {
+      "type": "string",
+      "metadata": {
+        "description": "Firewall private IP"
+      },
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'firewall-deployment'), '2025-04-01').outputs.firewallPrivateIp.value]"
+    },
+    "firewallPublicIp": {
+      "type": "string",
+      "metadata": {
+        "description": "Firewall public IP"
+      },
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'firewall-deployment'), '2025-04-01').outputs.firewallPublicIp.value]"
+    },
+    "vpnGatewayPublicIp": {
+      "type": "string",
+      "metadata": {
+        "description": "VPN Gateway public IP (if deployed)"
+      },
+      "value": "[if(parameters('deployVpnGateway'), reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'vpn-gateway-deployment'), '2025-04-01').outputs.gatewayPublicIp.value, '')]"
+    }
+  }
+}

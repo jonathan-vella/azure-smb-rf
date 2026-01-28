@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.39.26.7824",
-      "templateHash": "1577433463061823286"
+      "templateHash": "13993711931891032380"
     }
   },
   "parameters": {
@@ -63,18 +63,14 @@
       "type": "bool",
       "defaultValue": false,
       "metadata": {
-        "description": "Deploy VPN Gateway for hybrid connectivity"
+        "description": "Deploy VPN Gateway for hybrid connectivity (VpnGw1AZ - zone-redundant)"
       }
     },
-    "vpnGatewaySku": {
+    "onPremisesAddressSpace": {
       "type": "string",
-      "defaultValue": "Basic",
-      "allowedValues": [
-        "Basic",
-        "VpnGw1AZ"
-      ],
+      "defaultValue": "",
       "metadata": {
-        "description": "VPN Gateway SKU (Basic for dev/test, VpnGw1AZ for production)"
+        "description": "On-premises network address space CIDR (for VPN routing)"
       }
     },
     "logAnalyticsDailyCapGb": {
@@ -116,6 +112,7 @@
     },
     "regionShort": "[variables('regionAbbreviations')[parameters('location')]]",
     "deployPeering": "[or(parameters('deployFirewall'), parameters('deployVpnGateway'))]",
+    "deploySpokeNatGateway": "[not(parameters('deployFirewall'))]",
     "sharedServicesTags": {
       "Environment": "slz",
       "Owner": "[parameters('owner')]",
@@ -996,7 +993,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "6312996058290688948"
+              "templateHash": "7954595598167331020"
             }
           },
           "parameters": {
@@ -1040,12 +1037,11 @@
           "variables": {
             "vnetName": "[format('vnet-hub-{0}-{1}', parameters('environment'), parameters('regionShort'))]",
             "nsgName": "[format('nsg-hub-{0}-{1}', parameters('environment'), parameters('regionShort'))]",
-            "bastionName": "[format('bas-hub-{0}-{1}', parameters('environment'), parameters('regionShort'))]",
             "privateDnsZoneName": "privatelink.azure.com",
-            "bastionSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 26, 0)]",
-            "firewallSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 26, 1)]",
-            "gatewaySubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 27, 4)]",
-            "managementSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 26, 3)]"
+            "firewallSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 26, 0)]",
+            "firewallMgmtSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 26, 1)]",
+            "managementSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 26, 2)]",
+            "gatewaySubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 27, 6)]"
           },
           "resources": [
             {
@@ -1090,15 +1086,15 @@
                 },
                 "subnets": [
                   {
-                    "name": "AzureBastionSubnet",
-                    "properties": {
-                      "addressPrefix": "[variables('bastionSubnetPrefix')]"
-                    }
-                  },
-                  {
                     "name": "AzureFirewallSubnet",
                     "properties": {
                       "addressPrefix": "[variables('firewallSubnetPrefix')]"
+                    }
+                  },
+                  {
+                    "name": "AzureFirewallManagementSubnet",
+                    "properties": {
+                      "addressPrefix": "[variables('firewallMgmtSubnetPrefix')]"
                     }
                   },
                   {
@@ -1122,28 +1118,7 @@
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
               ],
               "metadata": {
-                "description": "Hub VNet with reserved subnets for Bastion, Firewall, and Gateway"
-              }
-            },
-            {
-              "type": "Microsoft.Network/bastionHosts",
-              "apiVersion": "2024-01-01",
-              "name": "[variables('bastionName')]",
-              "location": "[parameters('location')]",
-              "tags": "[parameters('tags')]",
-              "sku": {
-                "name": "Developer"
-              },
-              "properties": {
-                "virtualNetwork": {
-                  "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]"
-                }
-              },
-              "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]"
-              ],
-              "metadata": {
-                "description": "Azure Bastion with Developer SKU (cost-optimized, no public IP required)"
+                "description": "Hub VNet with reserved subnets for Firewall, Firewall Management, and Gateway"
               }
             },
             {
@@ -1193,17 +1168,17 @@
               },
               "value": "[variables('vnetName')]"
             },
-            "bastionSubnetId": {
-              "type": "string",
-              "metadata": {
-                "description": "Azure Bastion Subnet resource ID"
-              },
-              "value": "[reference(resourceId('Microsoft.Network/virtualNetworks', variables('vnetName')), '2024-01-01').subnets[0].id]"
-            },
             "firewallSubnetId": {
               "type": "string",
               "metadata": {
                 "description": "Azure Firewall Subnet resource ID"
+              },
+              "value": "[reference(resourceId('Microsoft.Network/virtualNetworks', variables('vnetName')), '2024-01-01').subnets[0].id]"
+            },
+            "firewallManagementSubnetId": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure Firewall Management Subnet resource ID (required for Basic SKU)"
               },
               "value": "[reference(resourceId('Microsoft.Network/virtualNetworks', variables('vnetName')), '2024-01-01').subnets[1].id]"
             },
@@ -1228,20 +1203,6 @@
               },
               "value": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
             },
-            "bastionId": {
-              "type": "string",
-              "metadata": {
-                "description": "Azure Bastion resource ID"
-              },
-              "value": "[resourceId('Microsoft.Network/bastionHosts', variables('bastionName'))]"
-            },
-            "bastionName": {
-              "type": "string",
-              "metadata": {
-                "description": "Azure Bastion name"
-              },
-              "value": "[variables('bastionName')]"
-            },
             "privateDnsZoneId": {
               "type": "string",
               "metadata": {
@@ -1256,7 +1217,7 @@
         "[subscriptionResourceId('Microsoft.Resources/deployments', format('resource-groups-{0}', variables('uniqueSuffix')))]"
       ],
       "metadata": {
-        "description": "Deploy hub VNet with Bastion, NSG, and Private DNS Zone"
+        "description": "Deploy hub VNet with NSG and Private DNS Zone"
       }
     },
     {
@@ -1282,6 +1243,10 @@
           "vnetAddressSpace": {
             "value": "[parameters('spokeVnetAddressSpace')]"
           },
+          "deployNatGateway": {
+            "value": "[variables('deploySpokeNatGateway')]"
+          },
+          "routeTableId": "[if(parameters('deployFirewall'), createObject('value', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('route-tables-{0}', variables('uniqueSuffix'))), '2025-04-01').outputs.spokeRouteTableId.value), createObject('value', ''))]",
           "tags": {
             "value": "[variables('spokeTags')]"
           }
@@ -1293,7 +1258,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "15979012821941782590"
+              "templateHash": "14497497605920689226"
             }
           },
           "parameters": {
@@ -1309,7 +1274,6 @@
                 "dev",
                 "staging",
                 "prod",
-                "slz",
                 "slz"
               ],
               "metadata": {
@@ -1328,6 +1292,20 @@
                 "description": "Spoke VNet address space CIDR"
               }
             },
+            "deployNatGateway": {
+              "type": "bool",
+              "defaultValue": true,
+              "metadata": {
+                "description": "Deploy NAT Gateway (false when firewall handles outbound)"
+              }
+            },
+            "routeTableId": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Route table ID to associate with subnets (when using firewall)"
+              }
+            },
             "tags": {
               "type": "object",
               "metadata": {
@@ -1342,10 +1320,12 @@
             "natPublicIpName": "[format('pip-nat-{0}-{1}', parameters('environment'), parameters('regionShort'))]",
             "workloadSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 25, 0)]",
             "dataSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 25, 1)]",
-            "appSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 25, 2)]"
+            "appSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 25, 2)]",
+            "hasRouteTable": "[not(empty(parameters('routeTableId')))]"
           },
           "resources": [
             {
+              "condition": "[parameters('deployNatGateway')]",
               "type": "Microsoft.Network/publicIPAddresses",
               "apiVersion": "2024-01-01",
               "name": "[variables('natPublicIpName')]",
@@ -1360,10 +1340,11 @@
                 "publicIPAddressVersion": "IPv4"
               },
               "metadata": {
-                "description": "Public IP for NAT Gateway (Standard SKU, Static allocation)"
+                "description": "Public IP for NAT Gateway (only deployed when no firewall)"
               }
             },
             {
+              "condition": "[parameters('deployNatGateway')]",
               "type": "Microsoft.Network/natGateways",
               "apiVersion": "2024-01-01",
               "name": "[variables('natGatewayName')]",
@@ -1384,7 +1365,7 @@
                 "[resourceId('Microsoft.Network/publicIPAddresses', variables('natPublicIpName'))]"
               ],
               "metadata": {
-                "description": "NAT Gateway for secure outbound internet access"
+                "description": "NAT Gateway for outbound internet (only deployed when no firewall)"
               }
             },
             {
@@ -1463,9 +1444,8 @@
                       "networkSecurityGroup": {
                         "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
                       },
-                      "natGateway": {
-                        "id": "[resourceId('Microsoft.Network/natGateways', variables('natGatewayName'))]"
-                      }
+                      "natGateway": "[if(parameters('deployNatGateway'), createObject('id', resourceId('Microsoft.Network/natGateways', variables('natGatewayName'))), null())]",
+                      "routeTable": "[if(variables('hasRouteTable'), createObject('id', parameters('routeTableId')), null())]"
                     }
                   },
                   {
@@ -1475,9 +1455,8 @@
                       "networkSecurityGroup": {
                         "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
                       },
-                      "natGateway": {
-                        "id": "[resourceId('Microsoft.Network/natGateways', variables('natGatewayName'))]"
-                      }
+                      "natGateway": "[if(parameters('deployNatGateway'), createObject('id', resourceId('Microsoft.Network/natGateways', variables('natGatewayName'))), null())]",
+                      "routeTable": "[if(variables('hasRouteTable'), createObject('id', parameters('routeTableId')), null())]"
                     }
                   },
                   {
@@ -1487,9 +1466,8 @@
                       "networkSecurityGroup": {
                         "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
                       },
-                      "natGateway": {
-                        "id": "[resourceId('Microsoft.Network/natGateways', variables('natGatewayName'))]"
-                      }
+                      "natGateway": "[if(parameters('deployNatGateway'), createObject('id', resourceId('Microsoft.Network/natGateways', variables('natGatewayName'))), null())]",
+                      "routeTable": "[if(variables('hasRouteTable'), createObject('id', parameters('routeTableId')), null())]"
                     }
                   }
                 ]
@@ -1499,7 +1477,7 @@
                 "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
               ],
               "metadata": {
-                "description": "Spoke VNet with workload subnets and NAT Gateway"
+                "description": "Spoke VNet with workload subnets"
               }
             }
           ],
@@ -1549,25 +1527,26 @@
             "natGatewayId": {
               "type": "string",
               "metadata": {
-                "description": "NAT Gateway resource ID"
+                "description": "NAT Gateway resource ID (empty if firewall deployed)"
               },
-              "value": "[resourceId('Microsoft.Network/natGateways', variables('natGatewayName'))]"
+              "value": "[if(parameters('deployNatGateway'), resourceId('Microsoft.Network/natGateways', variables('natGatewayName')), '')]"
             },
             "natGatewayPublicIp": {
               "type": "string",
               "metadata": {
-                "description": "NAT Gateway public IP address"
+                "description": "NAT Gateway public IP address (empty if firewall deployed)"
               },
-              "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('natPublicIpName')), '2024-01-01').ipAddress]"
+              "value": "[if(parameters('deployNatGateway'), reference(resourceId('Microsoft.Network/publicIPAddresses', variables('natPublicIpName')), '2024-01-01').ipAddress, '')]"
             }
           }
         }
       },
       "dependsOn": [
-        "[subscriptionResourceId('Microsoft.Resources/deployments', format('resource-groups-{0}', variables('uniqueSuffix')))]"
+        "[subscriptionResourceId('Microsoft.Resources/deployments', format('resource-groups-{0}', variables('uniqueSuffix')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('route-tables-{0}', variables('uniqueSuffix')))]"
       ],
       "metadata": {
-        "description": "Deploy spoke VNet with NAT Gateway and NSG"
+        "description": "Deploy spoke VNet with conditional NAT Gateway"
       }
     },
     {
@@ -1958,6 +1937,15 @@
           "firewallSubnetId": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('networking-hub-{0}', variables('uniqueSuffix'))), '2025-04-01').outputs.firewallSubnetId.value]"
           },
+          "firewallManagementSubnetId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('networking-hub-{0}', variables('uniqueSuffix'))), '2025-04-01').outputs.firewallManagementSubnetId.value]"
+          },
+          "spokeAddressSpace": {
+            "value": "[parameters('spokeVnetAddressSpace')]"
+          },
+          "onPremisesAddressSpace": {
+            "value": "[parameters('onPremisesAddressSpace')]"
+          },
           "tags": {
             "value": "[variables('sharedServicesTags')]"
           }
@@ -1969,7 +1957,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "14913912441507885452"
+              "templateHash": "5204637003465522012"
             }
           },
           "parameters": {
@@ -1985,7 +1973,6 @@
                 "dev",
                 "staging",
                 "prod",
-                "slz",
                 "slz"
               ],
               "metadata": {
@@ -2004,6 +1991,25 @@
                 "description": "Azure Firewall Subnet resource ID"
               }
             },
+            "firewallManagementSubnetId": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure Firewall Management Subnet resource ID (required for Basic SKU)"
+              }
+            },
+            "spokeAddressSpace": {
+              "type": "string",
+              "metadata": {
+                "description": "Spoke VNet address space for firewall rules"
+              }
+            },
+            "onPremisesAddressSpace": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "On-premises address space for VPN routing (optional)"
+              }
+            },
             "tags": {
               "type": "object",
               "metadata": {
@@ -2014,7 +2020,9 @@
           "variables": {
             "firewallName": "[format('fw-hub-{0}-{1}', parameters('environment'), parameters('regionShort'))]",
             "firewallPolicyName": "[format('fwpol-hub-{0}-{1}', parameters('environment'), parameters('regionShort'))]",
-            "firewallPublicIpName": "[format('pip-fw-{0}-{1}', parameters('environment'), parameters('regionShort'))]"
+            "firewallPublicIpName": "[format('pip-fw-{0}-{1}', parameters('environment'), parameters('regionShort'))]",
+            "firewallMgmtPublicIpName": "[format('pip-fw-mgmt-{0}-{1}', parameters('environment'), parameters('regionShort'))]",
+            "hasOnPremises": "[not(empty(parameters('onPremisesAddressSpace')))]"
           },
           "resources": [
             {
@@ -2032,7 +2040,25 @@
                 "publicIPAddressVersion": "IPv4"
               },
               "metadata": {
-                "description": "Public IP for Azure Firewall"
+                "description": "Public IP for Azure Firewall data traffic"
+              }
+            },
+            {
+              "type": "Microsoft.Network/publicIPAddresses",
+              "apiVersion": "2024-01-01",
+              "name": "[variables('firewallMgmtPublicIpName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "Standard",
+                "tier": "Regional"
+              },
+              "properties": {
+                "publicIPAllocationMethod": "Static",
+                "publicIPAddressVersion": "IPv4"
+              },
+              "metadata": {
+                "description": "Public IP for Azure Firewall management traffic (required for Basic SKU)"
               }
             },
             {
@@ -2048,13 +2074,13 @@
                 "threatIntelMode": "Alert"
               },
               "metadata": {
-                "description": "Firewall Policy with Basic tier"
+                "description": "Firewall Policy with Basic tier and best-practice rules"
               }
             },
             {
               "type": "Microsoft.Network/firewallPolicies/ruleCollectionGroups",
               "apiVersion": "2024-01-01",
-              "name": "[format('{0}/{1}', variables('firewallPolicyName'), 'DefaultNetworkRuleCollectionGroup')]",
+              "name": "[format('{0}/{1}', variables('firewallPolicyName'), 'NetworkRuleCollectionGroup')]",
               "properties": {
                 "priority": 200,
                 "ruleCollections": [
@@ -2063,17 +2089,114 @@
                     "action": {
                       "type": "Allow"
                     },
-                    "name": "AllowAzureServices",
+                    "name": "AllowInfrastructure",
                     "priority": 100,
                     "rules": [
                       {
                         "ruleType": "NetworkRule",
-                        "name": "AllowAzureMonitor",
+                        "name": "AllowDNS",
+                        "description": "Allow DNS queries to Azure DNS",
+                        "ipProtocols": [
+                          "UDP",
+                          "TCP"
+                        ],
+                        "sourceAddresses": [
+                          "[parameters('spokeAddressSpace')]"
+                        ],
+                        "destinationAddresses": [
+                          "168.63.129.16"
+                        ],
+                        "destinationPorts": [
+                          "53"
+                        ]
+                      },
+                      {
+                        "ruleType": "NetworkRule",
+                        "name": "AllowNTP",
+                        "description": "Allow NTP for time synchronization",
+                        "ipProtocols": [
+                          "UDP"
+                        ],
+                        "sourceAddresses": [
+                          "[parameters('spokeAddressSpace')]"
+                        ],
+                        "destinationAddresses": [
+                          "*"
+                        ],
+                        "destinationPorts": [
+                          "123"
+                        ]
+                      },
+                      {
+                        "ruleType": "NetworkRule",
+                        "name": "AllowICMP",
+                        "description": "Allow all ICMP traffic for diagnostics",
+                        "ipProtocols": [
+                          "ICMP"
+                        ],
+                        "sourceAddresses": [
+                          "[parameters('spokeAddressSpace')]"
+                        ],
+                        "destinationAddresses": [
+                          "*"
+                        ],
+                        "destinationPorts": [
+                          "*"
+                        ]
+                      },
+                      {
+                        "ruleType": "NetworkRule",
+                        "name": "AllowOutboundHTTP",
+                        "description": "Allow outbound HTTP traffic",
                         "ipProtocols": [
                           "TCP"
                         ],
                         "sourceAddresses": [
+                          "[parameters('spokeAddressSpace')]"
+                        ],
+                        "destinationAddresses": [
                           "*"
+                        ],
+                        "destinationPorts": [
+                          "80"
+                        ]
+                      },
+                      {
+                        "ruleType": "NetworkRule",
+                        "name": "AllowOutboundHTTPS",
+                        "description": "Allow outbound HTTPS traffic",
+                        "ipProtocols": [
+                          "TCP"
+                        ],
+                        "sourceAddresses": [
+                          "[parameters('spokeAddressSpace')]"
+                        ],
+                        "destinationAddresses": [
+                          "*"
+                        ],
+                        "destinationPorts": [
+                          "443"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                    "action": {
+                      "type": "Allow"
+                    },
+                    "name": "AllowAzureServices",
+                    "priority": 200,
+                    "rules": [
+                      {
+                        "ruleType": "NetworkRule",
+                        "name": "AllowAzureMonitor",
+                        "description": "Allow Azure Monitor for logging and metrics",
+                        "ipProtocols": [
+                          "TCP"
+                        ],
+                        "sourceAddresses": [
+                          "[parameters('spokeAddressSpace')]"
                         ],
                         "destinationAddresses": [
                           "AzureMonitor"
@@ -2085,11 +2208,12 @@
                       {
                         "ruleType": "NetworkRule",
                         "name": "AllowAzureBackup",
+                        "description": "Allow Azure Backup service",
                         "ipProtocols": [
                           "TCP"
                         ],
                         "sourceAddresses": [
-                          "*"
+                          "[parameters('spokeAddressSpace')]"
                         ],
                         "destinationAddresses": [
                           "AzureBackup"
@@ -2101,17 +2225,53 @@
                       {
                         "ruleType": "NetworkRule",
                         "name": "AllowAzureStorage",
+                        "description": "Allow Azure Storage for various services",
                         "ipProtocols": [
                           "TCP"
                         ],
                         "sourceAddresses": [
-                          "*"
+                          "[parameters('spokeAddressSpace')]"
                         ],
                         "destinationAddresses": [
                           "Storage"
                         ],
                         "destinationPorts": [
                           "443"
+                        ]
+                      },
+                      {
+                        "ruleType": "NetworkRule",
+                        "name": "AllowAzureActiveDirectory",
+                        "description": "Allow Azure AD for authentication",
+                        "ipProtocols": [
+                          "TCP"
+                        ],
+                        "sourceAddresses": [
+                          "[parameters('spokeAddressSpace')]"
+                        ],
+                        "destinationAddresses": [
+                          "AzureActiveDirectory"
+                        ],
+                        "destinationPorts": [
+                          "443"
+                        ]
+                      },
+                      {
+                        "ruleType": "NetworkRule",
+                        "name": "AllowAzureKMS",
+                        "description": "Allow Windows activation via Azure KMS",
+                        "ipProtocols": [
+                          "TCP"
+                        ],
+                        "sourceAddresses": [
+                          "[parameters('spokeAddressSpace')]"
+                        ],
+                        "destinationAddresses": [
+                          "23.102.135.246",
+                          "20.118.99.224"
+                        ],
+                        "destinationPorts": [
+                          "1688"
                         ]
                       }
                     ]
@@ -2122,7 +2282,176 @@
                 "[resourceId('Microsoft.Network/firewallPolicies', variables('firewallPolicyName'))]"
               ],
               "metadata": {
-                "description": "Default network rule collection group"
+                "description": "Network rules for DNS, NTP, ICMP, and Azure services"
+              }
+            },
+            {
+              "condition": "[variables('hasOnPremises')]",
+              "type": "Microsoft.Network/firewallPolicies/ruleCollectionGroups",
+              "apiVersion": "2024-01-01",
+              "name": "[format('{0}/{1}', variables('firewallPolicyName'), 'OnPremisesRuleCollectionGroup')]",
+              "properties": {
+                "priority": 300,
+                "ruleCollections": [
+                  {
+                    "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                    "action": {
+                      "type": "Allow"
+                    },
+                    "name": "AllowOnPremisesTraffic",
+                    "priority": 100,
+                    "rules": [
+                      {
+                        "ruleType": "NetworkRule",
+                        "name": "AllowAzureToOnPrem",
+                        "description": "Allow Azure spoke resources to reach on-premises",
+                        "ipProtocols": [
+                          "Any"
+                        ],
+                        "sourceAddresses": [
+                          "[parameters('spokeAddressSpace')]"
+                        ],
+                        "destinationAddresses": [
+                          "[parameters('onPremisesAddressSpace')]"
+                        ],
+                        "destinationPorts": [
+                          "*"
+                        ]
+                      },
+                      {
+                        "ruleType": "NetworkRule",
+                        "name": "AllowOnPremToAzure",
+                        "description": "Allow on-premises to reach Azure spoke resources",
+                        "ipProtocols": [
+                          "Any"
+                        ],
+                        "sourceAddresses": [
+                          "[parameters('onPremisesAddressSpace')]"
+                        ],
+                        "destinationAddresses": [
+                          "[parameters('spokeAddressSpace')]"
+                        ],
+                        "destinationPorts": [
+                          "*"
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/firewallPolicies', variables('firewallPolicyName'))]",
+                "[resourceId('Microsoft.Network/firewallPolicies/ruleCollectionGroups', variables('firewallPolicyName'), 'NetworkRuleCollectionGroup')]"
+              ],
+              "metadata": {
+                "description": "Network rules for on-premises connectivity (conditional)"
+              }
+            },
+            {
+              "type": "Microsoft.Network/firewallPolicies/ruleCollectionGroups",
+              "apiVersion": "2024-01-01",
+              "name": "[format('{0}/{1}', variables('firewallPolicyName'), 'ApplicationRuleCollectionGroup')]",
+              "properties": {
+                "priority": 400,
+                "ruleCollections": [
+                  {
+                    "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                    "action": {
+                      "type": "Allow"
+                    },
+                    "name": "AllowWindowsUpdate",
+                    "priority": 100,
+                    "rules": [
+                      {
+                        "ruleType": "ApplicationRule",
+                        "name": "WindowsUpdate",
+                        "description": "Allow Windows Update using FQDN tag",
+                        "sourceAddresses": [
+                          "[parameters('spokeAddressSpace')]"
+                        ],
+                        "fqdnTags": [
+                          "WindowsUpdate"
+                        ],
+                        "protocols": [
+                          {
+                            "protocolType": "Https",
+                            "port": 443
+                          },
+                          {
+                            "protocolType": "Http",
+                            "port": 80
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                    "action": {
+                      "type": "Allow"
+                    },
+                    "name": "AllowAzureBackupFqdn",
+                    "priority": 200,
+                    "rules": [
+                      {
+                        "ruleType": "ApplicationRule",
+                        "name": "AzureBackup",
+                        "description": "Allow Azure Backup using FQDN tag",
+                        "sourceAddresses": [
+                          "[parameters('spokeAddressSpace')]"
+                        ],
+                        "fqdnTags": [
+                          "AzureBackup"
+                        ],
+                        "protocols": [
+                          {
+                            "protocolType": "Https",
+                            "port": 443
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
+                    "action": {
+                      "type": "Allow"
+                    },
+                    "name": "AllowOutboundInternet",
+                    "priority": 1000,
+                    "rules": [
+                      {
+                        "ruleType": "ApplicationRule",
+                        "name": "AllowHttpHttps",
+                        "description": "Allow general outbound HTTP/HTTPS internet access",
+                        "sourceAddresses": [
+                          "[parameters('spokeAddressSpace')]"
+                        ],
+                        "targetFqdns": [
+                          "*"
+                        ],
+                        "protocols": [
+                          {
+                            "protocolType": "Http",
+                            "port": 80
+                          },
+                          {
+                            "protocolType": "Https",
+                            "port": 443
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/firewallPolicies', variables('firewallPolicyName'))]",
+                "[resourceId('Microsoft.Network/firewallPolicies/ruleCollectionGroups', variables('firewallPolicyName'), 'NetworkRuleCollectionGroup')]",
+                "[resourceId('Microsoft.Network/firewallPolicies/ruleCollectionGroups', variables('firewallPolicyName'), 'OnPremisesRuleCollectionGroup')]"
+              ],
+              "metadata": {
+                "description": "Application rules for outbound internet access"
               }
             },
             {
@@ -2151,15 +2480,27 @@
                       }
                     }
                   }
-                ]
+                ],
+                "managementIpConfiguration": {
+                  "name": "fw-mgmt-ipconfig",
+                  "properties": {
+                    "subnet": {
+                      "id": "[parameters('firewallManagementSubnetId')]"
+                    },
+                    "publicIPAddress": {
+                      "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('firewallMgmtPublicIpName'))]"
+                    }
+                  }
+                }
               },
               "dependsOn": [
-                "[resourceId('Microsoft.Network/firewallPolicies/ruleCollectionGroups', variables('firewallPolicyName'), 'DefaultNetworkRuleCollectionGroup')]",
+                "[resourceId('Microsoft.Network/firewallPolicies/ruleCollectionGroups', variables('firewallPolicyName'), 'ApplicationRuleCollectionGroup')]",
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('firewallMgmtPublicIpName'))]",
                 "[resourceId('Microsoft.Network/firewallPolicies', variables('firewallPolicyName'))]",
                 "[resourceId('Microsoft.Network/publicIPAddresses', variables('firewallPublicIpName'))]"
               ],
               "metadata": {
-                "description": "Azure Firewall with Basic SKU"
+                "description": "Azure Firewall with Basic SKU and management IP configuration"
               }
             }
           ],
@@ -2181,7 +2522,7 @@
             "firewallPrivateIp": {
               "type": "string",
               "metadata": {
-                "description": "Azure Firewall private IP address"
+                "description": "Azure Firewall private IP address (for UDR next hop)"
               },
               "value": "[reference(resourceId('Microsoft.Network/azureFirewalls', variables('firewallName')), '2024-01-01').ipConfigurations[0].properties.privateIPAddress]"
             },
@@ -2191,6 +2532,13 @@
                 "description": "Azure Firewall public IP address"
               },
               "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('firewallPublicIpName')), '2024-01-01').ipAddress]"
+            },
+            "firewallMgmtPublicIp": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure Firewall management public IP address"
+              },
+              "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('firewallMgmtPublicIpName')), '2024-01-01').ipAddress]"
             }
           }
         }
@@ -2199,7 +2547,186 @@
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('networking-hub-{0}', variables('uniqueSuffix')))]"
       ],
       "metadata": {
-        "description": "Deploy Azure Firewall Basic (optional)"
+        "description": "Deploy Azure Firewall Basic with best-practice rules (optional)"
+      }
+    },
+    {
+      "condition": "[parameters('deployFirewall')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "[format('route-tables-{0}', variables('uniqueSuffix'))]",
+      "resourceGroup": "[variables('rgNames').hub]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "environment": {
+            "value": "slz"
+          },
+          "regionShort": {
+            "value": "[variables('regionShort')]"
+          },
+          "firewallPrivateIp": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('firewall-{0}', variables('uniqueSuffix'))), '2025-04-01').outputs.firewallPrivateIp.value]"
+          },
+          "spokeAddressSpace": {
+            "value": "[parameters('spokeVnetAddressSpace')]"
+          },
+          "onPremisesAddressSpace": {
+            "value": "[parameters('onPremisesAddressSpace')]"
+          },
+          "tags": {
+            "value": "[variables('sharedServicesTags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.39.26.7824",
+              "templateHash": "14641395845912062588"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region for resource deployment"
+              }
+            },
+            "environment": {
+              "type": "string",
+              "allowedValues": [
+                "dev",
+                "staging",
+                "prod",
+                "slz"
+              ],
+              "metadata": {
+                "description": "Environment name"
+              }
+            },
+            "regionShort": {
+              "type": "string",
+              "metadata": {
+                "description": "Region abbreviation for naming"
+              }
+            },
+            "firewallPrivateIp": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure Firewall private IP address for next hop"
+              }
+            },
+            "spokeAddressSpace": {
+              "type": "string",
+              "metadata": {
+                "description": "Spoke VNet address space (for Gateway UDR)"
+              }
+            },
+            "onPremisesAddressSpace": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "On-premises address space (optional, for spoke routing)"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "metadata": {
+                "description": "Tags to apply to all resources"
+              }
+            }
+          },
+          "variables": {
+            "spokeRouteTableName": "[format('rt-spoke-{0}-{1}', parameters('environment'), parameters('regionShort'))]",
+            "gatewayRouteTableName": "[format('rt-gateway-{0}-{1}', parameters('environment'), parameters('regionShort'))]",
+            "hasOnPremises": "[not(empty(parameters('onPremisesAddressSpace')))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/routeTables",
+              "apiVersion": "2024-01-01",
+              "name": "[variables('spokeRouteTableName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "disableBgpRoutePropagation": false,
+                "routes": "[concat(createArray(createObject('name', 'route-to-internet-via-firewall', 'properties', createObject('addressPrefix', '0.0.0.0/0', 'nextHopType', 'VirtualAppliance', 'nextHopIpAddress', parameters('firewallPrivateIp')))), if(variables('hasOnPremises'), createArray(createObject('name', 'route-to-onprem-via-firewall', 'properties', createObject('addressPrefix', parameters('onPremisesAddressSpace'), 'nextHopType', 'VirtualAppliance', 'nextHopIpAddress', parameters('firewallPrivateIp')))), createArray()))]"
+              },
+              "metadata": {
+                "description": "Route table for spoke subnets - forces traffic through firewall"
+              }
+            },
+            {
+              "condition": "[variables('hasOnPremises')]",
+              "type": "Microsoft.Network/routeTables",
+              "apiVersion": "2024-01-01",
+              "name": "[variables('gatewayRouteTableName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "disableBgpRoutePropagation": false,
+                "routes": [
+                  {
+                    "name": "route-to-spoke-via-firewall",
+                    "properties": {
+                      "addressPrefix": "[parameters('spokeAddressSpace')]",
+                      "nextHopType": "VirtualAppliance",
+                      "nextHopIpAddress": "[parameters('firewallPrivateIp')]"
+                    }
+                  }
+                ]
+              },
+              "metadata": {
+                "description": "Route table for GatewaySubnet - forces on-prem to Azure traffic through firewall"
+              }
+            }
+          ],
+          "outputs": {
+            "spokeRouteTableId": {
+              "type": "string",
+              "metadata": {
+                "description": "Spoke route table resource ID"
+              },
+              "value": "[resourceId('Microsoft.Network/routeTables', variables('spokeRouteTableName'))]"
+            },
+            "spokeRouteTableName": {
+              "type": "string",
+              "metadata": {
+                "description": "Spoke route table name"
+              },
+              "value": "[variables('spokeRouteTableName')]"
+            },
+            "gatewayRouteTableId": {
+              "type": "string",
+              "metadata": {
+                "description": "Gateway route table resource ID (empty if no VPN)"
+              },
+              "value": "[if(variables('hasOnPremises'), resourceId('Microsoft.Network/routeTables', variables('gatewayRouteTableName')), '')]"
+            },
+            "gatewayRouteTableName": {
+              "type": "string",
+              "metadata": {
+                "description": "Gateway route table name (empty if no VPN)"
+              },
+              "value": "[if(variables('hasOnPremises'), variables('gatewayRouteTableName'), '')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('firewall-{0}', variables('uniqueSuffix')))]"
+      ],
+      "metadata": {
+        "description": "Deploy route tables for firewall routing (conditional)"
       }
     },
     {
@@ -2226,9 +2753,6 @@
           "gatewaySubnetId": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('networking-hub-{0}', variables('uniqueSuffix'))), '2025-04-01').outputs.gatewaySubnetId.value]"
           },
-          "vpnGatewaySku": {
-            "value": "[parameters('vpnGatewaySku')]"
-          },
           "tags": {
             "value": "[variables('sharedServicesTags')]"
           }
@@ -2240,7 +2764,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "8497421058464996467"
+              "templateHash": "6474290054408230584"
             }
           },
           "parameters": {
@@ -2256,7 +2780,6 @@
                 "dev",
                 "staging",
                 "prod",
-                "slz",
                 "slz"
               ],
               "metadata": {
@@ -2275,17 +2798,6 @@
                 "description": "Gateway Subnet resource ID"
               }
             },
-            "vpnGatewaySku": {
-              "type": "string",
-              "defaultValue": "Basic",
-              "allowedValues": [
-                "Basic",
-                "VpnGw1AZ"
-              ],
-              "metadata": {
-                "description": "VPN Gateway SKU"
-              }
-            },
             "tags": {
               "type": "object",
               "metadata": {
@@ -2295,8 +2807,7 @@
           },
           "variables": {
             "gatewayName": "[format('vpng-hub-{0}-{1}', parameters('environment'), parameters('regionShort'))]",
-            "gatewayPublicIpName": "[format('pip-vpn-{0}-{1}', parameters('environment'), parameters('regionShort'))]",
-            "isZoneRedundant": "[equals(parameters('vpnGatewaySku'), 'VpnGw1AZ')]"
+            "gatewayPublicIpName": "[format('pip-vpn-{0}-{1}', parameters('environment'), parameters('regionShort'))]"
           },
           "resources": [
             {
@@ -2309,13 +2820,17 @@
                 "name": "Standard",
                 "tier": "Regional"
               },
-              "zones": "[if(variables('isZoneRedundant'), createArray('1', '2', '3'), createArray())]",
+              "zones": [
+                "1",
+                "2",
+                "3"
+              ],
               "properties": {
                 "publicIPAllocationMethod": "Static",
                 "publicIPAddressVersion": "IPv4"
               },
               "metadata": {
-                "description": "Public IP for VPN Gateway"
+                "description": "Public IP for VPN Gateway (Standard SKU, Static, zone-redundant)"
               }
             },
             {
@@ -2327,10 +2842,10 @@
               "properties": {
                 "gatewayType": "Vpn",
                 "vpnType": "RouteBased",
-                "vpnGatewayGeneration": "[if(equals(parameters('vpnGatewaySku'), 'Basic'), 'None', 'Generation1')]",
+                "vpnGatewayGeneration": "Generation1",
                 "sku": {
-                  "name": "[parameters('vpnGatewaySku')]",
-                  "tier": "[parameters('vpnGatewaySku')]"
+                  "name": "VpnGw1AZ",
+                  "tier": "VpnGw1AZ"
                 },
                 "enableBgp": false,
                 "activeActive": false,
@@ -2352,7 +2867,7 @@
                 "[resourceId('Microsoft.Network/publicIPAddresses', variables('gatewayPublicIpName'))]"
               ],
               "metadata": {
-                "description": "VPN Gateway for hybrid connectivity"
+                "description": "VPN Gateway VpnGw1AZ for hybrid connectivity"
               }
             }
           ],
@@ -2377,13 +2892,6 @@
                 "description": "VPN Gateway public IP address"
               },
               "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('gatewayPublicIpName')), '2024-01-01').ipAddress]"
-            },
-            "gatewaySku": {
-              "type": "string",
-              "metadata": {
-                "description": "VPN Gateway SKU"
-              },
-              "value": "[parameters('vpnGatewaySku')]"
             }
           }
         }
@@ -2392,7 +2900,7 @@
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('networking-hub-{0}', variables('uniqueSuffix')))]"
       ],
       "metadata": {
-        "description": "Deploy VPN Gateway (optional)"
+        "description": "Deploy VPN Gateway VpnGw1AZ (optional, zone-redundant)"
       }
     },
     {
@@ -2600,7 +3108,8 @@
       },
       "dependsOn": [
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('networking-hub-{0}', variables('uniqueSuffix')))]",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').spoke), 'Microsoft.Resources/deployments', format('networking-spoke-{0}', variables('uniqueSuffix')))]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').spoke), 'Microsoft.Resources/deployments', format('networking-spoke-{0}', variables('uniqueSuffix')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('vpn-gateway-{0}', variables('uniqueSuffix')))]"
       ],
       "metadata": {
         "description": "Configure hub-spoke VNet peering (conditional)"
@@ -2650,17 +3159,10 @@
       },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').migrate), 'Microsoft.Resources/deployments', format('migrate-{0}', variables('uniqueSuffix'))), '2025-04-01').outputs.projectId.value]"
     },
-    "bastionName": {
-      "type": "string",
-      "metadata": {
-        "description": "Azure Bastion name (for connection reference)"
-      },
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('networking-hub-{0}', variables('uniqueSuffix'))), '2025-04-01').outputs.bastionName.value]"
-    },
     "natGatewayPublicIp": {
       "type": "string",
       "metadata": {
-        "description": "NAT Gateway public IP address"
+        "description": "NAT Gateway public IP address (if deployed)"
       },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').spoke), 'Microsoft.Resources/deployments', format('networking-spoke-{0}', variables('uniqueSuffix'))), '2025-04-01').outputs.natGatewayPublicIp.value]"
     },

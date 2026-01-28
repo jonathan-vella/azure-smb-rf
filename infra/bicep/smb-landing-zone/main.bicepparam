@@ -19,7 +19,6 @@ param spokeVnetAddressSpace = '10.0.2.0/23'
 // Optional services - disabled by default for cost optimization
 param deployFirewall = false
 param deployVpnGateway = false
-param vpnGatewaySku = 'Basic'
 
 // Monitoring and cost controls
 param logAnalyticsDailyCapGb = '0.5'  // ~500 MB/day

@@ -57,16 +57,16 @@ scores in Reliability and Performance pillars.
 
 ### Core Architecture Decisions
 
-| Component              | Decision                                   | Rationale                                                  |
-| ---------------------- | ------------------------------------------ | ---------------------------------------------------------- |
-| **Network Topology**   | Hub-spoke with reserved subnets            | Future expansion for Firewall/VPN without redesign         |
-| **Region**             | swedencentral (primary)                    | EU GDPR compliance, sustainable operations, cost-effective |
-| **Bastion**            | Developer SKU (free)                       | Cost priority; single-connection sufficient for SMB        |
-| **NAT Gateway**        | Standard (zonal)                           | Deterministic outbound; ~$32/month                         |
-| **VPN Gateway**        | Basic SKU (~$27/mo) or VpnGw1AZ (~$140/mo) | Basic is cheapest; VpnGw1AZ for BGP/zone-redundancy        |
-| **Azure Firewall**     | Optional Basic tier                        | Deploy only when inspection required                       |
-| **Zone Redundancy**    | Disabled (except VPN AZ SKUs)              | Explicit cost trade-off                                    |
-| **Policy Enforcement** | 20 built-in policies (Deny/Audit)          | Automated compliance without manual gates                  |
+| Component              | Decision                          | Rationale                                                  |
+| ---------------------- | --------------------------------- | ---------------------------------------------------------- |
+| **Network Topology**   | Hub-spoke with reserved subnets   | Future expansion for Firewall/VPN without redesign         |
+| **Region**             | swedencentral (primary)           | EU GDPR compliance, sustainable operations, cost-effective |
+| **Bastion**            | Developer SKU (free)              | Cost priority; single-connection sufficient for SMB        |
+| **NAT Gateway**        | Standard (zonal)                  | Deterministic outbound; ~$32/month                         |
+| **VPN Gateway**        | VpnGw1AZ (~$140/mo)               | Zone-redundant; BGP support; high availability             |
+| **Azure Firewall**     | Optional Basic tier               | Deploy only when inspection required                       |
+| **Zone Redundancy**    | Disabled (except VPN AZ SKUs)     | Explicit cost trade-off                                    |
+| **Policy Enforcement** | 20 built-in policies (Deny/Audit) | Automated compliance without manual gates                  |
 
 ### WAF Pillar Alignment
 
@@ -80,12 +80,12 @@ scores in Reliability and Performance pillars.
 
 ### Cost Breakdown
 
-| Scenario                      | Monthly Cost | Budget Utilization |
-| ----------------------------- | ------------ | ------------------ |
-| Baseline (required services)  | ~$48         | 10%                |
-| Baseline + VPN Gateway Basic  | ~$75         | 15%                |
-| Baseline + Azure Firewall     | ~$336        | 67%                |
-| All services (Firewall + VPN) | ~$363        | 73%                |
+| Scenario                        | Monthly Cost | Budget Utilization |
+| ------------------------------- | ------------ | ------------------ |
+| Baseline (required services)    | ~$48         | 10%                |
+| Baseline + VPN Gateway VpnGw1AZ | ~$187        | 37%                |
+| Baseline + Azure Firewall       | ~$336        | 67%                |
+| All services (Firewall + VPN)   | ~$476        | 95%                |
 
 ## Consequences
 
@@ -139,7 +139,7 @@ scores in Reliability and Performance pillars.
 
 - **ALT-009**: **Description**: Use ExpressRoute for hybrid connectivity
 - **ALT-010**: **Rejection Reason**: ExpressRoute circuits cost $50-500/month plus provider fees;
-  excessive for SMB workloads. VPN Gateway Basic at ~$27/month is cost-appropriate.
+  excessive for SMB workloads. VPN Gateway VpnGw1AZ at ~$140/month is cost-appropriate.
 
 ## Implementation Notes
 

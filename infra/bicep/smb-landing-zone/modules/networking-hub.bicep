@@ -1,8 +1,8 @@
 // ============================================================================
 // SMB Landing Zone - Hub Networking
 // ============================================================================
-// Purpose: Deploy hub VNet with Bastion, NSG, and Private DNS Zone
-// Version: v0.1
+// Purpose: Deploy hub VNet with NSG and Private DNS Zone
+// Version: v0.2
 // ============================================================================
 
 // ============================================================================
@@ -37,21 +37,20 @@ param tags object
 // Resource naming
 var vnetName = 'vnet-hub-${environment}-${regionShort}'
 var nsgName = 'nsg-hub-${environment}-${regionShort}'
-var bastionName = 'bas-hub-${environment}-${regionShort}'
 var privateDnsZoneName = 'privatelink.azure.com'
 
 // Subnet address ranges (derived from VNet address space)
-// Designed for /23 VNet (512 IPs):
+// Designed for /23 VNet (512 IPs) with service subnets:
 // For 10.0.0.0/23 (10.0.0.0 - 10.0.1.255):
-// - AzureBastionSubnet: 10.0.0.0/26 (64 addresses, 0-63)
-// - AzureFirewallSubnet: 10.0.0.64/26 (64 addresses, 64-127, reserved)
-// - GatewaySubnet: 10.0.0.128/27 (32 addresses, 128-159, reserved)
-// - ManagementSubnet: 10.0.0.192/26 (64 addresses, 192-255)
-// Remaining: 10.0.1.0/24 (256 addresses for future use)
-var bastionSubnetPrefix = cidrSubnet(vnetAddressSpace, 26, 0)      // /26 = 64 IPs
-var firewallSubnetPrefix = cidrSubnet(vnetAddressSpace, 26, 1)     // /26 = 64 IPs
-var gatewaySubnetPrefix = cidrSubnet(vnetAddressSpace, 27, 4)      // /27 = 32 IPs (starts at .128)
-var managementSubnetPrefix = cidrSubnet(vnetAddressSpace, 26, 3)   // /26 = 64 IPs (starts at .192)
+// - AzureFirewallSubnet: 10.0.0.0/26 (64 addresses, index 0)
+// - AzureFirewallManagementSubnet: 10.0.0.64/26 (64 addresses, index 1) - Required for Basic SKU
+// - snet-management: 10.0.0.128/26 (64 addresses, index 2)
+// - GatewaySubnet: 10.0.0.192/27 (32 addresses, index 6 of /27)
+// Remaining: 10.0.0.224 - 10.0.1.255 (288 addresses for future use)
+var firewallSubnetPrefix = cidrSubnet(vnetAddressSpace, 26, 0)          // /26 = 64 IPs
+var firewallMgmtSubnetPrefix = cidrSubnet(vnetAddressSpace, 26, 1)      // /26 = 64 IPs (required for Basic)
+var managementSubnetPrefix = cidrSubnet(vnetAddressSpace, 26, 2)        // /26 = 64 IPs
+var gatewaySubnetPrefix = cidrSubnet(vnetAddressSpace, 27, 6)           // /27 = 32 IPs (starts at 10.0.0.192)
 
 // ============================================================================
 // Network Security Group
@@ -86,7 +85,7 @@ resource hubNsg 'Microsoft.Network/networkSecurityGroups@2024-01-01' = {
 // Hub Virtual Network
 // ============================================================================
 
-@description('Hub VNet with reserved subnets for Bastion, Firewall, and Gateway')
+@description('Hub VNet with reserved subnets for Firewall, Firewall Management, and Gateway')
 resource hubVnet 'Microsoft.Network/virtualNetworks@2024-01-01' = {
   name: vnetName
   location: location
@@ -99,17 +98,18 @@ resource hubVnet 'Microsoft.Network/virtualNetworks@2024-01-01' = {
     }
     subnets: [
       {
-        name: 'AzureBastionSubnet'
-        properties: {
-          addressPrefix: bastionSubnetPrefix
-          // Bastion subnet does not support NSG
-        }
-      }
-      {
         name: 'AzureFirewallSubnet'
         properties: {
           addressPrefix: firewallSubnetPrefix
           // Firewall subnet does not support NSG
+        }
+      }
+      {
+        name: 'AzureFirewallManagementSubnet'
+        properties: {
+          addressPrefix: firewallMgmtSubnetPrefix
+          // Required for Azure Firewall Basic SKU - management traffic
+          // Does not support NSG or UDR
         }
       }
       {
@@ -129,25 +129,6 @@ resource hubVnet 'Microsoft.Network/virtualNetworks@2024-01-01' = {
         }
       }
     ]
-  }
-}
-
-// ============================================================================
-// Azure Bastion (Developer SKU)
-// ============================================================================
-
-@description('Azure Bastion with Developer SKU (cost-optimized, no public IP required)')
-resource bastion 'Microsoft.Network/bastionHosts@2024-01-01' = {
-  name: bastionName
-  location: location
-  tags: tags
-  sku: {
-    name: 'Developer'
-  }
-  properties: {
-    virtualNetwork: {
-      id: hubVnet.id
-    }
   }
 }
 
@@ -187,11 +168,11 @@ output vnetId string = hubVnet.id
 @description('Hub VNet name')
 output vnetName string = hubVnet.name
 
-@description('Azure Bastion Subnet resource ID')
-output bastionSubnetId string = hubVnet.properties.subnets[0].id
-
 @description('Azure Firewall Subnet resource ID')
-output firewallSubnetId string = hubVnet.properties.subnets[1].id
+output firewallSubnetId string = hubVnet.properties.subnets[0].id
+
+@description('Azure Firewall Management Subnet resource ID (required for Basic SKU)')
+output firewallManagementSubnetId string = hubVnet.properties.subnets[1].id
 
 @description('Gateway Subnet resource ID')
 output gatewaySubnetId string = hubVnet.properties.subnets[2].id
@@ -201,12 +182,6 @@ output managementSubnetId string = hubVnet.properties.subnets[3].id
 
 @description('Hub NSG resource ID')
 output nsgId string = hubNsg.id
-
-@description('Azure Bastion resource ID')
-output bastionId string = bastion.id
-
-@description('Azure Bastion name')
-output bastionName string = bastion.name
 
 @description('Private DNS Zone resource ID')
 output privateDnsZoneId string = privateDnsZone.id

@@ -30,10 +30,7 @@
     Deploy Azure Firewall Basic (adds ~$277/month).
 
 .PARAMETER DeployVpnGateway
-    Deploy VPN Gateway for hybrid connectivity.
-
-.PARAMETER VpnGatewaySku
-    VPN Gateway SKU (Basic or VpnGw1AZ). Default: Basic
+    Deploy VPN Gateway VpnGw1AZ for hybrid connectivity (~$140/month, zone-redundant).
 
 .PARAMETER LogAnalyticsDailyCapGb
     Log Analytics daily ingestion cap in GB (decimal). Default: 0.5 (~500MB)
@@ -87,8 +84,7 @@ param(
     [switch]$DeployVpnGateway,
 
     [Parameter()]
-    [ValidateSet('Basic', 'VpnGw1AZ')]
-    [string]$VpnGatewaySku = 'Basic',
+    [string]$OnPremisesAddressSpace = '',
 
     [Parameter()]
     [string]$LogAnalyticsDailyCapGb = '0.5',
@@ -169,9 +165,9 @@ function Read-HostWithDefault {
         [string]$Prompt,
         [string]$Default
     )
-    $input = Read-Host "$Prompt [$Default]"
-    if ([string]::IsNullOrWhiteSpace($input)) { return $Default }
-    return $input
+    $userInput = Read-Host "$Prompt [$Default]"
+    if ([string]::IsNullOrWhiteSpace($userInput)) { return $Default }
+    return $userInput
 }
 
 function Read-YesNo {
@@ -180,9 +176,9 @@ function Read-YesNo {
         [bool]$Default = $false
     )
     $defaultText = if ($Default) { "Y/n" } else { "y/N" }
-    $input = Read-Host "$Prompt [$defaultText]"
-    if ([string]::IsNullOrWhiteSpace($input)) { return $Default }
-    return $input -match '^[Yy](es)?$'
+    $userInput = Read-Host "$Prompt [$defaultText]"
+    if ([string]::IsNullOrWhiteSpace($userInput)) { return $Default }
+    return $userInput -match '^[Yy](es)?$'
 }
 
 function Test-CidrOverlap {
@@ -345,15 +341,30 @@ if (-not $NonInteractive) {
         Write-Host "  ─── Optional Services ───" -ForegroundColor Yellow
         Write-Host ""
         $DeployFirewall = Read-YesNo "  Deploy Azure Firewall Basic? (+~`$277/mo)" $DeployFirewall
-        $DeployVpnGateway = Read-YesNo "  Deploy VPN Gateway for hybrid connectivity?" $DeployVpnGateway
+        $DeployVpnGateway = Read-YesNo "  Deploy VPN Gateway VpnGw1AZ? (+~`$140/mo, zone-redundant)" $DeployVpnGateway
 
         if ($DeployVpnGateway) {
-            Write-Host "  VPN SKUs: Basic (~`$27/mo), VpnGw1AZ (~`$138/mo zone-redundant)" -ForegroundColor Gray
-            $VpnGatewaySku = Read-HostWithDefault "  VPN Gateway SKU" $VpnGatewaySku
-            while ($VpnGatewaySku -notin @('Basic', 'VpnGw1AZ')) {
-                Write-Host "  Invalid SKU. Choose: Basic or VpnGw1AZ" -ForegroundColor Red
-                $VpnGatewaySku = Read-HostWithDefault "  VPN Gateway SKU" 'Basic'
-            }
+            # Prompt for on-premises CIDR when VPN is selected
+            Write-Host ""
+            Write-Host "  On-premises network CIDR is required for VPN routing." -ForegroundColor Gray
+            Write-Host "  This configures firewall rules and route tables for hybrid connectivity." -ForegroundColor Gray
+            do {
+                $OnPremisesAddressSpace = Read-HostWithDefault "  On-premises CIDR (e.g., 192.168.0.0/16)" $OnPremisesAddressSpace
+                if (-not [string]::IsNullOrWhiteSpace($OnPremisesAddressSpace) -and -not (Test-ValidCidr $OnPremisesAddressSpace)) {
+                    Write-Host "  Invalid CIDR format. Use format: x.x.x.x/prefix (prefix 8-29)" -ForegroundColor Red
+                    $OnPremisesAddressSpace = ''
+                }
+                # Check for overlap with hub and spoke
+                if (-not [string]::IsNullOrWhiteSpace($OnPremisesAddressSpace)) {
+                    if (Test-CidrOverlap $HubVnetAddressSpace $OnPremisesAddressSpace) {
+                        Write-Host "  ✗ On-premises CIDR overlaps with Hub CIDR." -ForegroundColor Red
+                        $OnPremisesAddressSpace = ''
+                    } elseif (Test-CidrOverlap $SpokeVnetAddressSpace $OnPremisesAddressSpace) {
+                        Write-Host "  ✗ On-premises CIDR overlaps with Spoke CIDR." -ForegroundColor Red
+                        $OnPremisesAddressSpace = ''
+                    }
+                }
+            } while ([string]::IsNullOrWhiteSpace($OnPremisesAddressSpace))
         }
 
         # Budget and alerts
@@ -390,7 +401,10 @@ Write-Info "Location" $Location
 Write-Info "Hub VNet" $HubVnetAddressSpace
 Write-Info "Spoke VNet" $SpokeVnetAddressSpace
 Write-Info "Firewall" $(if ($DeployFirewall) { "Yes (+~$277/mo)" } else { "No" })
-Write-Info "VPN Gateway" $(if ($DeployVpnGateway) { "Yes ($VpnGatewaySku)" } else { "No" })
+Write-Info "VPN Gateway" $(if ($DeployVpnGateway) { "Yes (VpnGw1AZ, +~`$140/mo)" } else { "No" })
+if ($DeployVpnGateway -and -not [string]::IsNullOrWhiteSpace($OnPremisesAddressSpace)) {
+    Write-Info "On-Prem CIDR" $OnPremisesAddressSpace
+}
 Write-Info "Log Cap" "$LogAnalyticsDailyCapGb GB/day"
 Write-Info "Budget" "`$$BudgetAmount/month"
 
@@ -528,7 +542,7 @@ $whatIfParams = @(
     '--parameters', "spokeVnetAddressSpace=$SpokeVnetAddressSpace",
     '--parameters', "deployFirewall=$($DeployFirewall.ToString().ToLower())",
     '--parameters', "deployVpnGateway=$($DeployVpnGateway.ToString().ToLower())",
-    '--parameters', "vpnGatewaySku=$VpnGatewaySku",
+    '--parameters', "onPremisesAddressSpace=$OnPremisesAddressSpace",
     '--parameters', "logAnalyticsDailyCapGb=$LogAnalyticsDailyCapGb",
     '--parameters', "budgetAmount=$BudgetAmount"
 )
@@ -601,7 +615,7 @@ $deployParams = @(
     '--parameters', "spokeVnetAddressSpace=$SpokeVnetAddressSpace",
     '--parameters', "deployFirewall=$($DeployFirewall.ToString().ToLower())",
     '--parameters', "deployVpnGateway=$($DeployVpnGateway.ToString().ToLower())",
-    '--parameters', "vpnGatewaySku=$VpnGatewaySku",
+    '--parameters', "onPremisesAddressSpace=$OnPremisesAddressSpace",
     '--parameters', "logAnalyticsDailyCapGb=$LogAnalyticsDailyCapGb",
     '--parameters', "budgetAmount=$BudgetAmount"
 )
@@ -651,8 +665,9 @@ if ($deployResult -and $deployResult.properties.provisioningState -eq 'Succeeded
 
     Write-Info "Hub VNet" $outputs.hubVnetId.value.Split('/')[-1]
     Write-Info "Spoke VNet" $outputs.spokeVnetId.value.Split('/')[-1]
-    Write-Info "Bastion" $outputs.bastionName.value
-    Write-Info "NAT Gateway IP" $outputs.natGatewayPublicIp.value
+    if ($outputs.natGatewayPublicIp.value) {
+        Write-Info "NAT Gateway IP" $outputs.natGatewayPublicIp.value
+    }
     Write-Info "Log Analytics" $outputs.logAnalyticsWorkspaceId.value.Split('/')[-1]
     Write-Info "Recovery Vault" $outputs.recoveryServicesVaultId.value.Split('/')[-1]
     Write-Info "Migrate Project" $outputs.migrateProjectId.value.Split('/')[-1]
@@ -666,10 +681,9 @@ if ($deployResult -and $deployResult.properties.provisioningState -eq 'Succeeded
 
     Write-Section "NEXT STEPS"
 
-    Write-Host "  1. Connect via Bastion: Azure Portal → Bastion → Connect" -ForegroundColor White
-    Write-Host "  2. Configure VM backup policies in Recovery Services Vault" -ForegroundColor White
-    Write-Host "  3. Set up Azure Migrate appliance for VMware discovery" -ForegroundColor White
-    Write-Host "  4. Review budget alerts: Cost Management → Budgets" -ForegroundColor White
+    Write-Host "  1. Configure VM backup policies in Recovery Services Vault" -ForegroundColor White
+    Write-Host "  2. Set up Azure Migrate appliance for VMware discovery" -ForegroundColor White
+    Write-Host "  3. Review budget alerts: Cost Management → Budgets" -ForegroundColor White
     Write-Host ""
 } elseif ($deployResult) {
     Write-Error "Deployment failed: $($deployResult.properties.provisioningState)"
