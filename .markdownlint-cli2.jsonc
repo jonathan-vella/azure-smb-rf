@@ -135,23 +135,7 @@
     // Archived content
     "mcp/azure-pricing-mcp/.archive/**",
 
-    // Presenter/demo content (intentionally less strict)
-    "docs/audit-checklists/**",
-    "docs/presenter/**",
-
     // Agent-generated output (validated by artifact-templates validator)
     "agent-output/**",
-
-    // Scenario demo content (examples, not production code)
-    "scenarios/**/solution/**",
-    "scenarios/**/examples/**",
-    "scenarios/**/sample-app/**",
-    "scenarios/**/prompts/**",
-    "scenarios/**/templates/**",
-    "scenarios/**/scenario/**",
-    "scenarios/**/agents/**",
-    "scenarios/**/validation/**",
-    "scenarios/**/DEMO-SCRIPT.md",
-    "scenarios/S08-sbom-generator/README.md",
   ],
 }
