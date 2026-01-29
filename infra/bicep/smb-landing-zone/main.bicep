@@ -2,8 +2,14 @@
 // SMB Landing Zone - Main Orchestration Template
 // ============================================================================
 // Purpose: Cost-optimized Azure landing zone for VMware-to-Azure migrations
-// Version: v0.1
-// Generated: 2026-01-28
+// Version: v0.2
+// Generated: 2026-01-29
+// ============================================================================
+// Deployment Scenarios:
+// - baseline:   NAT Gateway only (~$48/mo) - cloud-native, no hybrid
+// - firewall:   Azure Firewall + UDR (~$336/mo) - egress filtering
+// - vpn:        VPN Gateway + Gateway Transit (~$187/mo) - hybrid connectivity
+// - enterprise: Firewall + VPN + UDR (~$476/mo) - full enterprise security
 // ============================================================================
 
 targetScope = 'subscription'
@@ -11,6 +17,15 @@ targetScope = 'subscription'
 // ============================================================================
 // Parameters
 // ============================================================================
+
+@description('Deployment scenario preset (determines which optional services are deployed)')
+@allowed([
+  'baseline'
+  'firewall'
+  'vpn'
+  'enterprise'
+])
+param scenario string = 'baseline'
 
 @description('Primary deployment region')
 @allowed([
@@ -36,12 +51,6 @@ param hubVnetAddressSpace string = '10.0.0.0/16'
 @description('Spoke VNet address space CIDR')
 param spokeVnetAddressSpace string = '10.1.0.0/16'
 
-@description('Deploy Azure Firewall Basic (adds ~$277/month)')
-param deployFirewall bool = false
-
-@description('Deploy VPN Gateway for hybrid connectivity (VpnGw1AZ - zone-redundant)')
-param deployVpnGateway bool = false
-
 @description('On-premises network address space CIDR (for VPN routing)')
 param onPremisesAddressSpace string = ''
 
@@ -60,8 +69,12 @@ param budgetAlertEmail string = owner
 param deploymentTimestamp string = utcNow('yyyy-MM-01')
 
 // ============================================================================
-// Variables
+// Variables - Scenario-Derived Feature Flags
 // ============================================================================
+
+// Derive feature flags from scenario parameter
+var deployFirewall = scenario == 'firewall' || scenario == 'enterprise'
+var deployVpnGateway = scenario == 'vpn' || scenario == 'enterprise'
 
 // Unique suffix for globally unique resource names
 var uniqueSuffix = uniqueString(subscription().subscriptionId)
@@ -296,12 +309,17 @@ module networkingPeering 'modules/networking-peering.bicep' = if (deployPeering)
   name: 'networking-peering-${uniqueSuffix}'
   scope: resourceGroup(rgNames.hub)
   params: {
+    location: location
+    environment: 'slz'
+    regionShort: regionShort
+    tags: sharedServicesTags
     hubVnetName: networkingHub.outputs.vnetName
     hubVnetId: networkingHub.outputs.vnetId
     spokeVnetName: networkingSpoke.outputs.vnetName
     spokeVnetId: networkingSpoke.outputs.vnetId
     spokeResourceGroupName: rgNames.spoke
-    useRemoteGateway: deployVpnGateway
+    allowGatewayTransit: deployVpnGateway
+    useRemoteGateways: deployVpnGateway
   }
   // Peering must wait for VPN Gateway when useRemoteGateway is true
   // Always include vpnGateway in dependsOn when deployVpnGateway is true
@@ -314,6 +332,17 @@ module networkingPeering 'modules/networking-peering.bicep' = if (deployPeering)
 // ============================================================================
 // Outputs
 // ============================================================================
+
+@description('Deployment scenario used')
+output deploymentScenario string = scenario
+
+@description('Feature flags derived from scenario')
+output featureFlags object = {
+  firewall: deployFirewall
+  vpnGateway: deployVpnGateway
+  natGateway: deploySpokeNatGateway
+  peering: deployPeering
+}
 
 @description('Resource group names for reference')
 output resourceGroupNames object = rgNames

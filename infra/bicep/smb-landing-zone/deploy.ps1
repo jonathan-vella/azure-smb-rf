@@ -10,6 +10,19 @@
     When run without parameters, it enters interactive mode and prompts for
     configuration values with sensible defaults.
 
+    DEPLOYMENT SCENARIOS:
+    - baseline:   NAT Gateway only (~$48/mo) - cloud-native, no hybrid
+    - firewall:   Azure Firewall + UDR (~$336/mo) - egress filtering
+    - vpn:        VPN Gateway + Gateway Transit (~$187/mo) - hybrid connectivity
+    - enterprise: Firewall + VPN + UDR (~$476/mo) - full enterprise security
+
+.PARAMETER Scenario
+    Deployment scenario preset. Valid values:
+    - baseline:   NAT Gateway only (default)
+    - firewall:   Azure Firewall with egress filtering
+    - vpn:        VPN Gateway for hybrid connectivity
+    - enterprise: Both Firewall and VPN Gateway
+
 .PARAMETER Environment
     The target environment (dev, staging, prod). Default: prod
 
@@ -26,11 +39,8 @@
 .PARAMETER SpokeVnetAddressSpace
     Spoke VNet CIDR address space. Default: 10.1.0.0/16
 
-.PARAMETER DeployFirewall
-    Deploy Azure Firewall Basic (adds ~$277/month).
-
-.PARAMETER DeployVpnGateway
-    Deploy VPN Gateway VpnGw1AZ for hybrid connectivity (~$140/month, zone-redundant).
+.PARAMETER OnPremisesAddressSpace
+    On-premises CIDR for VPN routing (required for vpn/enterprise scenarios).
 
 .PARAMETER LogAnalyticsDailyCapGb
     Log Analytics daily ingestion cap in GB (decimal). Default: 0.5 (~500MB)
@@ -43,23 +53,35 @@
 
 .EXAMPLE
     .\deploy.ps1
-    # Interactive mode - prompts for configuration
+    # Interactive mode - prompts for configuration (defaults to baseline)
+
+.EXAMPLE
+    .\deploy.ps1 -Scenario firewall
+    # Deploy with Azure Firewall for egress filtering
+
+.EXAMPLE
+    .\deploy.ps1 -Scenario vpn -OnPremisesAddressSpace "192.168.0.0/16"
+    # Deploy with VPN Gateway for hybrid connectivity
+
+.EXAMPLE
+    .\deploy.ps1 -Scenario enterprise -OnPremisesAddressSpace "192.168.0.0/16"
+    # Deploy with both Firewall and VPN Gateway
 
 .EXAMPLE
     .\deploy.ps1 -NonInteractive -Owner "partner-ops@contoso.com"
-    # Non-interactive mode with explicit owner
-
-.EXAMPLE
-    .\deploy.ps1 -DeployFirewall -DeployVpnGateway
-    # Interactive mode with firewall and VPN pre-selected
+    # Non-interactive baseline deployment with explicit owner
 
 .NOTES
-    Version: 0.2
+    Version: 0.3
     Author: Agentic InfraOps
 #>
 
 [CmdletBinding(SupportsShouldProcess)]
 param(
+    [Parameter()]
+    [ValidateSet('baseline', 'firewall', 'vpn', 'enterprise')]
+    [string]$Scenario = 'baseline',
+
     [Parameter()]
     [ValidateSet('dev', 'staging', 'prod')]
     [string]$Environment = 'prod',
@@ -76,12 +98,6 @@ param(
 
     [Parameter()]
     [string]$SpokeVnetAddressSpace = '10.0.2.0/23',
-
-    [Parameter()]
-    [switch]$DeployFirewall,
-
-    [Parameter()]
-    [switch]$DeployVpnGateway,
 
     [Parameter()]
     [string]$OnPremisesAddressSpace = '',
@@ -106,15 +122,27 @@ function Write-Banner {
 ║   _____ __  __ ____    _                    _ _                 _____         ║
 ║  / ____|  \/  |  _ \  | |                  | (_)               |___  |        ║
 ║ | (___ | \  / | |_) | | |     __ _ _ __   __| |_ _ __   __ _     / /___  _ __  ║
-║  \___ \| |\/| |  _ <  | |    / _` | '_ \ / _` | | '_ \ / _` |   / // _ \| '_ \ ║
+║  \___ \| |\/| |  _ <  | |    / _\`| '_ \ / _\`| | '_ \ / _\` |   / // _ \| '_ \ ║
 ║  ____) | |  | | |_) | | |___| (_| | | | | (_| | | | | | (_| |  / /| (_) | | | |║
 ║ |_____/|_|  |_|____/  |______\__,_|_| |_|\__,_|_|_| |_|\__, | /_/  \___/|_| |_|║
 ║                                                         __/ |                  ║
-║   Azure Infrastructure Deployment                      |___/   v0.1           ║
+║   Azure Infrastructure Deployment                      |___/   v0.2           ║
 ╚═══════════════════════════════════════════════════════════════════════════════╝
 
 "@
     Write-Host $banner -ForegroundColor Cyan
+}
+
+# Scenario descriptions for display
+function Get-ScenarioDescription {
+    param([string]$ScenarioName)
+    switch ($ScenarioName) {
+        'baseline'   { return "NAT Gateway only (~`$48/mo)" }
+        'firewall'   { return "Firewall + UDR (~`$336/mo)" }
+        'vpn'        { return "VPN Gateway (~`$187/mo)" }
+        'enterprise' { return "Firewall + VPN (~`$476/mo)" }
+        default      { return $ScenarioName }
+    }
 }
 
 function Write-Section {
@@ -265,20 +293,21 @@ if ([string]::IsNullOrWhiteSpace($Owner)) {
 
 # Interactive configuration mode
 if (-not $NonInteractive) {
+    $scenarioDesc = Get-ScenarioDescription $Scenario
     Write-Host ""
     Write-Host "┌─────────────────────────────────────────────────────────────────────┐" -ForegroundColor Cyan
     Write-Host "│  DEPLOYMENT CONFIGURATION                                           │" -ForegroundColor Cyan
     Write-Host "├─────────────────────────────────────────────────────────────────────┤" -ForegroundColor Cyan
     Write-Host "│                                                                     │" -ForegroundColor Cyan
+    Write-Host ("│  Scenario:    {0}│" -f $scenarioDesc.PadRight(53)) -ForegroundColor Cyan
     Write-Host ("│  Owner:       {0}│" -f $Owner.PadRight(53)) -ForegroundColor Cyan
     Write-Host ("│  Region:      {0}│" -f $Location.PadRight(53)) -ForegroundColor Cyan
     Write-Host ("│  Environment: {0}│" -f $Environment.PadRight(53)) -ForegroundColor Cyan
     Write-Host ("│  Hub VNet:    {0}│" -f $HubVnetAddressSpace.PadRight(53)) -ForegroundColor Cyan
     Write-Host ("│  Spoke VNet:  {0}│" -f $SpokeVnetAddressSpace.PadRight(53)) -ForegroundColor Cyan
-    $fwText = if ($DeployFirewall) { "Yes (+~`$277/mo)" } else { "No" }
-    Write-Host ("│  Firewall:    {0}│" -f $fwText.PadRight(53)) -ForegroundColor Cyan
-    $vpnText = if ($DeployVpnGateway) { "Yes ($VpnGatewaySku)" } else { "No" }
-    Write-Host ("│  VPN Gateway: {0}│" -f $vpnText.PadRight(53)) -ForegroundColor Cyan
+    if ($Scenario -in @('vpn', 'enterprise') -and -not [string]::IsNullOrWhiteSpace($OnPremisesAddressSpace)) {
+        Write-Host ("│  On-Prem:     {0}│" -f $OnPremisesAddressSpace.PadRight(53)) -ForegroundColor Cyan
+    }
     Write-Host ("│  Budget:      `${0}/month{1}│" -f $BudgetAmount, "".PadRight(43 - $BudgetAmount.ToString().Length)) -ForegroundColor Cyan
     Write-Host "│                                                                     │" -ForegroundColor Cyan
     Write-Host "└─────────────────────────────────────────────────────────────────────┘" -ForegroundColor Cyan
@@ -336,14 +365,23 @@ if (-not $NonInteractive) {
             }
         } while (-not (Test-ValidCidr $SpokeVnetAddressSpace) -or (Test-CidrOverlap $HubVnetAddressSpace $SpokeVnetAddressSpace))
 
-        # Optional services
+        # Optional services - Scenario selection
         Write-Host ""
-        Write-Host "  ─── Optional Services ───" -ForegroundColor Yellow
+        Write-Host "  ─── Deployment Scenario ───" -ForegroundColor Yellow
         Write-Host ""
-        $DeployFirewall = Read-YesNo "  Deploy Azure Firewall Basic? (+~`$277/mo)" $DeployFirewall
-        $DeployVpnGateway = Read-YesNo "  Deploy VPN Gateway VpnGw1AZ? (+~`$140/mo, zone-redundant)" $DeployVpnGateway
+        Write-Host "  Available scenarios:" -ForegroundColor Gray
+        Write-Host "    baseline   - NAT Gateway only (~`$48/mo) - cloud-native" -ForegroundColor Gray
+        Write-Host "    firewall   - Azure Firewall + UDR (~`$336/mo) - egress filtering" -ForegroundColor Gray
+        Write-Host "    vpn        - VPN Gateway (~`$187/mo) - hybrid connectivity" -ForegroundColor Gray
+        Write-Host "    enterprise - Firewall + VPN (~`$476/mo) - full enterprise" -ForegroundColor Gray
+        Write-Host ""
+        $Scenario = Read-HostWithDefault "  Scenario" $Scenario
+        while ($Scenario -notin @('baseline', 'firewall', 'vpn', 'enterprise')) {
+            Write-Host "  Invalid scenario. Choose: baseline, firewall, vpn, or enterprise" -ForegroundColor Red
+            $Scenario = Read-HostWithDefault "  Scenario" 'baseline'
+        }
 
-        if ($DeployVpnGateway) {
+        if ($Scenario -in @('vpn', 'enterprise')) {
             # Prompt for on-premises CIDR when VPN is selected
             Write-Host ""
             Write-Host "  On-premises network CIDR is required for VPN routing." -ForegroundColor Gray
@@ -395,14 +433,14 @@ Write-Banner
 
 Write-Section "DEPLOYMENT CONFIGURATION"
 
+$scenarioDesc = Get-ScenarioDescription $Scenario
+Write-Info "Scenario" "$Scenario ($scenarioDesc)"
 Write-Info "Environment" $Environment
 Write-Info "Owner" $Owner
 Write-Info "Location" $Location
 Write-Info "Hub VNet" $HubVnetAddressSpace
 Write-Info "Spoke VNet" $SpokeVnetAddressSpace
-Write-Info "Firewall" $(if ($DeployFirewall) { "Yes (+~$277/mo)" } else { "No" })
-Write-Info "VPN Gateway" $(if ($DeployVpnGateway) { "Yes (VpnGw1AZ, +~`$140/mo)" } else { "No" })
-if ($DeployVpnGateway -and -not [string]::IsNullOrWhiteSpace($OnPremisesAddressSpace)) {
+if ($Scenario -in @('vpn', 'enterprise') -and -not [string]::IsNullOrWhiteSpace($OnPremisesAddressSpace)) {
     Write-Info "On-Prem CIDR" $OnPremisesAddressSpace
 }
 Write-Info "Log Cap" "$LogAnalyticsDailyCapGb GB/day"
@@ -535,13 +573,12 @@ $whatIfParams = @(
     '--location', $Location,
     '--name', $deploymentName,
     '--template-file', $templateFile,
+    '--parameters', "scenario=$Scenario",
     '--parameters', "environment=$Environment",
     '--parameters', "owner=$Owner",
     '--parameters', "location=$Location",
     '--parameters', "hubVnetAddressSpace=$HubVnetAddressSpace",
     '--parameters', "spokeVnetAddressSpace=$SpokeVnetAddressSpace",
-    '--parameters', "deployFirewall=$($DeployFirewall.ToString().ToLower())",
-    '--parameters', "deployVpnGateway=$($DeployVpnGateway.ToString().ToLower())",
     '--parameters', "onPremisesAddressSpace=$OnPremisesAddressSpace",
     '--parameters', "logAnalyticsDailyCapGb=$LogAnalyticsDailyCapGb",
     '--parameters', "budgetAmount=$BudgetAmount"
@@ -608,13 +645,12 @@ $deployParams = @(
     '--location', $Location,
     '--name', $deploymentName,
     '--template-file', $templateFile,
+    '--parameters', "scenario=$Scenario",
     '--parameters', "environment=$Environment",
     '--parameters', "owner=$Owner",
     '--parameters', "location=$Location",
     '--parameters', "hubVnetAddressSpace=$HubVnetAddressSpace",
     '--parameters', "spokeVnetAddressSpace=$SpokeVnetAddressSpace",
-    '--parameters', "deployFirewall=$($DeployFirewall.ToString().ToLower())",
-    '--parameters', "deployVpnGateway=$($DeployVpnGateway.ToString().ToLower())",
     '--parameters', "onPremisesAddressSpace=$OnPremisesAddressSpace",
     '--parameters', "logAnalyticsDailyCapGb=$LogAnalyticsDailyCapGb",
     '--parameters', "budgetAmount=$BudgetAmount"
@@ -672,10 +708,11 @@ if ($deployResult -and $deployResult.properties.provisioningState -eq 'Succeeded
     Write-Info "Recovery Vault" $outputs.recoveryServicesVaultId.value.Split('/')[-1]
     Write-Info "Migrate Project" $outputs.migrateProjectId.value.Split('/')[-1]
 
-    if ($DeployFirewall) {
+    # Show scenario-specific resources
+    if ($Scenario -in @('firewall', 'enterprise')) {
         Write-Info "Firewall IP" $outputs.firewallPrivateIp.value
     }
-    if ($DeployVpnGateway) {
+    if ($Scenario -in @('vpn', 'enterprise')) {
         Write-Info "VPN Gateway IP" $outputs.vpnGatewayPublicIp.value
     }
 

@@ -1,9 +1,9 @@
 // ============================================================================
-// SMB Landing Zone - Spoke to Hub Peering (Helper Module)
+// SMB Landing Zone - Spoke to Hub Peering (Internal Module)
 // ============================================================================
-// Purpose: Configure spoke to hub VNet peering from spoke resource group
-// Version: v0.1
-// Note: This module is called by networking-peering.bicep for cross-RG peering
+// Purpose: Deploy spoke-to-hub peering in spoke resource group scope
+// Version: v0.2
+// Note: Internal module called by networking-peering.bicep for cross-RG deployment
 // ============================================================================
 
 // ============================================================================
@@ -16,14 +16,14 @@ param spokeVnetName string
 @description('Hub VNet resource ID')
 param hubVnetId string
 
-@description('Use remote gateway (requires VPN Gateway deployed in hub)')
-param useRemoteGateway bool = false
+@description('Use remote gateways from hub (true when VPN Gateway is deployed)')
+param useRemoteGateways bool = false
 
 // ============================================================================
 // Spoke to Hub Peering
 // ============================================================================
 
-@description('Peering from spoke VNet to hub VNet')
+@description('Peering from spoke VNet to hub VNet (uses remote gateways when VPN deployed)')
 resource spokeToHubPeering 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2024-01-01' = {
   name: '${spokeVnetName}/peer-spoke-to-hub'
   properties: {
@@ -33,7 +33,7 @@ resource spokeToHubPeering 'Microsoft.Network/virtualNetworks/virtualNetworkPeer
     allowVirtualNetworkAccess: true
     allowForwardedTraffic: true
     allowGatewayTransit: false
-    useRemoteGateways: useRemoteGateway
+    useRemoteGateways: useRemoteGateways
   }
 }
 

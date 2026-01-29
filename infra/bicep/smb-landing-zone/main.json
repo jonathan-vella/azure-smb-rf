@@ -5,10 +5,23 @@
     "_generator": {
       "name": "bicep",
       "version": "0.39.26.7824",
-      "templateHash": "13200583867769899340"
+      "templateHash": "455918471113123970"
     }
   },
   "parameters": {
+    "scenario": {
+      "type": "string",
+      "defaultValue": "baseline",
+      "allowedValues": [
+        "baseline",
+        "firewall",
+        "vpn",
+        "enterprise"
+      ],
+      "metadata": {
+        "description": "Deployment scenario preset (determines which optional services are deployed)"
+      }
+    },
     "location": {
       "type": "string",
       "defaultValue": "swedencentral",
@@ -52,20 +65,6 @@
         "description": "Spoke VNet address space CIDR"
       }
     },
-    "deployFirewall": {
-      "type": "bool",
-      "defaultValue": false,
-      "metadata": {
-        "description": "Deploy Azure Firewall Basic (adds ~$277/month)"
-      }
-    },
-    "deployVpnGateway": {
-      "type": "bool",
-      "defaultValue": false,
-      "metadata": {
-        "description": "Deploy VPN Gateway for hybrid connectivity (VpnGw1AZ - zone-redundant)"
-      }
-    },
     "onPremisesAddressSpace": {
       "type": "string",
       "defaultValue": "",
@@ -105,14 +104,16 @@
     }
   },
   "variables": {
+    "deployFirewall": "[or(equals(parameters('scenario'), 'firewall'), equals(parameters('scenario'), 'enterprise'))]",
+    "deployVpnGateway": "[or(equals(parameters('scenario'), 'vpn'), equals(parameters('scenario'), 'enterprise'))]",
     "uniqueSuffix": "[uniqueString(subscription().subscriptionId)]",
     "regionAbbreviations": {
       "swedencentral": "swc",
       "germanywestcentral": "gwc"
     },
     "regionShort": "[variables('regionAbbreviations')[parameters('location')]]",
-    "deployPeering": "[or(parameters('deployFirewall'), parameters('deployVpnGateway'))]",
-    "deploySpokeNatGateway": "[not(parameters('deployFirewall'))]",
+    "deployPeering": "[or(variables('deployFirewall'), variables('deployVpnGateway'))]",
+    "deploySpokeNatGateway": "[not(variables('deployFirewall'))]",
     "sharedServicesTags": {
       "Environment": "slz",
       "Owner": "[parameters('owner')]",
@@ -1246,7 +1247,7 @@
           "deployNatGateway": {
             "value": "[variables('deploySpokeNatGateway')]"
           },
-          "routeTableId": "[if(parameters('deployFirewall'), createObject('value', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('route-tables-{0}', variables('uniqueSuffix'))), '2025-04-01').outputs.spokeRouteTableId.value), createObject('value', ''))]",
+          "routeTableId": "[if(variables('deployFirewall'), createObject('value', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('route-tables-{0}', variables('uniqueSuffix'))), '2025-04-01').outputs.spokeRouteTableId.value), createObject('value', ''))]",
           "tags": {
             "value": "[variables('spokeTags')]"
           }
@@ -1914,7 +1915,7 @@
       }
     },
     {
-      "condition": "[parameters('deployFirewall')]",
+      "condition": "[variables('deployFirewall')]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "[format('firewall-{0}', variables('uniqueSuffix'))]",
@@ -2349,7 +2350,7 @@
       }
     },
     {
-      "condition": "[parameters('deployFirewall')]",
+      "condition": "[variables('deployFirewall')]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "[format('route-tables-{0}', variables('uniqueSuffix'))]",
@@ -2528,7 +2529,7 @@
       }
     },
     {
-      "condition": "[parameters('deployVpnGateway')]",
+      "condition": "[variables('deployVpnGateway')]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "[format('vpn-gateway-{0}', variables('uniqueSuffix'))]",
@@ -2713,6 +2714,18 @@
         },
         "mode": "Incremental",
         "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "environment": {
+            "value": "slz"
+          },
+          "regionShort": {
+            "value": "[variables('regionShort')]"
+          },
+          "tags": {
+            "value": "[variables('sharedServicesTags')]"
+          },
           "hubVnetName": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('networking-hub-{0}', variables('uniqueSuffix'))), '2025-04-01').outputs.vnetName.value]"
           },
@@ -2728,8 +2741,11 @@
           "spokeResourceGroupName": {
             "value": "[variables('rgNames').spoke]"
           },
-          "useRemoteGateway": {
-            "value": "[parameters('deployVpnGateway')]"
+          "allowGatewayTransit": {
+            "value": "[variables('deployVpnGateway')]"
+          },
+          "useRemoteGateways": {
+            "value": "[variables('deployVpnGateway')]"
           }
         },
         "template": {
@@ -2739,10 +2755,38 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "6939318574428941698"
+              "templateHash": "18132049567408266885"
             }
           },
           "parameters": {
+            "location": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Azure region for deployment (unused but kept for interface consistency)"
+              }
+            },
+            "environment": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Environment name (unused but kept for interface consistency)"
+              }
+            },
+            "regionShort": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Region abbreviation (unused but kept for interface consistency)"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Tags to apply to resources (peering has no tags but kept for consistency)"
+              }
+            },
             "hubVnetName": {
               "type": "string",
               "metadata": {
@@ -2773,13 +2817,26 @@
                 "description": "Spoke resource group name for cross-RG peering"
               }
             },
-            "useRemoteGateway": {
+            "allowGatewayTransit": {
               "type": "bool",
               "defaultValue": false,
               "metadata": {
-                "description": "Use remote gateway (requires VPN Gateway deployed)"
+                "description": "Allow gateway transit (true when VPN Gateway is deployed in hub)"
+              }
+            },
+            "useRemoteGateways": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Use remote gateways from hub (true when VPN Gateway is deployed)"
               }
             }
+          },
+          "variables": {
+            "_location": "[parameters('location')]",
+            "_environment": "[parameters('environment')]",
+            "_regionShort": "[parameters('regionShort')]",
+            "_tags": "[parameters('tags')]"
           },
           "resources": [
             {
@@ -2792,11 +2849,11 @@
                 },
                 "allowVirtualNetworkAccess": true,
                 "allowForwardedTraffic": true,
-                "allowGatewayTransit": "[parameters('useRemoteGateway')]",
+                "allowGatewayTransit": "[parameters('allowGatewayTransit')]",
                 "useRemoteGateways": false
               },
               "metadata": {
-                "description": "Peering from hub VNet to spoke VNet"
+                "description": "Peering from hub VNet to spoke VNet (allows gateway transit when VPN deployed)"
               }
             },
             {
@@ -2816,8 +2873,8 @@
                   "hubVnetId": {
                     "value": "[parameters('hubVnetId')]"
                   },
-                  "useRemoteGateway": {
-                    "value": "[parameters('useRemoteGateway')]"
+                  "useRemoteGateways": {
+                    "value": "[parameters('useRemoteGateways')]"
                   }
                 },
                 "template": {
@@ -2827,7 +2884,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.39.26.7824",
-                      "templateHash": "13932192123336316819"
+                      "templateHash": "8090974053434558360"
                     }
                   },
                   "parameters": {
@@ -2843,11 +2900,11 @@
                         "description": "Hub VNet resource ID"
                       }
                     },
-                    "useRemoteGateway": {
+                    "useRemoteGateways": {
                       "type": "bool",
                       "defaultValue": false,
                       "metadata": {
-                        "description": "Use remote gateway (requires VPN Gateway deployed in hub)"
+                        "description": "Use remote gateways from hub (true when VPN Gateway is deployed)"
                       }
                     }
                   },
@@ -2863,10 +2920,10 @@
                         "allowVirtualNetworkAccess": true,
                         "allowForwardedTraffic": true,
                         "allowGatewayTransit": false,
-                        "useRemoteGateways": "[parameters('useRemoteGateway')]"
+                        "useRemoteGateways": "[parameters('useRemoteGateways')]"
                       },
                       "metadata": {
-                        "description": "Peering from spoke VNet to hub VNet"
+                        "description": "Peering from spoke VNet to hub VNet (uses remote gateways when VPN deployed)"
                       }
                     }
                   ],
@@ -2881,8 +2938,11 @@
                   }
                 }
               },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/virtualNetworkPeerings', split(format('{0}/peer-hub-to-spoke', parameters('hubVnetName')), '/')[0], split(format('{0}/peer-hub-to-spoke', parameters('hubVnetName')), '/')[1])]"
+              ],
               "metadata": {
-                "description": "Peering from spoke VNet to hub VNet"
+                "description": "Peering from spoke VNet to hub VNet (uses remote gateways when VPN deployed)"
               }
             }
           ],
@@ -2900,6 +2960,13 @@
                 "description": "Spoke to Hub peering resource ID"
               },
               "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('spokeResourceGroupName')), 'Microsoft.Resources/deployments', 'spoke-to-hub-peering'), '2025-04-01').outputs.peeringId.value]"
+            },
+            "gatewayTransitEnabled": {
+              "type": "bool",
+              "metadata": {
+                "description": "Gateway transit enabled status"
+              },
+              "value": "[parameters('allowGatewayTransit')]"
             }
           }
         }
@@ -2915,6 +2982,25 @@
     }
   ],
   "outputs": {
+    "deploymentScenario": {
+      "type": "string",
+      "metadata": {
+        "description": "Deployment scenario used"
+      },
+      "value": "[parameters('scenario')]"
+    },
+    "featureFlags": {
+      "type": "object",
+      "metadata": {
+        "description": "Feature flags derived from scenario"
+      },
+      "value": {
+        "firewall": "[variables('deployFirewall')]",
+        "vpnGateway": "[variables('deployVpnGateway')]",
+        "natGateway": "[variables('deploySpokeNatGateway')]",
+        "peering": "[variables('deployPeering')]"
+      }
+    },
     "resourceGroupNames": {
       "type": "object",
       "metadata": {
@@ -2969,14 +3055,14 @@
       "metadata": {
         "description": "Azure Firewall private IP (if deployed)"
       },
-      "value": "[if(and(parameters('deployFirewall'), not(equals(reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('firewall-{0}', variables('uniqueSuffix'))), '2025-04-01'), null()))), reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('firewall-{0}', variables('uniqueSuffix'))), '2025-04-01').outputs.firewallPrivateIp.value, '')]"
+      "value": "[if(and(variables('deployFirewall'), not(equals(reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('firewall-{0}', variables('uniqueSuffix'))), '2025-04-01'), null()))), reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('firewall-{0}', variables('uniqueSuffix'))), '2025-04-01').outputs.firewallPrivateIp.value, '')]"
     },
     "vpnGatewayPublicIp": {
       "type": "string",
       "metadata": {
         "description": "VPN Gateway public IP (if deployed)"
       },
-      "value": "[if(and(parameters('deployVpnGateway'), not(equals(reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('vpn-gateway-{0}', variables('uniqueSuffix'))), '2025-04-01'), null()))), reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('vpn-gateway-{0}', variables('uniqueSuffix'))), '2025-04-01').outputs.gatewayPublicIp.value, '')]"
+      "value": "[if(and(variables('deployVpnGateway'), not(equals(reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('vpn-gateway-{0}', variables('uniqueSuffix'))), '2025-04-01'), null()))), reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('vpn-gateway-{0}', variables('uniqueSuffix'))), '2025-04-01').outputs.gatewayPublicIp.value, '')]"
     }
   }
 }

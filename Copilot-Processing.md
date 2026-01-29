@@ -289,11 +289,12 @@ az group delete -n rg-spoke-prod-swc --yes --no-wait
 
 ## Documentation Generated ✅
 
-| Artifact                        | Status  | Description                          |
-| ------------------------------- | ------- | ------------------------------------ |
-| `06-deployment-summary.md`      | ✅ Done | Test scenarios and deployed resources |
-| `03-des-cost-estimate.md`       | ✅ Done | Cost breakdown for all scenarios     |
-| `05-implementation-reference.md`| ✅ Done | Bicep module documentation           |
+| Artifact                              | Status  | Description                           |
+| ------------------------------------- | ------- | ------------------------------------- |
+| `06-deployment-summary.md`            | ✅ Done | Test scenarios and deployed resources |
+| `03-des-cost-estimate.md`             | ✅ Done | Cost breakdown for all scenarios      |
+| `05-implementation-reference.md`      | ✅ Done | Bicep module documentation            |
+| `04-scenario-implementation-plans.md` | ✅ Done | Per-scenario implementation plans     |
 
 ---
 

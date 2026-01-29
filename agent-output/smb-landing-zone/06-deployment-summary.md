@@ -26,74 +26,74 @@
 
 ### Resource Groups
 
-| Resource Group         | Purpose          | Environment Tag |
-| ---------------------- | ---------------- | --------------- |
-| `rg-hub-slz-swc`       | Hub networking   | slz             |
-| `rg-spoke-prod-swc`    | Workload spoke   | prod            |
-| `rg-monitor-slz-swc`   | Monitoring       | slz             |
-| `rg-backup-slz-swc`    | Backup services  | slz             |
-| `rg-migrate-slz-swc`   | Migration tools  | slz             |
+| Resource Group       | Purpose         | Environment Tag |
+| -------------------- | --------------- | --------------- |
+| `rg-hub-slz-swc`     | Hub networking  | slz             |
+| `rg-spoke-prod-swc`  | Workload spoke  | prod            |
+| `rg-monitor-slz-swc` | Monitoring      | slz             |
+| `rg-backup-slz-swc`  | Backup services | slz             |
+| `rg-migrate-slz-swc` | Migration tools | slz             |
 
 ### Networking Resources
 
-| Resource           | Name               | Resource Group    | Status    | Details              |
-| ------------------ | ------------------ | ----------------- | --------- | -------------------- |
-| Hub VNet           | vnet-hub-slz-swc   | rg-hub-slz-swc    | Succeeded | 10.0.0.0/23          |
-| Spoke VNet         | vnet-spoke-prod-swc| rg-spoke-prod-swc | Succeeded | 10.0.2.0/23          |
-| Azure Firewall     | fw-hub-slz-swc     | rg-hub-slz-swc    | Succeeded | Private IP: 10.0.0.4 |
-| Firewall Policy    | fwpol-hub-slz-swc  | rg-hub-slz-swc    | Succeeded | Basic SKU            |
-| Route Table        | rt-spoke-slz-swc   | rg-hub-slz-swc    | Succeeded | 0.0.0.0/0 → Firewall |
-| Hub NSG            | nsg-hub-slz-swc    | rg-hub-slz-swc    | Succeeded | Deny all inbound     |
-| Spoke NSG          | nsg-spoke-prod-swc | rg-spoke-prod-swc | Succeeded | VNet + LB allowed    |
-| Private DNS Zone   | privatelink.azure.com | rg-hub-slz-swc | Succeeded | Auto-registration    |
+| Resource         | Name                  | Resource Group    | Status    | Details              |
+| ---------------- | --------------------- | ----------------- | --------- | -------------------- |
+| Hub VNet         | vnet-hub-slz-swc      | rg-hub-slz-swc    | Succeeded | 10.0.0.0/23          |
+| Spoke VNet       | vnet-spoke-prod-swc   | rg-spoke-prod-swc | Succeeded | 10.0.2.0/23          |
+| Azure Firewall   | fw-hub-slz-swc        | rg-hub-slz-swc    | Succeeded | Private IP: 10.0.0.4 |
+| Firewall Policy  | fwpol-hub-slz-swc     | rg-hub-slz-swc    | Succeeded | Basic SKU            |
+| Route Table      | rt-spoke-slz-swc      | rg-hub-slz-swc    | Succeeded | 0.0.0.0/0 → Firewall |
+| Hub NSG          | nsg-hub-slz-swc       | rg-hub-slz-swc    | Succeeded | Deny all inbound     |
+| Spoke NSG        | nsg-spoke-prod-swc    | rg-spoke-prod-swc | Succeeded | VNet + LB allowed    |
+| Private DNS Zone | privatelink.azure.com | rg-hub-slz-swc    | Succeeded | Auto-registration    |
 
 ### Hub VNet Subnets
 
-| Subnet                        | Address Range  | Purpose                    |
-| ----------------------------- | -------------- | -------------------------- |
-| AzureFirewallSubnet           | 10.0.0.0/26    | Azure Firewall data plane  |
-| AzureFirewallManagementSubnet | 10.0.0.64/26   | Azure Firewall management  |
-| snet-management               | 10.0.0.128/26  | Management VMs             |
-| GatewaySubnet                 | 10.0.0.192/27  | VPN Gateway (when deployed)|
+| Subnet                        | Address Range | Purpose                     |
+| ----------------------------- | ------------- | --------------------------- |
+| AzureFirewallSubnet           | 10.0.0.0/26   | Azure Firewall data plane   |
+| AzureFirewallManagementSubnet | 10.0.0.64/26  | Azure Firewall management   |
+| snet-management               | 10.0.0.128/26 | Management VMs              |
+| GatewaySubnet                 | 10.0.0.192/27 | VPN Gateway (when deployed) |
 
 ### Spoke VNet Subnets
 
-| Subnet        | Address Range  | Purpose             | UDR Applied |
-| ------------- | -------------- | ------------------- | ----------- |
-| snet-workload | 10.0.2.0/25    | General workloads   | ✅          |
-| snet-data     | 10.0.2.128/25  | Database/storage    | ✅          |
-| snet-app      | 10.0.3.0/25    | Application tier    | ✅          |
+| Subnet        | Address Range | Purpose           | UDR Applied |
+| ------------- | ------------- | ----------------- | ----------- |
+| snet-workload | 10.0.2.0/25   | General workloads | ✅          |
+| snet-data     | 10.0.2.128/25 | Database/storage  | ✅          |
+| snet-app      | 10.0.3.0/25   | Application tier  | ✅          |
 
 ### Management & Governance
 
-| Resource             | Name                    | Resource Group       | Status    |
-| -------------------- | ----------------------- | -------------------- | --------- |
-| Log Analytics        | log-smblz-slz-swc       | rg-monitor-slz-swc   | Succeeded |
-| Recovery Vault       | rsv-smblz-slz-swc       | rg-backup-slz-swc    | Succeeded |
-| Azure Migrate        | migrate-smblz-slz-swc   | rg-migrate-slz-swc   | Succeeded |
-| Budget               | budget-smb-lz-monthly   | Subscription scope   | Succeeded |
-| Policy Assignments   | 20 `smb-lz-*` policies  | Subscription scope   | Succeeded |
+| Resource           | Name                   | Resource Group     | Status    |
+| ------------------ | ---------------------- | ------------------ | --------- |
+| Log Analytics      | log-smblz-slz-swc      | rg-monitor-slz-swc | Succeeded |
+| Recovery Vault     | rsv-smblz-slz-swc      | rg-backup-slz-swc  | Succeeded |
+| Azure Migrate      | migrate-smblz-slz-swc  | rg-migrate-slz-swc | Succeeded |
+| Budget             | budget-smb-lz-monthly  | Subscription scope | Succeeded |
+| Policy Assignments | 20 `smb-lz-*` policies | Subscription scope | Succeeded |
 
 ### VNet Peering Status
 
-| Peering           | State     | Gateway Transit | Remote Gateway |
-| ----------------- | --------- | --------------- | -------------- |
-| Hub → Spoke       | Connected | false*          | false          |
-| Spoke → Hub       | Connected | false           | false*         |
+| Peering     | State     | Gateway Transit | Remote Gateway |
+| ----------- | --------- | --------------- | -------------- |
+| Hub → Spoke | Connected | false\*         | false          |
+| Spoke → Hub | Connected | false           | false\*        |
 
-> *Gateway transit settings change based on VPN Gateway deployment
+> \*Gateway transit settings change based on VPN Gateway deployment
 
 ### Firewall Rules Summary
 
 #### Network Rule Collection Group (Priority: 200)
 
-| Rule               | Protocol | Source      | Destination        | Ports     |
-| ------------------ | -------- | ----------- | ------------------ | --------- |
-| AllowDNS           | UDP/TCP  | 10.0.2.0/23 | 168.63.129.16      | 53        |
-| AllowNTP           | UDP      | 10.0.2.0/23 | *                  | 123       |
-| AllowICMP          | ICMP     | 10.0.2.0/23 | *                  | *         |
-| AllowOutboundHTTP  | TCP      | 10.0.2.0/23 | *                  | 80        |
-| AllowOutboundHTTPS | TCP      | 10.0.2.0/23 | *                  | 443       |
+| Rule               | Protocol | Source      | Destination   | Ports |
+| ------------------ | -------- | ----------- | ------------- | ----- |
+| AllowDNS           | UDP/TCP  | 10.0.2.0/23 | 168.63.129.16 | 53    |
+| AllowNTP           | UDP      | 10.0.2.0/23 | \*            | 123   |
+| AllowICMP          | ICMP     | 10.0.2.0/23 | \*            | \*    |
+| AllowOutboundHTTP  | TCP      | 10.0.2.0/23 | \*            | 80    |
+| AllowOutboundHTTPS | TCP      | 10.0.2.0/23 | \*            | 443   |
 
 ## Outputs (Expected)
 
@@ -128,12 +128,12 @@ cd infra/bicep/smb-landing-zone
 
 ### Issues Fixed During Testing
 
-| Issue                                | Resolution                                         | Commit   |
-| ------------------------------------ | -------------------------------------------------- | -------- |
-| ApplicationRuleCollectionGroup       | Removed - network rules sufficient for HTTP/HTTPS  | 20c6cb1  |
-| VNet peering RemoteVnetHasNoGateways | Fixed dependsOn to wait for VPN Gateway deployment | 20c6cb1  |
-| Policy `smb-lz-identity-01` deprecated | Updated to `b3a22bc9-66de-45fb-98fa-00f5df42f41a`| ba8211b  |
-| Log Analytics dailyQuotaGb = 0       | Changed param from int (MB) to string (GB)         | ba8211b  |
+| Issue                                  | Resolution                                         | Commit  |
+| -------------------------------------- | -------------------------------------------------- | ------- |
+| ApplicationRuleCollectionGroup         | Removed - network rules sufficient for HTTP/HTTPS  | 20c6cb1 |
+| VNet peering RemoteVnetHasNoGateways   | Fixed dependsOn to wait for VPN Gateway deployment | 20c6cb1 |
+| Policy `smb-lz-identity-01` deprecated | Updated to `b3a22bc9-66de-45fb-98fa-00f5df42f41a`  | ba8211b |
+| Log Analytics dailyQuotaGb = 0         | Changed param from int (MB) to string (GB)         | ba8211b |
 
 ### Post-Deployment Verification
 
