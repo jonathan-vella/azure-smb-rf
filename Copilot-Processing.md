@@ -246,40 +246,58 @@ az group delete -n rg-spoke-prod-swc --yes --no-wait
 
 ## Session: 2026-01-29
 
-**Task**: Repository Consolidation and Rename
+**Task**: Repository Consolidation and Rename → Testing Firewall + VPN
 
 ---
 
-## Action Plan
+## Action Plan - Repository Consolidation ✅
 
-| #   | Task                                                                             | Status         |
-| --- | -------------------------------------------------------------------------------- | -------------- |
-| 1   | User deletes old GitHub repos (`agentic-infraops-smb`, `azure-smb-landing-zone`) | ⏳ Waiting     |
-| 2   | User renames local folder                                                        | ⏳ Waiting     |
-| 3   | User rebuilds dev container                                                      | ⏳ Waiting     |
-| 4   | Create new private repo `azure-smb-lz` on GitHub                                 | 🔲 Not Started |
-| 5   | Configure git remote to point to new repo                                        | 🔲 Not Started |
-| 6   | Push code to new repository                                                      | 🔲 Not Started |
+| #   | Task                                                                             | Status  |
+| --- | -------------------------------------------------------------------------------- | ------- |
+| 1   | User deletes old GitHub repos (`agentic-infraops-smb`, `azure-smb-landing-zone`) | ✅ Done |
+| 2   | User renames local folder                                                        | ✅ Done |
+| 3   | User rebuilds dev container                                                      | ✅ Done |
+| 4   | Create new private repo `azure-agentic-smb-lz` on GitHub                         | ✅ Done |
+| 5   | Configure git remote to point to new repo                                        | ✅ Done |
+| 6   | Push code to new repository                                                      | ✅ Done |
 
----
-
-### Step 4: Create New Private Repository
-
-Once you've completed steps 1-3, I'll run:
-
-```bash
-gh repo create jonathan-vella/azure-agentic-smb-lz --private --source=. --remote=origin --push
-```
-
-This will:
-
-- Create a new **private** repository named `azure-agentic-smb-lz`
-- Set it as the `origin` remote
-- Push the current code
+**New Repository**: https://github.com/jonathan-vella/azure-agentic-smb-lz
 
 ---
 
-**Status**: ⏳ Waiting for user to complete steps 1-3
+## Testing Plan - All Scenarios ✅
+
+### Test Results Summary
+
+| #   | Scenario                        | Firewall | VPN | Status        | Duration | Monthly Cost |
+| --- | ------------------------------- | -------- | --- | ------------- | -------- | ------------ |
+| 1   | Hub-Spoke with Firewall only    | ✅       | ❌  | ✅ **Passed** | 9.3 min  | ~$336        |
+| 2   | Hub-Spoke with VPN Gateway only | ❌       | ✅  | 🔲 Skipped    | —        | ~$187        |
+| 3   | Hub-Spoke with Firewall + VPN   | ✅       | ✅  | ✅ **Passed** | 9.8 min  | ~$476        |
+| 4   | Hub-Spoke with NAT Gateway only | ❌       | ❌  | ✅ **Passed** | 2.2 min  | ~$48         |
+
+### Fixes Applied During Testing
+
+| Issue                                | Fix Applied                                        | Commit  |
+| ------------------------------------ | -------------------------------------------------- | ------- |
+| ApplicationRuleCollectionGroup       | Removed - network rules sufficient for HTTP/HTTPS  | 20c6cb1 |
+| VNet peering RemoteVnetHasNoGateways | Fixed dependsOn to wait for VPN Gateway deployment | 20c6cb1 |
+| Policy `smb-lz-identity-01`          | Updated to new policy definition ID                | ba8211b |
+| Log Analytics dailyQuotaGb           | Changed param from int (MB) to string (GB)         | ba8211b |
+
+---
+
+## Documentation Generated ✅
+
+| Artifact                        | Status  | Description                          |
+| ------------------------------- | ------- | ------------------------------------ |
+| `06-deployment-summary.md`      | ✅ Done | Test scenarios and deployed resources |
+| `03-des-cost-estimate.md`       | ✅ Done | Cost breakdown for all scenarios     |
+| `05-implementation-reference.md`| ✅ Done | Bicep module documentation           |
+
+---
+
+**Status**: ✅ Testing and documentation complete
 
 ---
 
