@@ -189,7 +189,7 @@ _"If you need X, expect to pay Y more"_
 | **`baseline`**              | ~$48    | ~$576   | ✅ 10% utilization |
 | **`vpn`** (+ VPN Gateway)   | ~$187   | ~$2,244 | ✅ 37% utilization |
 | **`firewall`** (+ Firewall) | ~$336   | ~$4,032 | ✅ 67% utilization |
-| **`enterprise`** (Full)     | ~$476   | ~$5,712 | ✅ 95% utilization |
+| **`full`** (All Services)   | ~$476   | ~$5,712 | ✅ 95% utilization |
 
 ### Notes
 

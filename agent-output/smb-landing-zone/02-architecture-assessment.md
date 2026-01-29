@@ -239,13 +239,13 @@ The architecture is approved for implementation with four deployment scenarios:
 | `baseline`   |    ❌    | ❌  |   ✅   |   ❌    | ❌  |         ~$48 |
 | `firewall`   |    ✅    | ❌  |   ❌   |   ✅    | ✅  |        ~$336 |
 | `vpn`        |    ❌    | ✅  |   ❌   |   ✅    | ❌  |        ~$187 |
-| `enterprise` |    ✅    | ✅  |   ❌   |   ✅    | ✅  |        ~$476 |
+| `full`       |    ✅    | ✅  |   ❌   |   ✅    | ✅  |        ~$476 |
 
 ```yaml
 region: swedencentral
 environment: prod
 budget: $500/month (estimated: ~$48-$476 depending on scenario)
-scenario: baseline | firewall | vpn | enterprise
+scenario: baseline | firewall | vpn | full
 
 resources:
   required:
@@ -261,11 +261,11 @@ resources:
     - Defender for Cloud (Free tier)
     - NSGs (hub + spoke)
   per_scenario:
-    firewall|enterprise:
+    firewall|full:
       - Azure Firewall Basic
       - VNet Peering (hub-spoke)
       - Route Table (UDR to Firewall)
-    vpn|enterprise:
+    vpn|full:
       - VPN Gateway VpnGw1AZ
       - VNet Peering with Gateway Transit
 

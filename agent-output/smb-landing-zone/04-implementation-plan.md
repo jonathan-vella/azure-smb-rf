@@ -154,7 +154,7 @@ param requiredTags array = ['Environment', 'Owner']
 | owner                 | string | (required)    | Owner tag value                                       |
 | hubVnetAddressSpace   | string | 10.0.0.0/16   | Hub VNet CIDR                                         |
 | spokeVnetAddressSpace | string | 10.1.0.0/16   | Spoke VNet CIDR                                       |
-| scenario              | string | baseline      | Deployment scenario: baseline/firewall/vpn/enterprise |
+| scenario              | string | baseline      | Deployment scenario: baseline/firewall/vpn/full       |
 | logAnalyticsDailyCap  | int    | 500           | Log Analytics daily cap in MB                         |
 | budgetAmount          | int    | 500           | Monthly budget in USD                                 |
 
@@ -165,7 +165,7 @@ param requiredTags array = ['Environment', 'Owner']
 | `baseline`   |    ❌    | ❌  |   ✅   |   ❌    | ❌  |         ~$48 |
 | `firewall`   |    ✅    | ❌  |   ❌   |   ✅    | ✅  |        ~$336 |
 | `vpn`        |    ❌    | ✅  |   ❌   |   ✅    | ❌  |        ~$187 |
-| `enterprise` |    ✅    | ✅  |   ❌   |   ✅    | ✅  |        ~$476 |
+| `full`       |    ✅    | ✅  |   ❌   |   ✅    | ✅  |        ~$476 |
 
 **Variables**:
 
@@ -173,8 +173,8 @@ param requiredTags array = ['Environment', 'Owner']
 var uniqueSuffix = uniqueString(subscription().subscriptionId)
 var regionShort = location == 'swedencentral' ? 'swc' : 'gwc'
 var projectName = 'smb-lz'
-var deployFirewall = scenario == 'firewall' || scenario == 'enterprise'
-var deployVpnGateway = scenario == 'vpn' || scenario == 'enterprise'
+var deployFirewall = scenario == 'firewall' || scenario == 'full'
+var deployVpnGateway = scenario == 'vpn' || scenario == 'full'
 var deployPeering = deployFirewall || deployVpnGateway
 ```
 
@@ -425,9 +425,9 @@ resource budget 'Microsoft.Consumption/budgets@2023-11-01' = {
 
 ### Task 9: modules/firewall.bicep (Optional)
 
-**Purpose**: Deploy Azure Firewall Basic (for `firewall` and `enterprise` scenarios)
+**Purpose**: Deploy Azure Firewall Basic (for `firewall` and `full` scenarios)
 
-**Condition**: `scenario == 'firewall' || scenario == 'enterprise'`
+**Condition**: `scenario == 'firewall' || scenario == 'full'`
 
 **Resources**:
 
@@ -442,9 +442,9 @@ resource budget 'Microsoft.Consumption/budgets@2023-11-01' = {
 
 ### Task 10: modules/vpn-gateway.bicep (Optional)
 
-**Purpose**: Deploy VPN Gateway (for `vpn` and `enterprise` scenarios)
+**Purpose**: Deploy VPN Gateway (for `vpn` and `full` scenarios)
 
-**Condition**: `scenario == 'vpn' || scenario == 'enterprise'`
+**Condition**: `scenario == 'vpn' || scenario == 'full'`
 
 **Resources**:
 
@@ -511,7 +511,7 @@ resource vpnGateway 'Microsoft.Network/virtualNetworkGateways@2024-01-01' = {
 
 ```powershell
 .\deploy.ps1 -Scenario baseline -Owner "partner-ops@contoso.com" -WhatIf
-.\deploy.ps1 -Scenario enterprise -Owner "partner-ops@contoso.com"
+.\deploy.ps1 -Scenario full -Owner "partner-ops@contoso.com"
 ```
 
 ---

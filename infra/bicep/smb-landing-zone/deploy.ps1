@@ -14,14 +14,14 @@
     - baseline:   NAT Gateway only (~$48/mo) - cloud-native, no hybrid
     - firewall:   Azure Firewall + UDR (~$336/mo) - egress filtering
     - vpn:        VPN Gateway + Gateway Transit (~$187/mo) - hybrid connectivity
-    - enterprise: Firewall + VPN + UDR (~$476/mo) - full enterprise security
+    - full:       Firewall + VPN + UDR (~$476/mo) - complete security
 
 .PARAMETER Scenario
     Deployment scenario preset. Valid values:
     - baseline:   NAT Gateway only (default)
     - firewall:   Azure Firewall with egress filtering
     - vpn:        VPN Gateway for hybrid connectivity
-    - enterprise: Both Firewall and VPN Gateway
+    - full:       Both Firewall and VPN Gateway
 
 .PARAMETER Environment
     The target environment (dev, staging, prod). Default: prod
@@ -40,7 +40,7 @@
     Spoke VNet CIDR address space. Default: 10.1.0.0/16
 
 .PARAMETER OnPremisesAddressSpace
-    On-premises CIDR for VPN routing (required for vpn/enterprise scenarios).
+    On-premises CIDR for VPN routing (required for vpn/full scenarios).
 
 .PARAMETER LogAnalyticsDailyCapGb
     Log Analytics daily ingestion cap in GB (decimal). Default: 0.5 (~500MB)
@@ -64,7 +64,7 @@
     # Deploy with VPN Gateway for hybrid connectivity
 
 .EXAMPLE
-    .\deploy.ps1 -Scenario enterprise -OnPremisesAddressSpace "192.168.0.0/16"
+    .\deploy.ps1 -Scenario full -OnPremisesAddressSpace "192.168.0.0/16"
     # Deploy with both Firewall and VPN Gateway
 
 .EXAMPLE
@@ -79,7 +79,7 @@
 [CmdletBinding(SupportsShouldProcess)]
 param(
     [Parameter()]
-    [ValidateSet('baseline', 'firewall', 'vpn', 'enterprise')]
+    [ValidateSet('baseline', 'firewall', 'vpn', 'full')]
     [string]$Scenario = 'baseline',
 
     [Parameter()]
@@ -140,7 +140,7 @@ function Get-ScenarioDescription {
         'baseline'   { return "NAT Gateway only (~`$48/mo)" }
         'firewall'   { return "Firewall + UDR (~`$336/mo)" }
         'vpn'        { return "VPN Gateway (~`$187/mo)" }
-        'enterprise' { return "Firewall + VPN (~`$476/mo)" }
+        'full'       { return "Firewall + VPN (~`$476/mo)" }
         default      { return $ScenarioName }
     }
 }
@@ -305,7 +305,7 @@ if (-not $NonInteractive) {
     Write-Host ("│  Environment: {0}│" -f $Environment.PadRight(53)) -ForegroundColor Cyan
     Write-Host ("│  Hub VNet:    {0}│" -f $HubVnetAddressSpace.PadRight(53)) -ForegroundColor Cyan
     Write-Host ("│  Spoke VNet:  {0}│" -f $SpokeVnetAddressSpace.PadRight(53)) -ForegroundColor Cyan
-    if ($Scenario -in @('vpn', 'enterprise') -and -not [string]::IsNullOrWhiteSpace($OnPremisesAddressSpace)) {
+    if ($Scenario -in @('vpn', 'full') -and -not [string]::IsNullOrWhiteSpace($OnPremisesAddressSpace)) {
         Write-Host ("│  On-Prem:     {0}│" -f $OnPremisesAddressSpace.PadRight(53)) -ForegroundColor Cyan
     }
     Write-Host ("│  Budget:      `${0}/month{1}│" -f $BudgetAmount, "".PadRight(43 - $BudgetAmount.ToString().Length)) -ForegroundColor Cyan
@@ -373,15 +373,15 @@ if (-not $NonInteractive) {
         Write-Host "    baseline   - NAT Gateway only (~`$48/mo) - cloud-native" -ForegroundColor Gray
         Write-Host "    firewall   - Azure Firewall + UDR (~`$336/mo) - egress filtering" -ForegroundColor Gray
         Write-Host "    vpn        - VPN Gateway (~`$187/mo) - hybrid connectivity" -ForegroundColor Gray
-        Write-Host "    enterprise - Firewall + VPN (~`$476/mo) - full enterprise" -ForegroundColor Gray
+        Write-Host "    full       - Firewall + VPN (~`$476/mo) - complete security" -ForegroundColor Gray
         Write-Host ""
         $Scenario = Read-HostWithDefault "  Scenario" $Scenario
-        while ($Scenario -notin @('baseline', 'firewall', 'vpn', 'enterprise')) {
-            Write-Host "  Invalid scenario. Choose: baseline, firewall, vpn, or enterprise" -ForegroundColor Red
+        while ($Scenario -notin @('baseline', 'firewall', 'vpn', 'full')) {
+            Write-Host "  Invalid scenario. Choose: baseline, firewall, vpn, or full" -ForegroundColor Red
             $Scenario = Read-HostWithDefault "  Scenario" 'baseline'
         }
 
-        if ($Scenario -in @('vpn', 'enterprise')) {
+        if ($Scenario -in @('vpn', 'full')) {
             # Prompt for on-premises CIDR when VPN is selected
             Write-Host ""
             Write-Host "  On-premises network CIDR is required for VPN routing." -ForegroundColor Gray
@@ -440,7 +440,7 @@ Write-Info "Owner" $Owner
 Write-Info "Location" $Location
 Write-Info "Hub VNet" $HubVnetAddressSpace
 Write-Info "Spoke VNet" $SpokeVnetAddressSpace
-if ($Scenario -in @('vpn', 'enterprise') -and -not [string]::IsNullOrWhiteSpace($OnPremisesAddressSpace)) {
+if ($Scenario -in @('vpn', 'full') -and -not [string]::IsNullOrWhiteSpace($OnPremisesAddressSpace)) {
     Write-Info "On-Prem CIDR" $OnPremisesAddressSpace
 }
 Write-Info "Log Cap" "$LogAnalyticsDailyCapGb GB/day"
@@ -709,10 +709,10 @@ if ($deployResult -and $deployResult.properties.provisioningState -eq 'Succeeded
     Write-Info "Migrate Project" $outputs.migrateProjectId.value.Split('/')[-1]
 
     # Show scenario-specific resources
-    if ($Scenario -in @('firewall', 'enterprise')) {
+    if ($Scenario -in @('firewall', 'full')) {
         Write-Info "Firewall IP" $outputs.firewallPrivateIp.value
     }
-    if ($Scenario -in @('vpn', 'enterprise')) {
+    if ($Scenario -in @('vpn', 'full')) {
         Write-Info "VPN Gateway IP" $outputs.vpnGatewayPublicIp.value
     }
 

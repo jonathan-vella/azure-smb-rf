@@ -27,7 +27,7 @@ trade-offs.
 ./deploy.ps1 -Scenario vpn
 
 # Scenario 3: Firewall + VPN (~$476/mo)
-./deploy.ps1 -Scenario enterprise
+./deploy.ps1 -Scenario full
 
 # Scenario 4: Baseline (NAT Gateway only, ~$48/mo)
 ./deploy.ps1 -Scenario baseline
@@ -632,8 +632,8 @@ graph TB
 
 1. **S4 → S1 (Add Firewall):** Re-run `./deploy.ps1 -Scenario firewall`
 2. **S4 → S2 (Add VPN):** Re-run `./deploy.ps1 -Scenario vpn`
-3. **S1 → S3 (Add VPN):** Re-run `./deploy.ps1 -Scenario enterprise`
-4. **S2 → S3 (Add Firewall):** Re-run `./deploy.ps1 -Scenario enterprise`
+3. **S1 → S3 (Add VPN):** Re-run `./deploy.ps1 -Scenario full`
+4. **S2 → S3 (Add Firewall):** Re-run `./deploy.ps1 -Scenario full`
 
 **Note:** Each upgrade is an incremental deployment—existing resources are preserved.
 

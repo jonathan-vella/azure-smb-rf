@@ -9,7 +9,7 @@
 // - baseline:   NAT Gateway only (~$48/mo) - cloud-native, no hybrid
 // - firewall:   Azure Firewall + UDR (~$336/mo) - egress filtering
 // - vpn:        VPN Gateway + Gateway Transit (~$187/mo) - hybrid connectivity
-// - enterprise: Firewall + VPN + UDR (~$476/mo) - full enterprise security
+// - full:       Firewall + VPN + UDR (~$476/mo) - complete security
 // ============================================================================
 
 targetScope = 'subscription'
@@ -23,7 +23,7 @@ targetScope = 'subscription'
   'baseline'
   'firewall'
   'vpn'
-  'enterprise'
+  'full'
 ])
 param scenario string = 'baseline'
 
@@ -73,8 +73,8 @@ param deploymentTimestamp string = utcNow('yyyy-MM-01')
 // ============================================================================
 
 // Derive feature flags from scenario parameter
-var deployFirewall = scenario == 'firewall' || scenario == 'enterprise'
-var deployVpnGateway = scenario == 'vpn' || scenario == 'enterprise'
+var deployFirewall = scenario == 'firewall' || scenario == 'full'
+var deployVpnGateway = scenario == 'vpn' || scenario == 'full'
 
 // Unique suffix for globally unique resource names
 var uniqueSuffix = uniqueString(subscription().subscriptionId)

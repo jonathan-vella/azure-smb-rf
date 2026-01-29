@@ -85,7 +85,7 @@ scores in Reliability and Performance pillars.
 | `baseline` (required services)         | ~$48         | 10%                |
 | `vpn` (Baseline + VPN Gateway)         | ~$187        | 37%                |
 | `firewall` (Baseline + Azure Firewall) | ~$336        | 67%                |
-| `enterprise` (Firewall + VPN)          | ~$476        | 95%                |
+| `full` (Firewall + VPN)               | ~$476        | 95%                |
 
 ## Consequences
 

@@ -122,8 +122,8 @@ cd infra/bicep/smb-landing-zone
 # VPN: VPN Gateway + Gateway Transit (~$187/mo)
 ./deploy.ps1 -Scenario vpn
 
-# Enterprise: Firewall + VPN + UDR (~$476/mo)
-./deploy.ps1 -Scenario enterprise
+# Full: Firewall + VPN + UDR (~$476/mo)
+./deploy.ps1 -Scenario full
 ```
 
 ### Issues Fixed During Testing

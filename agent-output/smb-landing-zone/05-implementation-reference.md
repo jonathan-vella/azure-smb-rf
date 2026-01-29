@@ -82,13 +82,13 @@ infra/bicep/smb-landing-zone/
 
 | Resource           | Bicep Type                               | Module             | Scenarios                       |
 | ------------------ | ---------------------------------------- | ------------------ | ------------------------------- |
-| Azure Firewall     | Microsoft.Network/azureFirewalls         | firewall.bicep     | `firewall`, `enterprise`        |
-| Firewall Policy    | Microsoft.Network/firewallPolicies       | firewall.bicep     | `firewall`, `enterprise`        |
-| Firewall Public IP | Microsoft.Network/publicIPAddresses      | firewall.bicep     | `firewall`, `enterprise`        |
-| VPN Gateway        | Microsoft.Network/virtualNetworkGateways | vpn-gateway.bicep  | `vpn`, `enterprise`             |
-| Gateway Public IP  | Microsoft.Network/publicIPAddresses      | vpn-gateway.bicep  | `vpn`, `enterprise`             |
-| VNet Peering       | Microsoft.Network/virtualNetworkPeerings | networking-peering | `firewall`, `vpn`, `enterprise` |
-| Route Table (UDR)  | Microsoft.Network/routeTables            | route-tables.bicep | `firewall`, `enterprise`        |
+| Azure Firewall     | Microsoft.Network/azureFirewalls         | firewall.bicep     | `firewall`, `full`            |
+| Firewall Policy    | Microsoft.Network/firewallPolicies       | firewall.bicep     | `firewall`, `full`            |
+| Firewall Public IP | Microsoft.Network/publicIPAddresses      | firewall.bicep     | `firewall`, `full`            |
+| VPN Gateway        | Microsoft.Network/virtualNetworkGateways | vpn-gateway.bicep  | `vpn`, `full`                 |
+| Gateway Public IP  | Microsoft.Network/publicIPAddresses      | vpn-gateway.bicep  | `vpn`, `full`                 |
+| VNet Peering       | Microsoft.Network/virtualNetworkPeerings | networking-peering | `firewall`, `vpn`, `full`     |
+| Route Table (UDR)  | Microsoft.Network/routeTables            | route-tables.bicep | `firewall`, `full`            |
 
 ## Deployment Instructions
 
@@ -130,8 +130,8 @@ cd infra/bicep/smb-landing-zone
 # VPN: VPN Gateway + Gateway Transit (~$187/mo)
 ./deploy.ps1 -Scenario vpn -Owner "partner-ops@contoso.com"
 
-# Enterprise: Firewall + VPN + UDR (~$476/mo)
-./deploy.ps1 -Scenario enterprise -Owner "partner-ops@contoso.com"
+# Full: Firewall + VPN + UDR (~$476/mo)
+./deploy.ps1 -Scenario full -Owner "partner-ops@contoso.com"
 ```
 
 ## Key Implementation Notes

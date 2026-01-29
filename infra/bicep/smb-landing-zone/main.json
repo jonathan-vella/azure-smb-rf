@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.39.26.7824",
-      "templateHash": "455918471113123970"
+      "templateHash": "13259995623128367711"
     }
   },
   "parameters": {
@@ -16,7 +16,7 @@
         "baseline",
         "firewall",
         "vpn",
-        "enterprise"
+        "full"
       ],
       "metadata": {
         "description": "Deployment scenario preset (determines which optional services are deployed)"
@@ -104,8 +104,8 @@
     }
   },
   "variables": {
-    "deployFirewall": "[or(equals(parameters('scenario'), 'firewall'), equals(parameters('scenario'), 'enterprise'))]",
-    "deployVpnGateway": "[or(equals(parameters('scenario'), 'vpn'), equals(parameters('scenario'), 'enterprise'))]",
+    "deployFirewall": "[or(equals(parameters('scenario'), 'firewall'), equals(parameters('scenario'), 'full'))]",
+    "deployVpnGateway": "[or(equals(parameters('scenario'), 'vpn'), equals(parameters('scenario'), 'full'))]",
     "uniqueSuffix": "[uniqueString(subscription().subscriptionId)]",
     "regionAbbreviations": {
       "swedencentral": "swc",

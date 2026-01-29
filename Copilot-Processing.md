@@ -19,7 +19,7 @@ Replaced old `-DeployFirewall`/`-DeployVpnGateway` boolean flags with new `-Scen
 ./deploy.ps1 -Scenario baseline    # NAT Gateway only (~$48/mo)
 ./deploy.ps1 -Scenario firewall    # Azure Firewall + UDR (~$336/mo)
 ./deploy.ps1 -Scenario vpn         # VPN Gateway + Gateway Transit (~$187/mo)
-./deploy.ps1 -Scenario enterprise  # Firewall + VPN + UDR (~$476/mo)
+./deploy.ps1 -Scenario full        # Firewall + VPN + UDR (~$476/mo)
 ```
 
 ### Files Created
@@ -29,7 +29,7 @@ Replaced old `-DeployFirewall`/`-DeployVpnGateway` boolean flags with new `-Scen
 | `03-des-diagram-baseline.py` + PNG   | Baseline scenario diagram   |
 | `03-des-diagram-firewall.py` + PNG   | Firewall scenario diagram   |
 | `03-des-diagram-vpn.py` + PNG        | VPN scenario diagram        |
-| `03-des-diagram-enterprise.py` + PNG | Enterprise scenario diagram |
+| `03-des-diagram-full.py` + PNG       | Full scenario diagram       |
 
 ### Files Updated
 

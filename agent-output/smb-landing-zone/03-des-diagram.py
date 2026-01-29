@@ -8,7 +8,7 @@ For scenario-specific diagrams, see:
 - 03-des-diagram-baseline.py   - NAT Gateway only (~$48/mo)
 - 03-des-diagram-firewall.py   - Azure Firewall + UDR (~$336/mo)
 - 03-des-diagram-vpn.py        - VPN Gateway + Gateway Transit (~$187/mo)
-- 03-des-diagram-enterprise.py - Firewall + VPN + UDR (~$476/mo)
+- 03-des-diagram-full.py       - Firewall + VPN + UDR (~$476/mo)
 
 Prerequisites:
 - pip install diagrams
