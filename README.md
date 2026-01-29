@@ -170,12 +170,12 @@ graph TB
 
 ### Deployment Scenarios
 
-| Scenario     | Firewall | VPN | NAT GW | Peering | UDR | Monthly Cost |
-| ------------ | :------: | :-: | :----: | :-----: | :-: | -----------: |
-| `baseline`   |    ❌    | ❌  |   ✅   |   ❌    | ❌  |         ~$48 |
-| `firewall`   |    ✅    | ❌  |   ❌   |   ✅    | ✅  |        ~$336 |
-| `vpn`        |    ❌    | ✅  |   ❌   |   ✅    | ❌  |        ~$187 |
-| `full`       |    ✅    | ✅  |   ❌   |   ✅    | ✅  |        ~$476 |
+| Scenario   | Firewall | VPN | NAT GW | Peering | UDR | Monthly Cost |
+| ---------- | :------: | :-: | :----: | :-----: | :-: | -----------: |
+| `baseline` |    ❌    | ❌  |   ✅   |   ❌    | ❌  |         ~$48 |
+| `firewall` |    ✅    | ❌  |   ❌   |   ✅    | ✅  |        ~$336 |
+| `vpn`      |    ❌    | ✅  |   ❌   |   ✅    | ❌  |        ~$187 |
+| `full`     |    ✅    | ✅  |   ❌   |   ✅    | ✅  |        ~$476 |
 
 ## Azure Policy (20 Guardrails)
 

@@ -429,8 +429,6 @@ if ([string]::IsNullOrWhiteSpace($Owner)) {
     exit 1
 }
 
-Write-Banner
-
 Write-Section "DEPLOYMENT CONFIGURATION"
 
 $scenarioDesc = Get-ScenarioDescription $Scenario
@@ -587,12 +585,17 @@ $whatIfParams = @(
 Write-Step "1/2" "Running what-if analysis..."
 Write-Host ""
 
-# Run what-if and display output
+# Run what-if and capture output
 $whatIfOutput = az @whatIfParams 2>&1
 $whatIfText = $whatIfOutput -join "`n"
 
-# Display the what-if output for user review
-Write-Host $whatIfText -ForegroundColor Gray
+# Display full what-if output only if -Verbose is specified
+if ($VerbosePreference -eq 'Continue') {
+    Write-Host $whatIfText -ForegroundColor Gray
+} else {
+    # Show condensed output - just scopes and resource types being created
+    Write-Host "  Analyzing changes..." -ForegroundColor Gray
+}
 
 # Parse resource counts from the summary line "Resource changes: X to create."
 $createCount = 0

@@ -79,12 +79,12 @@
 
 Four pre-defined scenarios control optional service deployment:
 
-| Scenario     | Firewall | VPN | NAT GW | Peering | UDR | Monthly Cost |
-| ------------ | :------: | :-: | :----: | :-----: | :-: | -----------: |
-| `baseline`   |    ❌    | ❌  |   ✅   |   ❌    | ❌  |         ~$48 |
-| `firewall`   |    ✅    | ❌  |   ❌   |   ✅    | ✅  |        ~$336 |
-| `vpn`        |    ❌    | ✅  |   ❌   |   ✅    | ❌  |        ~$187 |
-| `full`       |    ✅    | ✅  |   ❌   |   ✅    | ✅  |        ~$476 |
+| Scenario   | Firewall | VPN | NAT GW | Peering | UDR | Monthly Cost |
+| ---------- | :------: | :-: | :----: | :-----: | :-: | -----------: |
+| `baseline` |    ❌    | ❌  |   ✅   |   ❌    | ❌  |         ~$48 |
+| `firewall` |    ✅    | ❌  |   ❌   |   ✅    | ✅  |        ~$336 |
+| `vpn`      |    ❌    | ✅  |   ❌   |   ✅    | ❌  |        ~$187 |
+| `full`     |    ✅    | ✅  |   ❌   |   ✅    | ✅  |        ~$476 |
 
 > **VPN Gateway**: VpnGw1AZ (~$140/mo) - 650 Mbps, max 30 S2S tunnels, BGP support, zone-redundant.
 > Zone-redundant SKU ensures high availability across Azure availability zones.
