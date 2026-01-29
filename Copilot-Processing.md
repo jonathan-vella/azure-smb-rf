@@ -8,21 +8,33 @@ Deploy each scenario sequentially using the Deploy agent with in-place redeploym
 
 ### Action Plan
 
-| ID  | Task                                      | Status         |
-| --- | ----------------------------------------- | -------------- |
-| 0   | Reduce deploy.ps1 verbosity               | ✅ Complete    |
-| 1   | Deploy Scenario 1: baseline               | ⏳ Pending     |
-| 2   | Validate baseline deployment              | ⏳ Pending     |
-| 3   | Cleanup baseline (policies + RGs)         | ⏳ Pending     |
-| 4   | Deploy Scenario 2: firewall               | ⏳ Pending     |
-| 5   | Validate firewall deployment              | ⏳ Pending     |
-| 6   | Cleanup firewall (policies + RGs)         | ⏳ Pending     |
-| 7   | Deploy Scenario 3: vpn                    | ⏳ Pending     |
-| 8   | Validate vpn deployment                   | ⏳ Pending     |
-| 9   | Cleanup vpn (policies + RGs)              | ⏳ Pending     |
-| 10  | Deploy Scenario 4: full                   | ⏳ Pending     |
-| 11  | Validate full deployment                  | ⏳ Pending     |
-| 12  | Final decision: retain or cleanup         | ⏳ Pending     |
+| ID  | Task                              | Status           |
+| --- | --------------------------------- | ---------------- |
+| 0   | Reduce deploy.ps1 verbosity       | ✅ Complete      |
+| 1   | Deploy Scenario 1: baseline       | ✅ Complete      |
+| 2   | Validate baseline deployment      | ✅ Complete      |
+| 3   | Cleanup baseline (policies + RGs) | ⏭️ Skipped       |
+| 4   | Deploy Scenario 2: firewall       | ✅ Complete      |
+| 5   | Validate firewall deployment      | ✅ Complete      |
+| 6   | Cleanup firewall (policies + RGs) | ✅ Complete      |
+| 7   | Deploy Scenario 3: vpn            | ✅ Complete      |
+| 8   | Validate vpn deployment           | ✅ Complete      |
+| 9   | Cleanup vpn (policies + RGs)      | ✅ Complete      |
+| 10  | Deploy Scenario 4: full           | ⏳ Resume Tomorrow |
+| 11  | Validate full deployment          | ⏳ Pending       |
+| 12  | Final decision: retain or cleanup | ⏳ Pending       |
+
+### Session Summary (Jan 29, 2026)
+
+**Completed Today:**
+- ✅ Reduced deploy.ps1 verbosity (single banner, condensed what-if)
+- ✅ Deployed & validated: baseline, firewall, vpn scenarios
+- ✅ Cleaned up all Azure resources (5 RGs deleting)
+
+**Resume Tomorrow:**
+- Deploy `full` scenario (Firewall + VPN, ~$476/mo)
+- Validate full deployment
+- Final cleanup decision
 
 ### Task 0: Reduce deploy.ps1 Verbosity ✅
 
@@ -34,11 +46,11 @@ Deploy each scenario sequentially using the Deploy agent with in-place redeploym
 
 ### Deployment Parameters
 
-| Parameter               | Value            | Scenarios     |
-| ----------------------- | ---------------- | ------------- |
-| `Location`              | `swedencentral`  | all           |
-| `Environment`           | `prod`           | all           |
-| `OnPremisesAddressSpace`| `192.168.0.0/16` | vpn, full     |
+| Parameter                | Value            | Scenarios |
+| ------------------------ | ---------------- | --------- |
+| `Location`               | `swedencentral`  | all       |
+| `Environment`            | `prod`           | all       |
+| `OnPremisesAddressSpace` | `192.168.0.0/16` | vpn, full |
 
 ### Cost Control
 
