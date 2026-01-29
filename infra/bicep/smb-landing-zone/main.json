@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.39.26.7824",
-      "templateHash": "11908866823580751777"
+      "templateHash": "13200583867769899340"
     }
   },
   "parameters": {
@@ -1957,7 +1957,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "4731607410147101338"
+              "templateHash": "2343922736670784758"
             }
           },
           "parameters": {
@@ -2252,113 +2252,6 @@
               }
             },
             {
-              "type": "Microsoft.Network/firewallPolicies/ruleCollectionGroups",
-              "apiVersion": "2024-01-01",
-              "name": "[format('{0}/{1}', variables('firewallPolicyName'), 'ApplicationRuleCollectionGroup')]",
-              "properties": {
-                "priority": 400,
-                "ruleCollections": [
-                  {
-                    "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
-                    "action": {
-                      "type": "Allow"
-                    },
-                    "name": "AllowWindowsUpdate",
-                    "priority": 100,
-                    "rules": [
-                      {
-                        "ruleType": "ApplicationRule",
-                        "name": "WindowsUpdate",
-                        "description": "Allow Windows Update using FQDN tag",
-                        "sourceAddresses": [
-                          "[parameters('spokeAddressSpace')]"
-                        ],
-                        "fqdnTags": [
-                          "WindowsUpdate"
-                        ],
-                        "protocols": [
-                          {
-                            "protocolType": "Https",
-                            "port": 443
-                          },
-                          {
-                            "protocolType": "Http",
-                            "port": 80
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
-                    "action": {
-                      "type": "Allow"
-                    },
-                    "name": "AllowAzureBackupFqdn",
-                    "priority": 200,
-                    "rules": [
-                      {
-                        "ruleType": "ApplicationRule",
-                        "name": "AzureBackup",
-                        "description": "Allow Azure Backup using FQDN tag",
-                        "sourceAddresses": [
-                          "[parameters('spokeAddressSpace')]"
-                        ],
-                        "fqdnTags": [
-                          "AzureBackup"
-                        ],
-                        "protocols": [
-                          {
-                            "protocolType": "Https",
-                            "port": 443
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "ruleCollectionType": "FirewallPolicyFilterRuleCollection",
-                    "action": {
-                      "type": "Allow"
-                    },
-                    "name": "AllowOutboundInternet",
-                    "priority": 1000,
-                    "rules": [
-                      {
-                        "ruleType": "ApplicationRule",
-                        "name": "AllowHttpHttps",
-                        "description": "Allow general outbound HTTP/HTTPS internet access",
-                        "sourceAddresses": [
-                          "[parameters('spokeAddressSpace')]"
-                        ],
-                        "targetFqdns": [
-                          "*"
-                        ],
-                        "protocols": [
-                          {
-                            "protocolType": "Http",
-                            "port": 80
-                          },
-                          {
-                            "protocolType": "Https",
-                            "port": 443
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              "dependsOn": [
-                "[resourceId('Microsoft.Network/firewallPolicies', variables('firewallPolicyName'))]",
-                "[resourceId('Microsoft.Network/firewallPolicies/ruleCollectionGroups', variables('firewallPolicyName'), 'NetworkRuleCollectionGroup')]",
-                "[resourceId('Microsoft.Network/firewallPolicies/ruleCollectionGroups', variables('firewallPolicyName'), 'OnPremisesRuleCollectionGroup')]"
-              ],
-              "metadata": {
-                "description": "Application rules for outbound internet access"
-              }
-            },
-            {
               "type": "Microsoft.Network/azureFirewalls",
               "apiVersion": "2024-01-01",
               "name": "[variables('firewallName')]",
@@ -2398,10 +2291,11 @@
                 }
               },
               "dependsOn": [
-                "[resourceId('Microsoft.Network/firewallPolicies/ruleCollectionGroups', variables('firewallPolicyName'), 'ApplicationRuleCollectionGroup')]",
                 "[resourceId('Microsoft.Network/publicIPAddresses', variables('firewallMgmtPublicIpName'))]",
                 "[resourceId('Microsoft.Network/firewallPolicies', variables('firewallPolicyName'))]",
-                "[resourceId('Microsoft.Network/publicIPAddresses', variables('firewallPublicIpName'))]"
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('firewallPublicIpName'))]",
+                "[resourceId('Microsoft.Network/firewallPolicies/ruleCollectionGroups', variables('firewallPolicyName'), 'NetworkRuleCollectionGroup')]",
+                "[resourceId('Microsoft.Network/firewallPolicies/ruleCollectionGroups', variables('firewallPolicyName'), 'OnPremisesRuleCollectionGroup')]"
               ],
               "metadata": {
                 "description": "Azure Firewall with Basic SKU and management IP configuration"

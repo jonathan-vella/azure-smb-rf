@@ -303,8 +303,12 @@ module networkingPeering 'modules/networking-peering.bicep' = if (deployPeering)
     spokeResourceGroupName: rgNames.spoke
     useRemoteGateway: deployVpnGateway
   }
-  // When using remote gateway, peering must wait for VPN Gateway to be deployed
-  dependsOn: deployVpnGateway ? [vpnGateway] : []
+  // Peering must wait for VPN Gateway when useRemoteGateway is true
+  // Always include vpnGateway in dependsOn when deployVpnGateway is true
+  #disable-next-line BCP319
+  dependsOn: [
+    vpnGateway
+  ]
 }
 
 // ============================================================================

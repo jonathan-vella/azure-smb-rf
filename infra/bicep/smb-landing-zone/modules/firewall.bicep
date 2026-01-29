@@ -286,112 +286,13 @@ resource onPremRuleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleColle
 }
 
 // ============================================================================
-// Application Rule Collection Group - Outbound Internet
+// Note: Application Rule Collection Group removed
 // ============================================================================
-
-@description('Application rules for outbound internet access')
-resource applicationRuleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleCollectionGroups@2024-01-01' = {
-  parent: firewallPolicy
-  name: 'ApplicationRuleCollectionGroup'
-  properties: {
-    priority: 400
-    ruleCollections: [
-      {
-        ruleCollectionType: 'FirewallPolicyFilterRuleCollection'
-        action: {
-          type: 'Allow'
-        }
-        name: 'AllowWindowsUpdate'
-        priority: 100
-        rules: [
-          {
-            ruleType: 'ApplicationRule'
-            name: 'WindowsUpdate'
-            description: 'Allow Windows Update using FQDN tag'
-            sourceAddresses: [
-              spokeAddressSpace
-            ]
-            fqdnTags: [
-              'WindowsUpdate'
-            ]
-            protocols: [
-              {
-                protocolType: 'Https'
-                port: 443
-              }
-              {
-                protocolType: 'Http'
-                port: 80
-              }
-            ]
-          }
-        ]
-      }
-      {
-        ruleCollectionType: 'FirewallPolicyFilterRuleCollection'
-        action: {
-          type: 'Allow'
-        }
-        name: 'AllowAzureBackupFqdn'
-        priority: 200
-        rules: [
-          {
-            ruleType: 'ApplicationRule'
-            name: 'AzureBackup'
-            description: 'Allow Azure Backup using FQDN tag'
-            sourceAddresses: [
-              spokeAddressSpace
-            ]
-            fqdnTags: [
-              'AzureBackup'
-            ]
-            protocols: [
-              {
-                protocolType: 'Https'
-                port: 443
-              }
-            ]
-          }
-        ]
-      }
-      {
-        ruleCollectionType: 'FirewallPolicyFilterRuleCollection'
-        action: {
-          type: 'Allow'
-        }
-        name: 'AllowOutboundInternet'
-        priority: 1000
-        rules: [
-          {
-            ruleType: 'ApplicationRule'
-            name: 'AllowHttpHttps'
-            description: 'Allow general outbound HTTP/HTTPS internet access'
-            sourceAddresses: [
-              spokeAddressSpace
-            ]
-            targetFqdns: [
-              '*'
-            ]
-            protocols: [
-              {
-                protocolType: 'Http'
-                port: 80
-              }
-              {
-                protocolType: 'Https'
-                port: 443
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
-  dependsOn: [
-    networkRuleCollectionGroup
-    onPremRuleCollectionGroup
-  ]
-}
+// Application rules (FQDN tags, wildcards) are NOT needed for basic SMB scenarios.
+// Network rules for HTTP/HTTPS on ports 80/443 cover outbound web traffic.
+// Azure Backup uses private endpoints (not FQDN tags) in this architecture.
+// Windows Update can use network rules or be handled via WSUS/SCCM.
+// ============================================================================
 
 // ============================================================================
 // Azure Firewall
@@ -436,7 +337,8 @@ resource firewall 'Microsoft.Network/azureFirewalls@2024-01-01' = {
     }
   }
   dependsOn: [
-    applicationRuleCollectionGroup
+    networkRuleCollectionGroup
+    onPremRuleCollectionGroup
   ]
 }
 

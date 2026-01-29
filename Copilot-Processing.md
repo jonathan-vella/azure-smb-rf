@@ -194,12 +194,12 @@ Run `./deploy.ps1 -DeployFirewall -DeployVpnGateway` to test the complete firewa
 
 ### Deployment Scenarios to Validate
 
-| # | Scenario | Firewall | VPN | NAT GW | Peering | UDR |
-|---|----------|----------|-----|--------|---------|-----|
-| 1 | Hub-Spoke with Firewall | ✅ | ❌ | ❌ | ✅ | ✅ |
-| 2 | Hub-Spoke with VPN Gateway | ❌ | ✅ | ❌ | ✅ | ✅ |
-| 3 | Hub-Spoke with Firewall + VPN | ✅ | ✅ | ❌ | ✅ | ✅ |
-| 4 | Hub-Spoke with NAT Gateway only | ❌ | ❌ | ✅ | ❌ | ❌ |
+| #   | Scenario                        | Firewall | VPN | NAT GW | Peering | UDR |
+| --- | ------------------------------- | -------- | --- | ------ | ------- | --- |
+| 1   | Hub-Spoke with Firewall         | ✅       | ❌  | ❌     | ✅      | ✅  |
+| 2   | Hub-Spoke with VPN Gateway      | ❌       | ✅  | ❌     | ✅      | ✅  |
+| 3   | Hub-Spoke with Firewall + VPN   | ✅       | ✅  | ❌     | ✅      | ✅  |
+| 4   | Hub-Spoke with NAT Gateway only | ❌       | ❌  | ✅     | ❌      | ❌  |
 
 ### Additional Validation Tests
 
@@ -241,6 +241,45 @@ az group delete -n rg-spoke-prod-swc --yes --no-wait
 ---
 
 **Status**: ✅ Phase 2 implementation complete - Ready for testing tomorrow
+
+---
+
+## Session: 2026-01-29
+
+**Task**: Repository Consolidation and Rename
+
+---
+
+## Action Plan
+
+| #   | Task                                                                             | Status         |
+| --- | -------------------------------------------------------------------------------- | -------------- |
+| 1   | User deletes old GitHub repos (`agentic-infraops-smb`, `azure-smb-landing-zone`) | ⏳ Waiting     |
+| 2   | User renames local folder                                                        | ⏳ Waiting     |
+| 3   | User rebuilds dev container                                                      | ⏳ Waiting     |
+| 4   | Create new private repo `azure-smb-lz` on GitHub                                 | 🔲 Not Started |
+| 5   | Configure git remote to point to new repo                                        | 🔲 Not Started |
+| 6   | Push code to new repository                                                      | 🔲 Not Started |
+
+---
+
+### Step 4: Create New Private Repository
+
+Once you've completed steps 1-3, I'll run:
+
+```bash
+gh repo create jonathan-vella/azure-agentic-smb-lz --private --source=. --remote=origin --push
+```
+
+This will:
+
+- Create a new **private** repository named `azure-agentic-smb-lz`
+- Set it as the `origin` remote
+- Push the current code
+
+---
+
+**Status**: ⏳ Waiting for user to complete steps 1-3
 
 ---
 
