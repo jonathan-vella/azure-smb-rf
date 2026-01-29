@@ -85,7 +85,7 @@ scores in Reliability and Performance pillars.
 | `baseline` (required services)         | ~$48         | 10%                |
 | `vpn` (Baseline + VPN Gateway)         | ~$187        | 37%                |
 | `firewall` (Baseline + Azure Firewall) | ~$336        | 67%                |
-| `full` (Firewall + VPN)               | ~$476        | 95%                |
+| `full` (Firewall + VPN)                | ~$476        | 95%                |
 
 ## Consequences
 
@@ -121,7 +121,7 @@ scores in Reliability and Performance pillars.
 
 - **ALT-003**: **Description**: Use Azure Virtual WAN instead of traditional hub-spoke VNet
 - **ALT-004**: **Rejection Reason**: Minimum ~$250/month for Virtual WAN Hub alone; overkill for
-  single-spoke SMB deployments. Designed for enterprise multi-region, multi-spoke scenarios.
+  single-spoke SMB deployments. Designed for larger multi-region, multi-spoke scenarios.
 
 ### Alternative 3: Azure Bastion Basic/Standard
 

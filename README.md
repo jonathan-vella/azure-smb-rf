@@ -175,7 +175,7 @@ graph TB
 | `baseline`   |    ❌    | ❌  |   ✅   |   ❌    | ❌  |         ~$48 |
 | `firewall`   |    ✅    | ❌  |   ❌   |   ✅    | ✅  |        ~$336 |
 | `vpn`        |    ❌    | ✅  |   ❌   |   ✅    | ❌  |        ~$187 |
-| `enterprise` |    ✅    | ✅  |   ❌   |   ✅    | ✅  |        ~$476 |
+| `full`       |    ✅    | ✅  |   ❌   |   ✅    | ✅  |        ~$476 |
 
 ## Azure Policy (20 Guardrails)
 

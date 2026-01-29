@@ -303,7 +303,7 @@ graph LR
 
 ### Use Case
 
-Full enterprise hybrid connectivity with centralized security. Ideal for:
+Full hybrid connectivity with centralized security. Ideal for:
 
 - Organizations requiring both hybrid connectivity AND egress filtering
 - Compliance requirements mandating traffic inspection for on-prem traffic

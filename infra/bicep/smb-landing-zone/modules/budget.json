@@ -1,0 +1,104 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.39.26.7824",
+      "templateHash": "9983972408414509734"
+    }
+  },
+  "parameters": {
+    "budgetAmount": {
+      "type": "int",
+      "defaultValue": 500,
+      "minValue": 100,
+      "maxValue": 10000,
+      "metadata": {
+        "description": "Monthly budget amount in USD"
+      }
+    },
+    "alertEmail": {
+      "type": "string",
+      "metadata": {
+        "description": "Email address for budget alerts"
+      }
+    },
+    "startDate": {
+      "type": "string",
+      "metadata": {
+        "description": "Budget start date (first day of month, format: yyyy-MM-dd)"
+      }
+    }
+  },
+  "variables": {
+    "budgetName": "budget-smb-lz-monthly",
+    "budgetStartDate": "[format('{0}01', substring(parameters('startDate'), 0, 8))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Consumption/budgets",
+      "apiVersion": "2023-11-01",
+      "name": "[variables('budgetName')]",
+      "properties": {
+        "category": "Cost",
+        "amount": "[parameters('budgetAmount')]",
+        "timeGrain": "Monthly",
+        "timePeriod": {
+          "startDate": "[variables('budgetStartDate')]"
+        },
+        "notifications": {
+          "forecastAlert80": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 80,
+            "contactEmails": [
+              "[parameters('alertEmail')]"
+            ],
+            "thresholdType": "Forecasted",
+            "locale": "en-us"
+          },
+          "actualAlert90": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 90,
+            "contactEmails": [
+              "[parameters('alertEmail')]"
+            ],
+            "thresholdType": "Actual",
+            "locale": "en-us"
+          },
+          "actualAlert100": {
+            "enabled": true,
+            "operator": "GreaterThan",
+            "threshold": 100,
+            "contactEmails": [
+              "[parameters('alertEmail')]"
+            ],
+            "thresholdType": "Actual",
+            "locale": "en-us"
+          }
+        }
+      },
+      "metadata": {
+        "description": "Monthly budget with 80% forecast and 100% actual alerts"
+      }
+    }
+  ],
+  "outputs": {
+    "budgetId": {
+      "type": "string",
+      "metadata": {
+        "description": "Budget resource ID"
+      },
+      "value": "[subscriptionResourceId('Microsoft.Consumption/budgets', variables('budgetName'))]"
+    },
+    "budgetName": {
+      "type": "string",
+      "metadata": {
+        "description": "Budget name"
+      },
+      "value": "[variables('budgetName')]"
+    }
+  }
+}

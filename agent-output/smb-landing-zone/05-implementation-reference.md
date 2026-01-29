@@ -80,15 +80,15 @@ infra/bicep/smb-landing-zone/
 
 ### Optional Resources (Per Scenario)
 
-| Resource           | Bicep Type                               | Module             | Scenarios                       |
-| ------------------ | ---------------------------------------- | ------------------ | ------------------------------- |
-| Azure Firewall     | Microsoft.Network/azureFirewalls         | firewall.bicep     | `firewall`, `full`            |
-| Firewall Policy    | Microsoft.Network/firewallPolicies       | firewall.bicep     | `firewall`, `full`            |
-| Firewall Public IP | Microsoft.Network/publicIPAddresses      | firewall.bicep     | `firewall`, `full`            |
-| VPN Gateway        | Microsoft.Network/virtualNetworkGateways | vpn-gateway.bicep  | `vpn`, `full`                 |
-| Gateway Public IP  | Microsoft.Network/publicIPAddresses      | vpn-gateway.bicep  | `vpn`, `full`                 |
-| VNet Peering       | Microsoft.Network/virtualNetworkPeerings | networking-peering | `firewall`, `vpn`, `full`     |
-| Route Table (UDR)  | Microsoft.Network/routeTables            | route-tables.bicep | `firewall`, `full`            |
+| Resource           | Bicep Type                               | Module             | Scenarios                 |
+| ------------------ | ---------------------------------------- | ------------------ | ------------------------- |
+| Azure Firewall     | Microsoft.Network/azureFirewalls         | firewall.bicep     | `firewall`, `full`        |
+| Firewall Policy    | Microsoft.Network/firewallPolicies       | firewall.bicep     | `firewall`, `full`        |
+| Firewall Public IP | Microsoft.Network/publicIPAddresses      | firewall.bicep     | `firewall`, `full`        |
+| VPN Gateway        | Microsoft.Network/virtualNetworkGateways | vpn-gateway.bicep  | `vpn`, `full`             |
+| Gateway Public IP  | Microsoft.Network/publicIPAddresses      | vpn-gateway.bicep  | `vpn`, `full`             |
+| VNet Peering       | Microsoft.Network/virtualNetworkPeerings | networking-peering | `firewall`, `vpn`, `full` |
+| Route Table (UDR)  | Microsoft.Network/routeTables            | route-tables.bicep | `firewall`, `full`        |
 
 ## Deployment Instructions
 

@@ -234,12 +234,12 @@ This architecture delivers a **cost-optimized, repeatable Azure landing zone** f
 
 The architecture is approved for implementation with four deployment scenarios:
 
-| Scenario     | Firewall | VPN | NAT GW | Peering | UDR | Monthly Cost |
-| ------------ | :------: | :-: | :----: | :-----: | :-: | -----------: |
-| `baseline`   |    ❌    | ❌  |   ✅   |   ❌    | ❌  |         ~$48 |
-| `firewall`   |    ✅    | ❌  |   ❌   |   ✅    | ✅  |        ~$336 |
-| `vpn`        |    ❌    | ✅  |   ❌   |   ✅    | ❌  |        ~$187 |
-| `full`       |    ✅    | ✅  |   ❌   |   ✅    | ✅  |        ~$476 |
+| Scenario   | Firewall | VPN | NAT GW | Peering | UDR | Monthly Cost |
+| ---------- | :------: | :-: | :----: | :-----: | :-: | -----------: |
+| `baseline` |    ❌    | ❌  |   ✅   |   ❌    | ❌  |         ~$48 |
+| `firewall` |    ✅    | ❌  |   ❌   |   ✅    | ✅  |        ~$336 |
+| `vpn`      |    ❌    | ✅  |   ❌   |   ✅    | ❌  |        ~$187 |
+| `full`     |    ✅    | ✅  |   ❌   |   ✅    | ✅  |        ~$476 |
 
 ```yaml
 region: swedencentral

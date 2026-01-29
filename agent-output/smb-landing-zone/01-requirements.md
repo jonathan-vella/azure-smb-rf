@@ -84,7 +84,7 @@ Four pre-defined scenarios control optional service deployment:
 | `baseline`   |    ❌    | ❌  |   ✅   |   ❌    | ❌  |         ~$48 |
 | `firewall`   |    ✅    | ❌  |   ❌   |   ✅    | ✅  |        ~$336 |
 | `vpn`        |    ❌    | ✅  |   ❌   |   ✅    | ❌  |        ~$187 |
-| `enterprise` |    ✅    | ✅  |   ❌   |   ✅    | ✅  |        ~$476 |
+| `full`       |    ✅    | ✅  |   ❌   |   ✅    | ✅  |        ~$476 |
 
 > **VPN Gateway**: VpnGw1AZ (~$140/mo) - 650 Mbps, max 30 S2S tunnels, BGP support, zone-redundant.
 > Zone-redundant SKU ensures high availability across Azure availability zones.
@@ -96,7 +96,7 @@ Four pre-defined scenarios control optional service deployment:
 | 1   | Region selection         | choice | swedencentral or germanywestcentral |
 | 2   | Hub VNet address space   | CIDR   | 10.0.0.0/16                         |
 | 3   | Spoke VNet address space | CIDR   | 10.1.0.0/16                         |
-| 4   | Scenario                 | choice | baseline/firewall/vpn/full        |
+| 4   | Scenario                 | choice | baseline/firewall/vpn/full          |
 | 5   | Owner email              | string | partner-ops@contoso.com             |
 
 ## Non-Functional Requirements (NFRs)

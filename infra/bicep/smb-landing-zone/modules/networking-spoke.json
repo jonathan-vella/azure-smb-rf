@@ -1,0 +1,289 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.39.26.7824",
+      "templateHash": "14497497605920689226"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure region for resource deployment"
+      }
+    },
+    "environment": {
+      "type": "string",
+      "allowedValues": [
+        "dev",
+        "staging",
+        "prod",
+        "slz"
+      ],
+      "metadata": {
+        "description": "Environment name"
+      }
+    },
+    "regionShort": {
+      "type": "string",
+      "metadata": {
+        "description": "Region abbreviation for naming"
+      }
+    },
+    "vnetAddressSpace": {
+      "type": "string",
+      "metadata": {
+        "description": "Spoke VNet address space CIDR"
+      }
+    },
+    "deployNatGateway": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Deploy NAT Gateway (false when firewall handles outbound)"
+      }
+    },
+    "routeTableId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Route table ID to associate with subnets (when using firewall)"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "metadata": {
+        "description": "Tags to apply to all resources"
+      }
+    }
+  },
+  "variables": {
+    "vnetName": "[format('vnet-spoke-{0}-{1}', parameters('environment'), parameters('regionShort'))]",
+    "nsgName": "[format('nsg-spoke-{0}-{1}', parameters('environment'), parameters('regionShort'))]",
+    "natGatewayName": "[format('nat-spoke-{0}-{1}', parameters('environment'), parameters('regionShort'))]",
+    "natPublicIpName": "[format('pip-nat-{0}-{1}', parameters('environment'), parameters('regionShort'))]",
+    "workloadSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 25, 0)]",
+    "dataSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 25, 1)]",
+    "appSubnetPrefix": "[cidrSubnet(parameters('vnetAddressSpace'), 25, 2)]",
+    "hasRouteTable": "[not(empty(parameters('routeTableId')))]"
+  },
+  "resources": [
+    {
+      "condition": "[parameters('deployNatGateway')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2024-01-01",
+      "name": "[variables('natPublicIpName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "sku": {
+        "name": "Standard",
+        "tier": "Regional"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Static",
+        "publicIPAddressVersion": "IPv4"
+      },
+      "metadata": {
+        "description": "Public IP for NAT Gateway (only deployed when no firewall)"
+      }
+    },
+    {
+      "condition": "[parameters('deployNatGateway')]",
+      "type": "Microsoft.Network/natGateways",
+      "apiVersion": "2024-01-01",
+      "name": "[variables('natGatewayName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "sku": {
+        "name": "Standard"
+      },
+      "properties": {
+        "publicIpAddresses": [
+          {
+            "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('natPublicIpName'))]"
+          }
+        ],
+        "idleTimeoutInMinutes": 4
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses', variables('natPublicIpName'))]"
+      ],
+      "metadata": {
+        "description": "NAT Gateway for outbound internet (only deployed when no firewall)"
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2024-01-01",
+      "name": "[variables('nsgName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "AllowVnetInbound",
+            "properties": {
+              "priority": 100,
+              "direction": "Inbound",
+              "access": "Allow",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "VirtualNetwork",
+              "destinationAddressPrefix": "VirtualNetwork",
+              "description": "Allow inbound traffic within VNet"
+            }
+          },
+          {
+            "name": "AllowAzureLoadBalancerInbound",
+            "properties": {
+              "priority": 110,
+              "direction": "Inbound",
+              "access": "Allow",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "AzureLoadBalancer",
+              "destinationAddressPrefix": "*",
+              "description": "Allow Azure Load Balancer health probes"
+            }
+          },
+          {
+            "name": "DenyAllInbound",
+            "properties": {
+              "priority": 4096,
+              "direction": "Inbound",
+              "access": "Deny",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "*",
+              "description": "Default deny all inbound traffic"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "description": "Spoke NSG with default deny inbound rules"
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2024-01-01",
+      "name": "[variables('vnetName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[parameters('vnetAddressSpace')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "snet-workload",
+            "properties": {
+              "addressPrefix": "[variables('workloadSubnetPrefix')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
+              },
+              "natGateway": "[if(parameters('deployNatGateway'), createObject('id', resourceId('Microsoft.Network/natGateways', variables('natGatewayName'))), null())]",
+              "routeTable": "[if(variables('hasRouteTable'), createObject('id', parameters('routeTableId')), null())]"
+            }
+          },
+          {
+            "name": "snet-data",
+            "properties": {
+              "addressPrefix": "[variables('dataSubnetPrefix')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
+              },
+              "natGateway": "[if(parameters('deployNatGateway'), createObject('id', resourceId('Microsoft.Network/natGateways', variables('natGatewayName'))), null())]",
+              "routeTable": "[if(variables('hasRouteTable'), createObject('id', parameters('routeTableId')), null())]"
+            }
+          },
+          {
+            "name": "snet-app",
+            "properties": {
+              "addressPrefix": "[variables('appSubnetPrefix')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
+              },
+              "natGateway": "[if(parameters('deployNatGateway'), createObject('id', resourceId('Microsoft.Network/natGateways', variables('natGatewayName'))), null())]",
+              "routeTable": "[if(variables('hasRouteTable'), createObject('id', parameters('routeTableId')), null())]"
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/natGateways', variables('natGatewayName'))]",
+        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
+      ],
+      "metadata": {
+        "description": "Spoke VNet with workload subnets"
+      }
+    }
+  ],
+  "outputs": {
+    "vnetId": {
+      "type": "string",
+      "metadata": {
+        "description": "Spoke VNet resource ID"
+      },
+      "value": "[resourceId('Microsoft.Network/virtualNetworks', variables('vnetName'))]"
+    },
+    "vnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "Spoke VNet name"
+      },
+      "value": "[variables('vnetName')]"
+    },
+    "workloadSubnetId": {
+      "type": "string",
+      "metadata": {
+        "description": "Workload Subnet resource ID"
+      },
+      "value": "[reference(resourceId('Microsoft.Network/virtualNetworks', variables('vnetName')), '2024-01-01').subnets[0].id]"
+    },
+    "dataSubnetId": {
+      "type": "string",
+      "metadata": {
+        "description": "Data Subnet resource ID"
+      },
+      "value": "[reference(resourceId('Microsoft.Network/virtualNetworks', variables('vnetName')), '2024-01-01').subnets[1].id]"
+    },
+    "appSubnetId": {
+      "type": "string",
+      "metadata": {
+        "description": "App Subnet resource ID"
+      },
+      "value": "[reference(resourceId('Microsoft.Network/virtualNetworks', variables('vnetName')), '2024-01-01').subnets[2].id]"
+    },
+    "nsgId": {
+      "type": "string",
+      "metadata": {
+        "description": "Spoke NSG resource ID"
+      },
+      "value": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName'))]"
+    },
+    "natGatewayId": {
+      "type": "string",
+      "metadata": {
+        "description": "NAT Gateway resource ID (empty if firewall deployed)"
+      },
+      "value": "[if(parameters('deployNatGateway'), resourceId('Microsoft.Network/natGateways', variables('natGatewayName')), '')]"
+    },
+    "natGatewayPublicIp": {
+      "type": "string",
+      "metadata": {
+        "description": "NAT Gateway public IP address (empty if firewall deployed)"
+      },
+      "value": "[if(parameters('deployNatGateway'), reference(resourceId('Microsoft.Network/publicIPAddresses', variables('natPublicIpName')), '2024-01-01').ipAddress, '')]"
+    }
+  }
+}

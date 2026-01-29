@@ -147,25 +147,25 @@ param requiredTags array = ['Environment', 'Owner']
 
 **Parameters**:
 
-| Parameter             | Type   | Default       | Description                                           |
-| --------------------- | ------ | ------------- | ----------------------------------------------------- |
-| location              | string | swedencentral | Primary deployment region                             |
-| environment           | string | prod          | Environment tag value                                 |
-| owner                 | string | (required)    | Owner tag value                                       |
-| hubVnetAddressSpace   | string | 10.0.0.0/16   | Hub VNet CIDR                                         |
-| spokeVnetAddressSpace | string | 10.1.0.0/16   | Spoke VNet CIDR                                       |
-| scenario              | string | baseline      | Deployment scenario: baseline/firewall/vpn/full       |
-| logAnalyticsDailyCap  | int    | 500           | Log Analytics daily cap in MB                         |
-| budgetAmount          | int    | 500           | Monthly budget in USD                                 |
+| Parameter             | Type   | Default       | Description                                     |
+| --------------------- | ------ | ------------- | ----------------------------------------------- |
+| location              | string | swedencentral | Primary deployment region                       |
+| environment           | string | prod          | Environment tag value                           |
+| owner                 | string | (required)    | Owner tag value                                 |
+| hubVnetAddressSpace   | string | 10.0.0.0/16   | Hub VNet CIDR                                   |
+| spokeVnetAddressSpace | string | 10.1.0.0/16   | Spoke VNet CIDR                                 |
+| scenario              | string | baseline      | Deployment scenario: baseline/firewall/vpn/full |
+| logAnalyticsDailyCap  | int    | 500           | Log Analytics daily cap in MB                   |
+| budgetAmount          | int    | 500           | Monthly budget in USD                           |
 
 **Scenarios**:
 
-| Scenario     | Firewall | VPN | NAT GW | Peering | UDR | Monthly Cost |
-| ------------ | :------: | :-: | :----: | :-----: | :-: | -----------: |
-| `baseline`   |    ❌    | ❌  |   ✅   |   ❌    | ❌  |         ~$48 |
-| `firewall`   |    ✅    | ❌  |   ❌   |   ✅    | ✅  |        ~$336 |
-| `vpn`        |    ❌    | ✅  |   ❌   |   ✅    | ❌  |        ~$187 |
-| `full`       |    ✅    | ✅  |   ❌   |   ✅    | ✅  |        ~$476 |
+| Scenario   | Firewall | VPN | NAT GW | Peering | UDR | Monthly Cost |
+| ---------- | :------: | :-: | :----: | :-----: | :-: | -----------: |
+| `baseline` |    ❌    | ❌  |   ✅   |   ❌    | ❌  |         ~$48 |
+| `firewall` |    ✅    | ❌  |   ❌   |   ✅    | ✅  |        ~$336 |
+| `vpn`      |    ❌    | ✅  |   ❌   |   ✅    | ❌  |        ~$187 |
+| `full`     |    ✅    | ✅  |   ❌   |   ✅    | ✅  |        ~$476 |
 
 **Variables**:
 
