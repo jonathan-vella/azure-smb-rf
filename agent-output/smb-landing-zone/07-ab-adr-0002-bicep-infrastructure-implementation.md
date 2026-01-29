@@ -86,11 +86,11 @@ Phase 4: Supporting Services (parallel)
 └── migrate.bicep (Azure Migrate)
 
 Phase 5: Optional Services (conditional, parallel)
-├── firewall.bicep (if deployFirewall)
-└── vpn-gateway.bicep (if deployVpnGateway)
+├── firewall.bicep (if scenario == 'firewall' || 'enterprise')
+└── vpn-gateway.bicep (if scenario == 'vpn' || 'enterprise')
 
 Phase 6: Connectivity (conditional)
-└── networking-peering.bicep (if Firewall OR VPN)
+└── networking-peering.bicep (if scenario != 'baseline')
 ```
 
 ### Naming Strategy
@@ -186,13 +186,13 @@ var regionAbbreviations = {
 
 ```powershell
 # Preview deployment
-./deploy.ps1 -Owner "partner-ops@contoso.com" -WhatIf
+./deploy.ps1 -Scenario baseline -Owner "partner-ops@contoso.com" -WhatIf
 
-# Execute deployment
-./deploy.ps1 -Owner "partner-ops@contoso.com"
-
-# With optional services
-./deploy.ps1 -Owner "partner-ops@contoso.com" -DeployFirewall -DeployVpnGateway
+# Execute deployment by scenario
+./deploy.ps1 -Scenario baseline -Owner "partner-ops@contoso.com"    # NAT Gateway only (~$48/mo)
+./deploy.ps1 -Scenario firewall -Owner "partner-ops@contoso.com"   # Firewall + UDR (~$336/mo)
+./deploy.ps1 -Scenario vpn -Owner "partner-ops@contoso.com"        # VPN Gateway (~$187/mo)
+./deploy.ps1 -Scenario enterprise -Owner "partner-ops@contoso.com" # Firewall + VPN (~$476/mo)
 ```
 
 ## References

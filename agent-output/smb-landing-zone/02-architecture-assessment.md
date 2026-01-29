@@ -232,19 +232,27 @@ This architecture delivers a **cost-optimized, repeatable Azure landing zone** f
 
 ### Ready for bicep-plan
 
-The architecture is approved for implementation with the following key parameters:
+The architecture is approved for implementation with four deployment scenarios:
+
+| Scenario     | Firewall | VPN | NAT GW | Peering | UDR | Monthly Cost |
+| ------------ | :------: | :-: | :----: | :-----: | :-: | -----------: |
+| `baseline`   |    ❌    | ❌  |   ✅   |   ❌    | ❌  |         ~$48 |
+| `firewall`   |    ✅    | ❌  |   ❌   |   ✅    | ✅  |        ~$336 |
+| `vpn`        |    ❌    | ✅  |   ❌   |   ✅    | ❌  |        ~$187 |
+| `enterprise` |    ✅    | ✅  |   ❌   |   ✅    | ✅  |        ~$476 |
 
 ```yaml
 region: swedencentral
 environment: prod
-budget: $500/month (estimated: ~$48-$476 depending on options)
+budget: $500/month (estimated: ~$48-$476 depending on scenario)
+scenario: baseline | firewall | vpn | enterprise
 
 resources:
   required:
     - Hub VNet with AzureFirewallSubnet, GatewaySubnet, AzureBastionSubnet
     - Spoke VNet with workload subnet
     - Azure Bastion Developer
-    - NAT Gateway Standard
+    - NAT Gateway Standard (baseline/vpn scenarios)
     - Private DNS Zone
     - Log Analytics Workspace (500MB/day cap)
     - Recovery Services Vault
@@ -252,10 +260,14 @@ resources:
     - Cost Management Budget ($500/mo)
     - Defender for Cloud (Free tier)
     - NSGs (hub + spoke)
-  optional:
-    - Azure Firewall Basic
-    - VPN Gateway VpnGw1AZ
-    - VNet Peering (if Firewall or VPN deployed)
+  per_scenario:
+    firewall|enterprise:
+      - Azure Firewall Basic
+      - VNet Peering (hub-spoke)
+      - Route Table (UDR to Firewall)
+    vpn|enterprise:
+      - VPN Gateway VpnGw1AZ
+      - VNet Peering with Gateway Transit
 
 security:
   - 20 Azure Policies with built-in IDs

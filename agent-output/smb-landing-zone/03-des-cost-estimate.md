@@ -184,12 +184,12 @@ _"If you need X, expect to pay Y more"_
 
 ### Total Cost Summary
 
-| Scenario                      | Monthly | Annual  | vs. Budget         |
-| ----------------------------- | ------- | ------- | ------------------ |
-| **Baseline only**             | ~$48    | ~$576   | ✅ 10% utilization |
-| **Baseline + Firewall**       | ~$336   | ~$4,032 | ✅ 67% utilization |
-| **Baseline + VPN (VpnGw1AZ)** | ~$187   | ~$2,244 | ✅ 37% utilization |
-| **All services**              | ~$476   | ~$5,712 | ✅ 95% utilization |
+| Scenario                    | Monthly | Annual  | vs. Budget         |
+| --------------------------- | ------- | ------- | ------------------ |
+| **`baseline`**              | ~$48    | ~$576   | ✅ 10% utilization |
+| **`vpn`** (+ VPN Gateway)   | ~$187   | ~$2,244 | ✅ 37% utilization |
+| **`firewall`** (+ Firewall) | ~$336   | ~$4,032 | ✅ 67% utilization |
+| **`enterprise`** (Full)     | ~$476   | ~$5,712 | ✅ 95% utilization |
 
 ### Notes
 

@@ -168,12 +168,14 @@ graph TB
 | Cost Management Budget  | subscription   | $500/month + alerts          |
 | Defender for Cloud      | subscription   | Free tier                    |
 
-### Optional (Prompted at Deploy)
+### Deployment Scenarios
 
-| Resource             | Notes                     |
-| -------------------- | ------------------------- |
-| Azure Firewall Basic | Enables hub-spoke peering |
-| Azure VPN Gateway    | Hybrid connectivity       |
+| Scenario     | Firewall | VPN | NAT GW | Peering | UDR | Monthly Cost |
+| ------------ | :------: | :-: | :----: | :-----: | :-: | -----------: |
+| `baseline`   |    ❌    | ❌  |   ✅   |   ❌    | ❌  |         ~$48 |
+| `firewall`   |    ✅    | ❌  |   ❌   |   ✅    | ✅  |        ~$336 |
+| `vpn`        |    ❌    | ✅  |   ❌   |   ✅    | ❌  |        ~$187 |
+| `enterprise` |    ✅    | ✅  |   ❌   |   ✅    | ✅  |        ~$476 |
 
 ## Azure Policy (20 Guardrails)
 
@@ -214,15 +216,25 @@ graph TB
 | Regions           | swedencentral, germanywestcentral | EU GDPR compliant            |
 | Tags              | Environment, Owner (required)     | CAF-aligned tagging          |
 
-## Deploy-Time Prompts
+## Deployment
 
-When deploying, you'll be prompted for:
+```powershell
+cd infra/bicep/smb-landing-zone
 
-1. **Region** - swedencentral or germanywestcentral
-2. **Hub VNet address space** - e.g., 10.0.0.0/16
-3. **Spoke VNet address space** - e.g., 10.1.0.0/16
-4. **Deploy Azure Firewall?** - yes/no
-5. **Deploy VPN Gateway?** - yes/no
+# Baseline: NAT Gateway only (~$48/mo)
+./deploy.ps1 -Scenario baseline
+
+# Firewall: Azure Firewall + UDR (~$336/mo)
+./deploy.ps1 -Scenario firewall
+
+# VPN: VPN Gateway + Gateway Transit (~$187/mo)
+./deploy.ps1 -Scenario vpn
+
+# Enterprise: Firewall + VPN + UDR (~$476/mo)
+./deploy.ps1 -Scenario enterprise
+```
+
+See [Scenario Architecture Diagrams](agent-output/smb-landing-zone/) for visual reference.
 
 ## Documentation
 
@@ -271,12 +283,12 @@ bicep lint infra/bicep/{project}/main.bicep
 npm run lint:md
 ```
 
-### Deployment
+### Deployment Commands
 
 ```powershell
-cd infra/bicep/{project}
-./deploy.ps1 -WhatIf  # Preview changes
-./deploy.ps1          # Deploy
+cd infra/bicep/smb-landing-zone
+./deploy.ps1 -Scenario baseline -WhatIf  # Preview changes
+./deploy.ps1 -Scenario firewall          # Deploy with Firewall
 ```
 
 ## Contributing

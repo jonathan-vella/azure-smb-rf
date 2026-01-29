@@ -80,12 +80,12 @@ scores in Reliability and Performance pillars.
 
 ### Cost Breakdown
 
-| Scenario                        | Monthly Cost | Budget Utilization |
-| ------------------------------- | ------------ | ------------------ |
-| Baseline (required services)    | ~$48         | 10%                |
-| Baseline + VPN Gateway VpnGw1AZ | ~$187        | 37%                |
-| Baseline + Azure Firewall       | ~$336        | 67%                |
-| All services (Firewall + VPN)   | ~$476        | 95%                |
+| Scenario                               | Monthly Cost | Budget Utilization |
+| -------------------------------------- | ------------ | ------------------ |
+| `baseline` (required services)         | ~$48         | 10%                |
+| `vpn` (Baseline + VPN Gateway)         | ~$187        | 37%                |
+| `firewall` (Baseline + Azure Firewall) | ~$336        | 67%                |
+| `enterprise` (Firewall + VPN)          | ~$476        | 95%                |
 
 ## Consequences
 

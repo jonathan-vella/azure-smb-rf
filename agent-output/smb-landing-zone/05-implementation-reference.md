@@ -78,16 +78,17 @@ infra/bicep/smb-landing-zone/
 | Recovery Services Vault | Microsoft.RecoveryServices/vaults        | backup.bicep           |
 | Azure Migrate Project   | Microsoft.Migrate/migrateProjects        | migrate.bicep          |
 
-### Optional Resources (When Enabled)
+### Optional Resources (Per Scenario)
 
-| Resource           | Bicep Type                               | Module             | Trigger             |
-| ------------------ | ---------------------------------------- | ------------------ | ------------------- |
-| Azure Firewall     | Microsoft.Network/azureFirewalls         | firewall.bicep     | `deployFirewall`    |
-| Firewall Policy    | Microsoft.Network/firewallPolicies       | firewall.bicep     | `deployFirewall`    |
-| Firewall Public IP | Microsoft.Network/publicIPAddresses      | firewall.bicep     | `deployFirewall`    |
-| VPN Gateway        | Microsoft.Network/virtualNetworkGateways | vpn-gateway.bicep  | `deployVpnGateway`  |
-| Gateway Public IP  | Microsoft.Network/publicIPAddresses      | vpn-gateway.bicep  | `deployVpnGateway`  |
-| VNet Peering       | Microsoft.Network/virtualNetworkPeerings | networking-peering | Either Firewall/VPN |
+| Resource           | Bicep Type                               | Module             | Scenarios                       |
+| ------------------ | ---------------------------------------- | ------------------ | ------------------------------- |
+| Azure Firewall     | Microsoft.Network/azureFirewalls         | firewall.bicep     | `firewall`, `enterprise`        |
+| Firewall Policy    | Microsoft.Network/firewallPolicies       | firewall.bicep     | `firewall`, `enterprise`        |
+| Firewall Public IP | Microsoft.Network/publicIPAddresses      | firewall.bicep     | `firewall`, `enterprise`        |
+| VPN Gateway        | Microsoft.Network/virtualNetworkGateways | vpn-gateway.bicep  | `vpn`, `enterprise`             |
+| Gateway Public IP  | Microsoft.Network/publicIPAddresses      | vpn-gateway.bicep  | `vpn`, `enterprise`             |
+| VNet Peering       | Microsoft.Network/virtualNetworkPeerings | networking-peering | `firewall`, `vpn`, `enterprise` |
+| Route Table (UDR)  | Microsoft.Network/routeTables            | route-tables.bicep | `firewall`, `enterprise`        |
 
 ## Deployment Instructions
 
@@ -117,14 +118,20 @@ cd infra/bicep/smb-landing-zone
     -LogAnalyticsDailyCapMb 500
 ```
 
-### With Optional Services
+### Scenario-Based Deployment
 
 ```powershell
-# Deploy with Azure Firewall and VPN Gateway (VpnGw1AZ)
-./deploy.ps1 `
-    -Owner "partner-ops@contoso.com" `
-    -DeployFirewall `
-    -DeployVpnGateway
+# Baseline: NAT Gateway only (~$48/mo)
+./deploy.ps1 -Scenario baseline -Owner "partner-ops@contoso.com"
+
+# Firewall: Azure Firewall + UDR (~$336/mo)
+./deploy.ps1 -Scenario firewall -Owner "partner-ops@contoso.com"
+
+# VPN: VPN Gateway + Gateway Transit (~$187/mo)
+./deploy.ps1 -Scenario vpn -Owner "partner-ops@contoso.com"
+
+# Enterprise: Firewall + VPN + UDR (~$476/mo)
+./deploy.ps1 -Scenario enterprise -Owner "partner-ops@contoso.com"
 ```
 
 ## Key Implementation Notes

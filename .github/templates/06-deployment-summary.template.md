@@ -36,10 +36,11 @@
 cd infra/bicep/{project-name}
 
 # Preview changes
-./deploy.ps1 -WhatIf
+./deploy.ps1 -Scenario baseline -WhatIf
 
-# Deploy
-./deploy.ps1
+# Deploy by scenario
+./deploy.ps1 -Scenario baseline     # Minimal infrastructure
+./deploy.ps1 -Scenario {scenario}   # With optional services
 ```
 
 ## Post-Deployment Tasks

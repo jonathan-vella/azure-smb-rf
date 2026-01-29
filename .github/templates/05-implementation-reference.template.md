@@ -36,20 +36,30 @@ infra/bicep/{project-name}/
 
 ```powershell
 cd infra/bicep/{project-name}
-./deploy.ps1
+./deploy.ps1 -Scenario baseline
 ```
 
 ### Preview Changes (What-If)
 
 ```powershell
-./deploy.ps1 -WhatIf
+./deploy.ps1 -Scenario baseline -WhatIf
+```
+
+### Scenario-Based Deployment
+
+```powershell
+# Baseline: Minimal infrastructure
+./deploy.ps1 -Scenario baseline
+
+# With optional services (project-specific)
+./deploy.ps1 -Scenario {scenario-name}
 ```
 
 ### Custom Parameters
 
 ```powershell
 ./deploy.ps1 `
-    -ResourceGroupName "rg-{project}-{env}" `
+    -Scenario baseline `
     -Location "{location}" `
     -Environment "{env}"
 ```

@@ -147,18 +147,25 @@ param requiredTags array = ['Environment', 'Owner']
 
 **Parameters**:
 
-| Parameter             | Type   | Default       | Description                 |
-| --------------------- | ------ | ------------- | --------------------------- |
-| location              | string | swedencentral | Primary deployment region   |
-| environment           | string | prod          | Environment tag value       |
-| owner                 | string | (required)    | Owner tag value             |
-| hubVnetAddressSpace   | string | 10.0.0.0/16   | Hub VNet CIDR               |
-| spokeVnetAddressSpace | string | 10.1.0.0/16   | Spoke VNet CIDR             |
-| deployFirewall        | bool   | false         | Deploy Azure Firewall Basic |
-| deployVpnGateway      | bool   | false         | Deploy VPN Gateway          |
+| Parameter             | Type   | Default       | Description                                           |
+| --------------------- | ------ | ------------- | ----------------------------------------------------- |
+| location              | string | swedencentral | Primary deployment region                             |
+| environment           | string | prod          | Environment tag value                                 |
+| owner                 | string | (required)    | Owner tag value                                       |
+| hubVnetAddressSpace   | string | 10.0.0.0/16   | Hub VNet CIDR                                         |
+| spokeVnetAddressSpace | string | 10.1.0.0/16   | Spoke VNet CIDR                                       |
+| scenario              | string | baseline      | Deployment scenario: baseline/firewall/vpn/enterprise |
+| logAnalyticsDailyCap  | int    | 500           | Log Analytics daily cap in MB                         |
+| budgetAmount          | int    | 500           | Monthly budget in USD                                 |
 
-| logAnalyticsDailyCap | int | 500 | Log Analytics daily cap in MB |
-| budgetAmount | int | 500 | Monthly budget in USD |
+**Scenarios**:
+
+| Scenario     | Firewall | VPN | NAT GW | Peering | UDR | Monthly Cost |
+| ------------ | :------: | :-: | :----: | :-----: | :-: | -----------: |
+| `baseline`   |    ❌    | ❌  |   ✅   |   ❌    | ❌  |         ~$48 |
+| `firewall`   |    ✅    | ❌  |   ❌   |   ✅    | ✅  |        ~$336 |
+| `vpn`        |    ❌    | ✅  |   ❌   |   ✅    | ❌  |        ~$187 |
+| `enterprise` |    ✅    | ✅  |   ❌   |   ✅    | ✅  |        ~$476 |
 
 **Variables**:
 
@@ -166,6 +173,8 @@ param requiredTags array = ['Environment', 'Owner']
 var uniqueSuffix = uniqueString(subscription().subscriptionId)
 var regionShort = location == 'swedencentral' ? 'swc' : 'gwc'
 var projectName = 'smb-lz'
+var deployFirewall = scenario == 'firewall' || scenario == 'enterprise'
+var deployVpnGateway = scenario == 'vpn' || scenario == 'enterprise'
 var deployPeering = deployFirewall || deployVpnGateway
 ```
 
@@ -416,9 +425,9 @@ resource budget 'Microsoft.Consumption/budgets@2023-11-01' = {
 
 ### Task 9: modules/firewall.bicep (Optional)
 
-**Purpose**: Deploy Azure Firewall Basic (when deployFirewall = true)
+**Purpose**: Deploy Azure Firewall Basic (for `firewall` and `enterprise` scenarios)
 
-**Condition**: `deployFirewall == true`
+**Condition**: `scenario == 'firewall' || scenario == 'enterprise'`
 
 **Resources**:
 
@@ -433,9 +442,9 @@ resource budget 'Microsoft.Consumption/budgets@2023-11-01' = {
 
 ### Task 10: modules/vpn-gateway.bicep (Optional)
 
-**Purpose**: Deploy VPN Gateway (when deployVpnGateway = true)
+**Purpose**: Deploy VPN Gateway (for `vpn` and `enterprise` scenarios)
 
-**Condition**: `deployVpnGateway == true`
+**Condition**: `scenario == 'vpn' || scenario == 'enterprise'`
 
 **Resources**:
 
@@ -501,8 +510,8 @@ resource vpnGateway 'Microsoft.Network/virtualNetworkGateways@2024-01-01' = {
 **Usage**:
 
 ```powershell
-.\deploy.ps1 -Environment prod -Owner "partner-ops@contoso.com" -WhatIf
-.\deploy.ps1 -Environment prod -Owner "partner-ops@contoso.com" -DeployFirewall -DeployVpnGateway
+.\deploy.ps1 -Scenario baseline -Owner "partner-ops@contoso.com" -WhatIf
+.\deploy.ps1 -Scenario enterprise -Owner "partner-ops@contoso.com"
 ```
 
 ---

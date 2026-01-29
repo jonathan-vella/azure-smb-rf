@@ -75,27 +75,29 @@
 | Cost Management Budget  | subscription     | N/A       | $500/month, forecast + anomaly alerts      |
 | Defender for Cloud      | subscription     | Free tier | CSPM basics only                           |
 
-### Optional Services (Prompted at Deploy)
+### Deployment Scenarios
 
-User can select any combination: both, one, or none.
+Four pre-defined scenarios control optional service deployment:
 
-| Service           | Resource Group | SKU Options | Default  | Notes                            |
-| ----------------- | -------------- | ----------- | -------- | -------------------------------- |
-| Azure Firewall    | rg-hub         | Basic       | Basic    | If deployed, enable VNet peering |
-| Azure VPN Gateway | rg-hub         | VpnGw1AZ    | VpnGw1AZ | If deployed, enable VNet peering |
+| Scenario     | Firewall | VPN | NAT GW | Peering | UDR | Monthly Cost |
+| ------------ | :------: | :-: | :----: | :-----: | :-: | -----------: |
+| `baseline`   |    ❌    | ❌  |   ✅   |   ❌    | ❌  |         ~$48 |
+| `firewall`   |    ✅    | ❌  |   ❌   |   ✅    | ✅  |        ~$336 |
+| `vpn`        |    ❌    | ✅  |   ❌   |   ✅    | ❌  |        ~$187 |
+| `enterprise` |    ✅    | ✅  |   ❌   |   ✅    | ✅  |        ~$476 |
 
 > **VPN Gateway**: VpnGw1AZ (~$140/mo) - 650 Mbps, max 30 S2S tunnels, BGP support, zone-redundant.
 > Zone-redundant SKU ensures high availability across Azure availability zones.
 
 ### Deploy-Time Parameters
 
-| #   | Parameter                    | Type    | Example Value                       |
-| --- | ---------------------------- | ------- | ----------------------------------- |
-| 1   | Region selection             | choice  | swedencentral or germanywestcentral |
-| 2   | Hub VNet address space       | CIDR    | 10.0.0.0/16                         |
-| 3   | Spoke VNet address space     | CIDR    | 10.1.0.0/16                         |
-| 4   | Deploy Azure Firewall Basic? | boolean | yes/no                              |
-| 5   | Deploy Azure VPN Gateway?    | boolean | yes/no                              |
+| #   | Parameter                | Type   | Example Value                       |
+| --- | ------------------------ | ------ | ----------------------------------- |
+| 1   | Region selection         | choice | swedencentral or germanywestcentral |
+| 2   | Hub VNet address space   | CIDR   | 10.0.0.0/16                         |
+| 3   | Spoke VNet address space | CIDR   | 10.1.0.0/16                         |
+| 4   | Scenario                 | choice | baseline/firewall/vpn/enterprise    |
+| 5   | Owner email              | string | partner-ops@contoso.com             |
 
 ## Non-Functional Requirements (NFRs)
 

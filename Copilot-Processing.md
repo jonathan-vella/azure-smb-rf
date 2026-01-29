@@ -1,47 +1,57 @@
 # Copilot Processing Log
 
-## Session: 2026-01-28
+## Session: 2026-01-29 - Scenario Documentation Update
 
 **Project**: smb-landing-zone  
 **Project Version**: 0.1.0  
 **Artifact Version**: v0.1  
-**Current Step**: ✅ Step 6 (deploy) COMPLETE
+**Current Step**: ✅ Documentation Update COMPLETE
 
 ---
 
-## Deployment Completed Successfully
+## Documentation Update Summary
 
-**Deployment Name**: `smb-lz-prod-20260128-125505`  
-**Duration**: 2.2 minutes  
-**Subscription**: noalz (00858ffc-dded-4f0f-8bbf-e17fff0d47d9)  
-**Region**: swedencentral
+Replaced old `-DeployFirewall`/`-DeployVpnGateway` boolean flags with new `-Scenario` pattern across all documentation.
 
-### Deployed Resources
+### New Scenario Syntax
 
-| Resource           | Name                                     | Resource Group       |
-| ------------------ | ---------------------------------------- | -------------------- |
-| Hub VNet           | `vnet-hub-slz-swc`                       | `rg-hub-slz-swc`     |
-| Spoke VNet         | `vnet-spoke-prod-swc`                    | `rg-spoke-prod-swc`  |
-| Bastion            | `bas-hub-slz-swc`                        | `rg-hub-slz-swc`     |
-| NAT Gateway        | `nat-spoke-prod-swc` (IP: 20.91.244.149) | `rg-spoke-prod-swc`  |
-| Log Analytics      | `log-smblz-slz-swc`                      | `rg-monitor-slz-swc` |
-| Recovery Vault     | `rsv-smblz-slz-swc`                      | `rg-backup-slz-swc`  |
-| Migrate Project    | `migrate-smblz-slz-swc`                  | `rg-migrate-slz-swc` |
-| Policy Assignments | 20 `smb-lz-*` policies                   | Subscription scope   |
-| Budget             | `budget-smb-lz-monthly` ($500/mo)        | Subscription scope   |
+```powershell
+./deploy.ps1 -Scenario baseline    # NAT Gateway only (~$48/mo)
+./deploy.ps1 -Scenario firewall    # Azure Firewall + UDR (~$336/mo)
+./deploy.ps1 -Scenario vpn         # VPN Gateway + Gateway Transit (~$187/mo)
+./deploy.ps1 -Scenario enterprise  # Firewall + VPN + UDR (~$476/mo)
+```
 
-### Issues Fixed During Deployment
+### Files Created
 
-| Issue                                  | Fix Applied                                       |
-| -------------------------------------- | ------------------------------------------------- |
-| Policy `smb-lz-identity-01` deprecated | Updated to `b3a22bc9-66de-45fb-98fa-00f5df42f41a` |
-| Policy `smb-lz-monitoring-01` missing  | Added `listOfResourceTypes` with 8 resource types |
-| Log Analytics `dailyQuotaGb` = 0       | Changed param from int (MB) to string (GB)        |
-| Recovery Vault `backupstorageconfig`   | Removed conflicting child resource                |
+| File                                 | Description                 |
+| ------------------------------------ | --------------------------- |
+| `03-des-diagram-baseline.py` + PNG   | Baseline scenario diagram   |
+| `03-des-diagram-firewall.py` + PNG   | Firewall scenario diagram   |
+| `03-des-diagram-vpn.py` + PNG        | VPN scenario diagram        |
+| `03-des-diagram-enterprise.py` + PNG | Enterprise scenario diagram |
+
+### Files Updated
+
+| File                                  | Changes                                  |
+| ------------------------------------- | ---------------------------------------- |
+| `README.md`                           | Scenario matrix, deployment commands     |
+| `01-requirements.md`                  | Deployment scenarios section, parameters |
+| `02-architecture-assessment.md`       | Scenario matrix in handoff section       |
+| `03-des-adr-0001-*.md`                | Cost breakdown with scenario names       |
+| `03-des-cost-estimate.md`             | Total cost summary with scenario names   |
+| `03-des-diagram.py`                   | Updated header as overview diagram       |
+| `04-implementation-plan.md`           | Scenario parameter, variables            |
+| `04-scenario-implementation-plans.md` | Deployment commands, upgrade process     |
+| `05-implementation-reference.md`      | Optional resources per scenario          |
+| `06-deployment-summary.md`            | Deployment commands                      |
+| `07-ab-adr-0002-*.md`                 | Deployment commands, phasing             |
+| `.github/templates/05-*.template.md`  | Scenario-based deployment                |
+| `.github/templates/06-*.template.md`  | Scenario-based deployment                |
 
 ---
 
-## Completed Today
+## Previous Session: 2026-01-28
 
 ### Step 1: Requirements ✅
 

@@ -113,17 +113,17 @@
 # Navigate to Bicep directory
 cd infra/bicep/smb-landing-zone
 
-# Scenario 1: Firewall only
-./deploy.ps1 -DeployFirewall
+# Baseline: NAT Gateway only (~$48/mo)
+./deploy.ps1 -Scenario baseline
 
-# Scenario 2: VPN Gateway only
-./deploy.ps1 -DeployVpnGateway
+# Firewall: Azure Firewall + UDR (~$336/mo)
+./deploy.ps1 -Scenario firewall
 
-# Scenario 3: Firewall + VPN Gateway
-./deploy.ps1 -DeployFirewall -DeployVpnGateway
+# VPN: VPN Gateway + Gateway Transit (~$187/mo)
+./deploy.ps1 -Scenario vpn
 
-# Scenario 4: Baseline (NAT Gateway only)
-./deploy.ps1
+# Enterprise: Firewall + VPN + UDR (~$476/mo)
+./deploy.ps1 -Scenario enterprise
 ```
 
 ### Issues Fixed During Testing

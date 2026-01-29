@@ -20,17 +20,17 @@ trade-offs.
 ### Deployment Command Reference
 
 ```powershell
-# Scenario 1: Firewall only
-./deploy.ps1 -DeployFirewall
+# Scenario 1: Firewall only (~$336/mo)
+./deploy.ps1 -Scenario firewall
 
-# Scenario 2: VPN only
-./deploy.ps1 -DeployVpnGateway
+# Scenario 2: VPN only (~$187/mo)
+./deploy.ps1 -Scenario vpn
 
-# Scenario 3: Firewall + VPN
-./deploy.ps1 -DeployFirewall -DeployVpnGateway
+# Scenario 3: Firewall + VPN (~$476/mo)
+./deploy.ps1 -Scenario enterprise
 
-# Scenario 4: Baseline (NAT Gateway only)
-./deploy.ps1
+# Scenario 4: Baseline (NAT Gateway only, ~$48/mo)
+./deploy.ps1 -Scenario baseline
 ```
 
 ---
@@ -630,10 +630,10 @@ graph TB
 
 **Upgrade Process:**
 
-1. **S4 → S1 (Add Firewall):** Re-run `./deploy.ps1 -DeployFirewall`
-2. **S4 → S2 (Add VPN):** Re-run `./deploy.ps1 -DeployVpnGateway`
-3. **S1 → S3 (Add VPN):** Re-run `./deploy.ps1 -DeployFirewall -DeployVpnGateway`
-4. **S2 → S3 (Add Firewall):** Re-run `./deploy.ps1 -DeployFirewall -DeployVpnGateway`
+1. **S4 → S1 (Add Firewall):** Re-run `./deploy.ps1 -Scenario firewall`
+2. **S4 → S2 (Add VPN):** Re-run `./deploy.ps1 -Scenario vpn`
+3. **S1 → S3 (Add VPN):** Re-run `./deploy.ps1 -Scenario enterprise`
+4. **S2 → S3 (Add Firewall):** Re-run `./deploy.ps1 -Scenario enterprise`
 
 **Note:** Each upgrade is an incremental deployment—existing resources are preserved.
 
