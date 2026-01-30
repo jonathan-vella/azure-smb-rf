@@ -36,6 +36,18 @@ Source of truth: [.github/agents/\_shared/defaults.md](agents/_shared/defaults.m
 | **SQL Server Auth** | Azure AD-only (`azureADOnlyAuthentication`)    | No SQL auth usernames/passwords                    |
 | **Zone Redundancy** | App Service Plans: P1v4+ only                  | Not S1/P1v2; required for HA                       |
 
+## AVM-First Policy (MANDATORY)
+
+**All Bicep implementations MUST use Azure Verified Modules (AVM) where available.**
+
+| Rule | Requirement |
+|------|-------------|
+| **Gate Check** | Run `mcp_bicep_list_avm_metadata` before planning any resource |
+| **AVM Registry** | `br/public:avm/res/{service}/{resource}:{version}` |
+| **Version Freshness** | Always fetch latest version from AVM registry |
+| **Raw Bicep Exception** | Only if no AVM exists—document rationale + create tracking issue |
+| **Documentation** | https://aka.ms/avm |
+
 ## Architecture Essentials
 
 ### Artifact Output Structure

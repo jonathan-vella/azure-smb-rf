@@ -98,7 +98,10 @@ output principalId string = resource.identity.principalId
 
 ## Azure Verified Modules (AVM)
 
-Prefer AVM modules for complex resources. They are Microsoft-maintained and tested.
+**MANDATORY: Use AVM modules for ALL resources where an AVM module exists.**
+
+Raw Bicep is only permitted when no AVM module exists. Document the rationale and create
+a tracking issue for future AVM migration.
 
 ```bicep
 // ✅ Use AVM for Key Vault

@@ -86,10 +86,12 @@ Document region selection in Introduction section:
 - Note any region-specific service limitations encountered
 
 - **MANDATORY: Use Azure Verified Modules (AVM) for all resources**
+  - **GATE CHECK**: Run `mcp_bicep_list_avm_metadata` to verify AVM availability BEFORE planning
   - Search AVM registry FIRST: https://aka.ms/avm
   - Use `br/public:avm/res/{service}/{resource}:{version}` format
   - Fetch latest version from GitHub changelog or AVM website
   - **Only use raw Bicep resources if no AVM exists** - document rationale in plan
+  - **If raw Bicep used**: Create GitHub issue to track future AVM migration
   - Most AVM modules include `privateEndpoints` parameters - avoid duplicate modules
   - AVM modules enforce best practices, naming conventions, and tagging automatically
 - **Generate cost estimates** for all resources using Azure pricing patterns

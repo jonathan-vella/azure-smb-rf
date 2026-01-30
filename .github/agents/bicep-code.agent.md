@@ -222,12 +222,13 @@ Before finalizing implementation, verify:
 - [ ] **Operations**: Diagnostic settings on all resources, Log Analytics integration
 - [ ] **Operations**: Resource outputs for downstream automation
 
-**Azure Verified Modules (AVM):**
+**Azure Verified Modules (AVM) - MANDATORY:**
 
-- [ ] Used AVM modules for all resources (where available)
-- [ ] Latest AVM versions referenced from GitHub changelog
-- [ ] Documented rationale if raw Bicep used instead of AVM
-- [ ] AVM parameters properly configured (private endpoints, diagnostics, RBAC)
+- [ ] **GATE CHECK**: Verified AVM exists for each resource via `mcp_bicep_list_avm_metadata`
+- [ ] Used AVM modules for ALL resources where AVM exists
+- [ ] Latest AVM versions fetched from AVM registry (not hardcoded)
+- [ ] If raw Bicep used: documented justification + GitHub issue for future AVM migration
+- [ ] AVM parameters properly configured (privateEndpoints, diagnostics, RBAC, tags)
 - [ ] Verified AVM module versions match implementation plan
 
 **Code Quality:**

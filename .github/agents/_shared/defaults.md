@@ -97,7 +97,12 @@ Follow Cloud Adoption Framework pattern: `{type}-{workload}-{env}-{region}-{inst
 
 ## Azure Verified Modules (AVM)
 
-**Always prefer AVM modules over raw Bicep resources.**
+**MANDATORY: MUST use AVM modules for all resources where available.**
+
+Raw Bicep resources are only permitted when:
+1. No AVM module exists for the resource type
+2. The rationale is documented in the implementation plan
+3. A GitHub issue is created to track future AVM migration
 
 ### AVM Registry
 
