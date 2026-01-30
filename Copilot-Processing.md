@@ -151,50 +151,51 @@ Last build: 2026-01-30 | Result: ✅ SUCCESS with 1 warning (down from 10)
 4. [x] Test `full` scenario with what-if
 5. [x] Fix build warnings (reduced from 10 to 1, remaining is AVM upstream issue)
 6. [x] Perform actual deployment of baseline scenario ✅ SUCCEEDED
-7. [x] Validate deployed resources match expectations
-8. [ ] Document any issues found
-9. [ ] Test remaining scenarios (firewall, vpn, full)
+7. [x] Perform actual deployment of firewall scenario ✅ SUCCEEDED
+8. [x] Validate deployed resources match expectations
+9. [ ] Test VPN scenario deployment
+10. [ ] Test Full scenario deployment
+11. [ ] Update 06-deployment-summary.md with final results
 
 ---
 
-## Baseline Deployment Results
+## Deployment History
+
+### Baseline Deployment
 
 **Deployment**: `smb-lz-baseline-20260130163750` | **Status**: ✅ Succeeded | **Duration**: ~4 mins
 
-### Resource Groups Created
+### Firewall Deployment
 
-| Resource Group       | Location       | Status    |
-| -------------------- | -------------- | --------- |
-| rg-hub-slz-swc       | swedencentral  | Succeeded |
-| rg-monitor-slz-swc   | swedencentral  | Succeeded |
-| rg-backup-slz-swc    | swedencentral  | Succeeded |
-| rg-migrate-slz-swc   | swedencentral  | Succeeded |
+**Deployment**: `smb-lz-firewall-20260130164346` | **Status**: ✅ Succeeded | **Duration**: ~10 mins
 
-### Resources Deployed
-
-| Resource               | Type                       | Resource Group       |
-| ---------------------- | -------------------------- | -------------------- |
-| vnet-hub-slz-swc       | Virtual Network            | rg-hub-slz-swc       |
-| nsg-hub-slz-swc        | Network Security Group     | rg-hub-slz-swc       |
-| log-smblz-slz-swc      | Log Analytics Workspace    | rg-monitor-slz-swc   |
-| rsv-smblz-slz-swc      | Recovery Services Vault    | rg-backup-slz-swc    |
-| migrate-smblz-slz-swc  | Azure Migrate Project      | rg-migrate-slz-swc   |
-
-### Issue Fixed During Deployment
-
-**monitoring.bicep**: Fixed `string()` function error with float value for `dailyQuotaGb`.
-Changed from `json(dailyCapGb)` + `string()` to direct string passthrough.
+**Additional resources**: Azure Firewall, Firewall Policy, 2x Public IPs, Route Table
 
 ---
 
-## Session Handoff Notes
+## Cleanup (2026-01-30)
 
-When continuing in a new chat:
+All resource groups deleted before weekend:
+
+- rg-hub-slz-swc (deleting)
+- rg-monitor-slz-swc (deleting)
+- rg-backup-slz-swc (deleting)
+- rg-migrate-slz-swc (deleting)
+
+---
+
+## Session Handoff Notes (Monday)
+
+When continuing on Monday:
 
 1. Reference this file: `/workspaces/azure-agentic-smb-lz/Copilot-Processing.md`
 2. The project is at version 0.2.0 (AVM migration complete)
-3. Baseline scenario deployed successfully
-4. Remaining scenarios to test: firewall, vpn, full
-5. All what-if validations passed
+3. **Baseline & Firewall scenarios validated and deployed successfully**
+4. Remaining scenarios to deploy: vpn, full
+5. All resources were deleted on 2026-01-30 to save costs
 
-**Remember**: Delete this file after validation is complete.
+**Fixes applied this session:**
+- 9 BCP318/BCP321 warnings fixed with safe access operators (.?)
+- monitoring.bicep dailyQuotaGb float-to-string error fixed
+
+**Remember**: Delete this file after all validation is complete.
