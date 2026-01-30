@@ -2,7 +2,8 @@
 // SMB Landing Zone - Spoke to Hub Peering (Internal Module)
 // ============================================================================
 // Purpose: Deploy spoke-to-hub peering in spoke resource group scope
-// Version: v0.2
+// Version: v0.3
+// AVM Status: Raw Bicep (No dedicated AVM module for VNet peering)
 // Note: Internal module called by networking-peering.bicep for cross-RG deployment
 // ============================================================================
 

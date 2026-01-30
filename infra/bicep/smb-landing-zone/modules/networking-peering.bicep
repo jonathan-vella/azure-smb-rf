@@ -2,7 +2,11 @@
 // SMB Landing Zone - VNet Peering (Consolidated)
 // ============================================================================
 // Purpose: Configure bi-directional hub-spoke VNet peering
-// Version: v0.2
+// Version: v0.3
+// AVM Status: Raw Bicep (No dedicated AVM module for VNet peering)
+// Rationale: Peering is a child resource of VNet; cross-RG deployment requires
+//            separate modules. AVM VNet module's peerings param doesn't support
+//            this pattern. Raw Bicep is cleaner for this use case.
 // ============================================================================
 // This module handles BOTH directions of peering:
 // - Hub → Spoke: Deployed in hub resource group (this module's scope)
