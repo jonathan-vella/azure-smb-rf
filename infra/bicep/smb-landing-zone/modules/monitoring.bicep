@@ -57,8 +57,8 @@ module logAnalytics 'br/public:avm/res/operational-insights/workspace:0.15.0' = 
     skuName: 'PerGB2018'
     // Retention policy - 30 days for cost optimization
     dataRetention: 30
-    // Daily cap for cost control (if > 0)
-    dailyQuotaGb: dailyQuotaGbValue > 0 ? dailyQuotaGbValue : -1
+    // Daily cap for cost control (if > 0) - AVM expects string format
+    dailyQuotaGb: dailyQuotaGbValue > 0 ? string(dailyQuotaGbValue) : '-1'
     // Network access - enabled for SMB simplicity
     publicNetworkAccessForIngestion: 'Enabled'
     publicNetworkAccessForQuery: 'Enabled'
