@@ -1,8 +1,9 @@
 // ============================================================================
-// SMB Landing Zone - Route Tables (UDRs)
+// SMB Landing Zone - Route Tables (AVM-based)
 // ============================================================================
 // Purpose: Deploy route tables for forced tunneling through Azure Firewall
-// Version: v0.1
+// Version: v0.2 (AVM Migration)
+// AVM Module: br/public:avm/res/network/route-table:0.5.0
 // ============================================================================
 // Routing Requirements:
 // - Spoke → Internet: Via Azure Firewall (0.0.0.0/0 → FW)
@@ -54,20 +55,23 @@ var gatewayRouteTableName = 'rt-gateway-${environment}-${regionShort}'
 var hasOnPremises = !empty(onPremisesAddressSpace)
 
 // ============================================================================
-// Spoke Route Table
+// Spoke Route Table (AVM Module)
 // ============================================================================
 // Forces all spoke traffic through Azure Firewall:
 // - 0.0.0.0/0 (internet) → Firewall
 // - On-prem CIDR (if VPN) → Firewall
 // ============================================================================
 
-@description('Route table for spoke subnets - forces traffic through firewall')
-resource spokeRouteTable 'Microsoft.Network/routeTables@2024-01-01' = {
-  name: spokeRouteTableName
-  location: location
-  tags: tags
-  properties: {
-    disableBgpRoutePropagation: false // Allow BGP routes from VPN Gateway
+@description('Route table for spoke subnets using AVM - forces traffic through firewall')
+module spokeRouteTable 'br/public:avm/res/network/route-table:0.5.0' = {
+  name: 'deploy-${spokeRouteTableName}'
+  params: {
+    name: spokeRouteTableName
+    location: location
+    tags: tags
+    // Allow BGP routes from VPN Gateway
+    disableBgpRoutePropagation: false
+    // Routes for spoke subnets
     routes: concat(
       [
         {
@@ -95,18 +99,19 @@ resource spokeRouteTable 'Microsoft.Network/routeTables@2024-01-01' = {
 }
 
 // ============================================================================
-// Gateway Route Table (Conditional)
+// Gateway Route Table (AVM Module - Conditional)
 // ============================================================================
 // Forces on-prem → Azure traffic through Azure Firewall
 // Only deployed when VPN is configured (on-prem exists)
 // ============================================================================
 
-@description('Route table for GatewaySubnet - forces on-prem to Azure traffic through firewall')
-resource gatewayRouteTable 'Microsoft.Network/routeTables@2024-01-01' = if (hasOnPremises) {
-  name: gatewayRouteTableName
-  location: location
-  tags: tags
-  properties: {
+@description('Route table for GatewaySubnet using AVM - forces on-prem to Azure traffic through firewall')
+module gatewayRouteTable 'br/public:avm/res/network/route-table:0.5.0' = if (hasOnPremises) {
+  name: 'deploy-${gatewayRouteTableName}'
+  params: {
+    name: gatewayRouteTableName
+    location: location
+    tags: tags
     disableBgpRoutePropagation: false
     routes: [
       {
@@ -126,13 +131,13 @@ resource gatewayRouteTable 'Microsoft.Network/routeTables@2024-01-01' = if (hasO
 // ============================================================================
 
 @description('Spoke route table resource ID')
-output spokeRouteTableId string = spokeRouteTable.id
+output spokeRouteTableId string = spokeRouteTable.outputs.resourceId
 
 @description('Spoke route table name')
-output spokeRouteTableName string = spokeRouteTable.name
+output spokeRouteTableName string = spokeRouteTable.outputs.name
 
 @description('Gateway route table resource ID (empty if no VPN)')
-output gatewayRouteTableId string = hasOnPremises ? gatewayRouteTable.id : ''
+output gatewayRouteTableId string = hasOnPremises ? gatewayRouteTable.outputs.resourceId : ''
 
 @description('Gateway route table name (empty if no VPN)')
-output gatewayRouteTableName string = hasOnPremises ? gatewayRouteTable.name : ''
+output gatewayRouteTableName string = hasOnPremises ? gatewayRouteTable.outputs.name : ''

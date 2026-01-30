@@ -1,8 +1,9 @@
 // ============================================================================
-// SMB Landing Zone - Backup
+// SMB Landing Zone - Backup (AVM-based)
 // ============================================================================
-// Purpose: Deploy Recovery Services Vault for VM backup
-// Version: v0.1
+// Purpose: Deploy Recovery Services Vault for VM backup using AVM
+// Version: v0.2 (AVM Migration)
+// AVM Module: br/public:avm/res/recovery-services/vault:0.11.1
 // ============================================================================
 
 // ============================================================================
@@ -17,7 +18,6 @@ param location string
   'dev'
   'staging'
   'prod'
-  'slz'
   'slz'
 ])
 param environment string
@@ -36,96 +36,85 @@ param tags object
 var vaultName = 'rsv-smblz-${environment}-${regionShort}'
 
 // ============================================================================
-// Recovery Services Vault
-// ============================================================================
-
-@description('Recovery Services Vault for VM backup with LRS storage')
-resource recoveryVault 'Microsoft.RecoveryServices/vaults@2024-04-01' = {
-  name: vaultName
-  location: location
-  tags: tags
-  sku: {
-    name: 'RS0'
-    tier: 'Standard'
-  }
-  properties: {
-    publicNetworkAccess: 'Enabled'
-    securitySettings: {
-      softDeleteSettings: {
-        softDeleteState: 'Enabled'
-        softDeleteRetentionPeriodInDays: 14
-      }
-    }
-    // Note: Storage redundancy (LRS/GRS) is configured at vault creation and cannot be changed
-    // For new vaults, default is GRS. For cost optimization, use Azure CLI during initial setup:
-    // az backup vault backup-properties set --resource-group $rg --name $vault --backup-storage-redundancy LocallyRedundant
-  }
-}
-
-// ============================================================================
-// VM Backup Policy - Standard Retention
+// Recovery Services Vault (AVM Module)
 // ============================================================================
 // Schedule: Daily at 02:00 UTC
 // Retention: 30 days daily, 12 weeks weekly (Sunday), 12 months monthly (1st)
 // ============================================================================
 
-@description('Default VM backup policy with Standard retention')
-resource defaultVmBackupPolicy 'Microsoft.RecoveryServices/vaults/backupPolicies@2024-04-01' = {
-  parent: recoveryVault
-  name: 'DefaultVMPolicy'
-  properties: {
-    backupManagementType: 'AzureIaasVM'
-    instantRpRetentionRangeInDays: 2
-    schedulePolicy: {
-      schedulePolicyType: 'SimpleSchedulePolicy'
-      scheduleRunFrequency: 'Daily'
-      scheduleRunTimes: [
-        '2026-01-01T02:00:00Z' // 02:00 UTC daily
-      ]
+@description('Recovery Services Vault using AVM module with VM backup policy')
+module recoveryVault 'br/public:avm/res/recovery-services/vault:0.11.1' = {
+  name: 'deploy-${vaultName}'
+  params: {
+    name: vaultName
+    location: location
+    tags: tags
+    // Soft delete settings for security
+    softDeleteSettings: {
+      enhancedSecurityState: 'Enabled'
+      softDeleteState: 'Enabled'
+      softDeleteRetentionPeriodInDays: 14
     }
-    retentionPolicy: {
-      retentionPolicyType: 'LongTermRetentionPolicy'
-      dailySchedule: {
-        retentionTimes: [
-          '2026-01-01T02:00:00Z'
-        ]
-        retentionDuration: {
-          count: 30
-          durationType: 'Days'
-        }
-      }
-      weeklySchedule: {
-        daysOfTheWeek: [
-          'Sunday'
-        ]
-        retentionTimes: [
-          '2026-01-01T02:00:00Z'
-        ]
-        retentionDuration: {
-          count: 12
-          durationType: 'Weeks'
-        }
-      }
-      monthlySchedule: {
-        retentionScheduleFormatType: 'Daily'
-        retentionScheduleDaily: {
-          daysOfTheMonth: [
-            {
-              date: 1
-              isLast: false
+    // Backup policies for Azure VMs
+    backupPolicies: [
+      {
+        name: 'DefaultVMPolicy'
+        properties: {
+          backupManagementType: 'AzureIaasVM'
+          instantRpRetentionRangeInDays: 2
+          schedulePolicy: {
+            schedulePolicyType: 'SimpleSchedulePolicy'
+            scheduleRunFrequency: 'Daily'
+            scheduleRunTimes: [
+              '2026-01-01T02:00:00Z' // 02:00 UTC daily
+            ]
+          }
+          retentionPolicy: {
+            retentionPolicyType: 'LongTermRetentionPolicy'
+            dailySchedule: {
+              retentionTimes: [
+                '2026-01-01T02:00:00Z'
+              ]
+              retentionDuration: {
+                count: 30
+                durationType: 'Days'
+              }
             }
-          ]
-        }
-        retentionTimes: [
-          '2026-01-01T02:00:00Z'
-        ]
-        retentionDuration: {
-          count: 12
-          durationType: 'Months'
+            weeklySchedule: {
+              daysOfTheWeek: [
+                'Sunday'
+              ]
+              retentionTimes: [
+                '2026-01-01T02:00:00Z'
+              ]
+              retentionDuration: {
+                count: 12
+                durationType: 'Weeks'
+              }
+            }
+            monthlySchedule: {
+              retentionScheduleFormatType: 'Daily'
+              retentionScheduleDaily: {
+                daysOfTheMonth: [
+                  {
+                    date: 1
+                    isLast: false
+                  }
+                ]
+              }
+              retentionTimes: [
+                '2026-01-01T02:00:00Z'
+              ]
+              retentionDuration: {
+                count: 12
+                durationType: 'Months'
+              }
+            }
+          }
+          timeZone: 'UTC'
         }
       }
-    }
-    timeZone: 'UTC'
+    ]
   }
 }
 
@@ -134,13 +123,13 @@ resource defaultVmBackupPolicy 'Microsoft.RecoveryServices/vaults/backupPolicies
 // ============================================================================
 
 @description('Recovery Services Vault resource ID')
-output vaultId string = recoveryVault.id
+output vaultId string = recoveryVault.outputs.resourceId
 
 @description('Recovery Services Vault name')
-output vaultName string = recoveryVault.name
+output vaultName string = recoveryVault.outputs.name
 
 @description('Default VM Backup Policy ID')
-output defaultVmPolicyId string = defaultVmBackupPolicy.id
+output defaultVmPolicyId string = '${recoveryVault.outputs.resourceId}/backupPolicies/DefaultVMPolicy'
 
 @description('Default VM Backup Policy name')
-output defaultVmPolicyName string = defaultVmBackupPolicy.name
+output defaultVmPolicyName string = 'DefaultVMPolicy'

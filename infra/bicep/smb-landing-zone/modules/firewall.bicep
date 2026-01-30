@@ -1,11 +1,12 @@
 // ============================================================================
-// SMB Landing Zone - Azure Firewall (AVM-based, Sequential Deployment)
+// SMB Landing Zone - Azure Firewall (Full AVM-based)
 // ============================================================================
 // Purpose: Deploy Azure Firewall Basic using Azure Verified Modules (AVM)
-// Version: v0.4
-// ============================================================================
-// Key Change: Pre-create Public IPs before Firewall to avoid transient failures
-// This pattern follows Azure best practices for reliable deployments.
+// Version: v0.5 (Full AVM Migration)
+// AVM Modules:
+//   - br/public:avm/res/network/public-ip-address:0.12.0
+//   - br/public:avm/res/network/firewall-policy:0.3.4
+//   - br/public:avm/res/network/azure-firewall:0.9.2
 // ============================================================================
 
 // ============================================================================
@@ -60,44 +61,34 @@ var availabilityZones = [
 ]
 
 // ============================================================================
-// Phase 1: Public IP Addresses (Created FIRST for reliability)
+// Phase 1: Public IP Addresses (AVM Modules - Created FIRST for reliability)
 // ============================================================================
 
-@description('Public IP for Azure Firewall data traffic (zone-redundant)')
-resource firewallPublicIp 'Microsoft.Network/publicIPAddresses@2024-01-01' = {
-  name: firewallPublicIpName
-  location: location
-  tags: tags
-  sku: {
-    name: 'Standard'
-    tier: 'Regional'
-  }
-  zones: [
-    '1'
-    '2'
-    '3'
-  ]
-  properties: {
+@description('Public IP for Azure Firewall data traffic using AVM (zone-redundant)')
+module firewallPublicIp 'br/public:avm/res/network/public-ip-address:0.12.0' = {
+  name: 'deploy-${firewallPublicIpName}'
+  params: {
+    name: firewallPublicIpName
+    location: location
+    tags: tags
+    skuName: 'Standard'
+    skuTier: 'Regional'
+    availabilityZones: [1, 2, 3]
     publicIPAllocationMethod: 'Static'
     publicIPAddressVersion: 'IPv4'
   }
 }
 
-@description('Public IP for Azure Firewall management traffic (zone-redundant)')
-resource firewallMgmtPublicIp 'Microsoft.Network/publicIPAddresses@2024-01-01' = {
-  name: firewallMgmtPublicIpName
-  location: location
-  tags: tags
-  sku: {
-    name: 'Standard'
-    tier: 'Regional'
-  }
-  zones: [
-    '1'
-    '2'
-    '3'
-  ]
-  properties: {
+@description('Public IP for Azure Firewall management traffic using AVM (zone-redundant)')
+module firewallMgmtPublicIp 'br/public:avm/res/network/public-ip-address:0.12.0' = {
+  name: 'deploy-${firewallMgmtPublicIpName}'
+  params: {
+    name: firewallMgmtPublicIpName
+    location: location
+    tags: tags
+    skuName: 'Standard'
+    skuTier: 'Regional'
+    availabilityZones: [1, 2, 3]
     publicIPAllocationMethod: 'Static'
     publicIPAddressVersion: 'IPv4'
   }
@@ -246,9 +237,9 @@ module firewall 'br/public:avm/res/network/azure-firewall:0.9.2' = {
     azureSkuTier: 'Basic'
     virtualNetworkResourceId: hubVnetId
     firewallPolicyId: firewallPolicy.outputs.resourceId
-    // Reference pre-created Public IPs instead of letting AVM create them
-    publicIPResourceID: firewallPublicIp.id
-    managementIPResourceID: firewallMgmtPublicIp.id
+    // Reference pre-created Public IPs from AVM modules
+    publicIPResourceID: firewallPublicIp.outputs.resourceId
+    managementIPResourceID: firewallMgmtPublicIp.outputs.resourceId
     // Zone redundancy for High Availability
     availabilityZones: availabilityZones
     tags: tags
@@ -273,7 +264,7 @@ output firewallName string = firewall.outputs.name
 output firewallPrivateIp string = firewall.outputs.privateIp
 
 @description('Azure Firewall public IP address')
-output firewallPublicIpAddress string = firewallPublicIp.properties.ipAddress
+output firewallPublicIpAddress string = firewallPublicIp.outputs.ipAddress
 
 @description('Azure Firewall management public IP address')
-output firewallMgmtPublicIpAddress string = firewallMgmtPublicIp.properties.ipAddress
+output firewallMgmtPublicIpAddress string = firewallMgmtPublicIp.outputs.ipAddress

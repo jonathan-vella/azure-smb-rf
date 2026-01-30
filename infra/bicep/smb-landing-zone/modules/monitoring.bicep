@@ -1,8 +1,9 @@
 // ============================================================================
-// SMB Landing Zone - Monitoring
+// SMB Landing Zone - Monitoring (AVM-based)
 // ============================================================================
-// Purpose: Deploy Log Analytics Workspace with daily cap
-// Version: v0.1
+// Purpose: Deploy Log Analytics Workspace with daily cap using AVM
+// Version: v0.2 (AVM Migration)
+// AVM Module: br/public:avm/res/operational-insights/workspace:0.15.0
 // ============================================================================
 
 // ============================================================================
@@ -17,7 +18,6 @@ param location string
   'dev'
   'staging'
   'prod'
-  'slz'
   'slz'
 ])
 param environment string
@@ -43,25 +43,23 @@ var workspaceName = 'log-smblz-${environment}-${regionShort}'
 var dailyQuotaGbValue = json(dailyCapGb)
 
 // ============================================================================
-// Log Analytics Workspace
+// Log Analytics Workspace (AVM Module)
 // ============================================================================
 
-@description('Log Analytics Workspace with daily cap for cost control')
-resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
-  name: workspaceName
-  location: location
-  tags: tags
-  properties: {
-    sku: {
-      name: 'PerGB2018'
-    }
-    retentionInDays: 30
-    workspaceCapping: dailyQuotaGbValue > 0 ? {
-      dailyQuotaGb: dailyQuotaGbValue
-    } : null
-    features: {
-      enableLogAccessUsingOnlyResourcePermissions: true
-    }
+@description('Log Analytics Workspace using AVM module with daily cap for cost control')
+module logAnalytics 'br/public:avm/res/operational-insights/workspace:0.15.0' = {
+  name: 'deploy-${workspaceName}'
+  params: {
+    name: workspaceName
+    location: location
+    tags: tags
+    // SKU configuration
+    skuName: 'PerGB2018'
+    // Retention policy - 30 days for cost optimization
+    dataRetention: 30
+    // Daily cap for cost control (if > 0)
+    dailyQuotaGb: dailyQuotaGbValue > 0 ? dailyQuotaGbValue : -1
+    // Network access - enabled for SMB simplicity
     publicNetworkAccessForIngestion: 'Enabled'
     publicNetworkAccessForQuery: 'Enabled'
   }
@@ -72,10 +70,10 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
 // ============================================================================
 
 @description('Log Analytics Workspace resource ID')
-output workspaceId string = logAnalytics.id
+output workspaceId string = logAnalytics.outputs.resourceId
 
 @description('Log Analytics Workspace name')
-output workspaceName string = logAnalytics.name
+output workspaceName string = logAnalytics.outputs.name
 
 @description('Log Analytics Workspace customer ID (for agent configuration)')
-output workspaceCustomerId string = logAnalytics.properties.customerId
+output workspaceCustomerId string = logAnalytics.outputs.logAnalyticsWorkspaceId
