@@ -23,7 +23,7 @@ Agents coordinate through artifact handoffs via `.github/agents/*.agent.md`:
 
 ## Critical Defaults
 
-Source of truth: [.github/agents/_shared/defaults.md](agents/_shared/defaults.md)
+Source of truth: [.github/agents/\_shared/defaults.md](agents/_shared/defaults.md)
 
 | Setting             | Value                                          | Notes                                              |
 | ------------------- | ---------------------------------------------- | -------------------------------------------------- |

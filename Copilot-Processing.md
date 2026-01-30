@@ -8,15 +8,15 @@ Fix prompts-diagnostics-provider errors in agent and instruction files.
 
 ### Action Plan
 
-| ID  | Task                                                     | Status      |
-| --- | -------------------------------------------------------- | ----------- |
-| 1   | Remove unknown tools (microsoft-docs/*, bicep-*)         | ✅ Complete |
-| 2   | Fix _shared/defaults.md path in bicep-code.agent.md      | ✅ Complete |
-| 3   | Fix _shared/defaults.md path in bicep-plan.agent.md      | ✅ Complete |
-| 4   | Fix template paths in bicep-code.agent.md                | ✅ Complete |
-| 5   | Fix template paths in bicep-plan.agent.md                | ✅ Complete |
-| 6   | Fix paths in copilot-instructions.md                     | ✅ Complete |
-| 7   | Commit and push fixes                                    | 🔄 Pending  |
+| ID  | Task                                                 | Status      |
+| --- | ---------------------------------------------------- | ----------- |
+| 1   | Remove unknown tools (microsoft-docs/_, bicep-_)     | ✅ Complete |
+| 2   | Fix \_shared/defaults.md path in bicep-code.agent.md | ✅ Complete |
+| 3   | Fix \_shared/defaults.md path in bicep-plan.agent.md | ✅ Complete |
+| 4   | Fix template paths in bicep-code.agent.md            | ✅ Complete |
+| 5   | Fix template paths in bicep-plan.agent.md            | ✅ Complete |
+| 6   | Fix paths in copilot-instructions.md                 | ✅ Complete |
+| 7   | Commit and push fixes                                | ✅ Complete |
 
 ---
 
