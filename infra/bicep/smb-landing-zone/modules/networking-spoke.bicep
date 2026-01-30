@@ -1,8 +1,12 @@
 // ============================================================================
-// SMB Landing Zone - Spoke Networking
+// SMB Landing Zone - Spoke Networking (AVM)
 // ============================================================================
 // Purpose: Deploy spoke VNet with conditional NAT Gateway or UDR for firewall
-// Version: v0.2
+// Version: v0.3 (AVM Migration)
+// AVM Modules:
+//   - Virtual Network: br/public:avm/res/network/virtual-network:0.7.2
+//   - NSG: br/public:avm/res/network/network-security-group:0.5.2
+//   - NAT Gateway: br/public:avm/res/network/nat-gateway:2.0.1
 // ============================================================================
 // Routing Logic:
 // - If firewall deployed: Use UDR to route traffic through firewall
@@ -48,7 +52,6 @@ param tags object
 var vnetName = 'vnet-spoke-${environment}-${regionShort}'
 var nsgName = 'nsg-spoke-${environment}-${regionShort}'
 var natGatewayName = 'nat-spoke-${environment}-${regionShort}'
-var natPublicIpName = 'pip-nat-${environment}-${regionShort}'
 
 // Subnet address ranges (derived from VNet address space)
 // Using /25 subnets (128 addresses each) to fit within /23 VNet:
@@ -65,56 +68,16 @@ var appSubnetPrefix = cidrSubnet(vnetAddressSpace, 25, 2)
 var hasRouteTable = !empty(routeTableId)
 
 // ============================================================================
-// NAT Gateway Public IP (Conditional)
-// ============================================================================
-
-@description('Public IP for NAT Gateway (only deployed when no firewall)')
-resource natPublicIp 'Microsoft.Network/publicIPAddresses@2024-01-01' = if (deployNatGateway) {
-  name: natPublicIpName
-  location: location
-  tags: tags
-  sku: {
-    name: 'Standard'
-    tier: 'Regional'
-  }
-  properties: {
-    publicIPAllocationMethod: 'Static'
-    publicIPAddressVersion: 'IPv4'
-  }
-}
-
-// ============================================================================
-// NAT Gateway (Conditional)
-// ============================================================================
-
-@description('NAT Gateway for outbound internet (only deployed when no firewall)')
-resource natGateway 'Microsoft.Network/natGateways@2024-01-01' = if (deployNatGateway) {
-  name: natGatewayName
-  location: location
-  tags: tags
-  sku: {
-    name: 'Standard'
-  }
-  properties: {
-    publicIpAddresses: [
-      {
-        id: natPublicIp.id
-      }
-    ]
-    idleTimeoutInMinutes: 4
-  }
-}
-
-// ============================================================================
-// Network Security Group
+// Network Security Group (AVM)
 // ============================================================================
 
 @description('Spoke NSG with default deny inbound rules')
-resource spokeNsg 'Microsoft.Network/networkSecurityGroups@2024-01-01' = {
-  name: nsgName
-  location: location
-  tags: tags
-  properties: {
+module spokeNsg 'br/public:avm/res/network/network-security-group:0.5.2' = {
+  name: 'deploy-spoke-nsg'
+  params: {
+    name: nsgName
+    location: location
+    tags: tags
     securityRules: [
       {
         name: 'AllowVnetInbound'
@@ -163,67 +126,65 @@ resource spokeNsg 'Microsoft.Network/networkSecurityGroups@2024-01-01' = {
 }
 
 // ============================================================================
-// Spoke Virtual Network
+// NAT Gateway (AVM - Conditional)
+// ============================================================================
+
+@description('NAT Gateway for outbound internet (only deployed when no firewall)')
+module natGateway 'br/public:avm/res/network/nat-gateway:2.0.1' = if (deployNatGateway) {
+  name: 'deploy-nat-gateway'
+  params: {
+    name: natGatewayName
+    location: location
+    tags: tags
+    idleTimeoutInMinutes: 4
+    // Required: -1 for no zone, or 1/2/3 for specific zone
+    availabilityZone: -1
+    // AVM NAT Gateway module creates public IPs automatically via publicIPAddresses array
+    publicIPAddresses: [
+      {
+        name: 'pip-nat-${environment}-${regionShort}'
+        skuName: 'Standard'
+        publicIPAllocationMethod: 'Static'
+      }
+    ]
+  }
+}
+
+// ============================================================================
+// Spoke Virtual Network (AVM)
 // ============================================================================
 
 @description('Spoke VNet with workload subnets')
-resource spokeVnet 'Microsoft.Network/virtualNetworks@2024-01-01' = {
-  name: vnetName
-  location: location
-  tags: tags
-  properties: {
-    addressSpace: {
-      addressPrefixes: [
-        vnetAddressSpace
-      ]
-    }
+module spokeVnet 'br/public:avm/res/network/virtual-network:0.7.2' = {
+  name: 'deploy-spoke-vnet'
+  params: {
+    name: vnetName
+    location: location
+    tags: tags
+    addressPrefixes: [
+      vnetAddressSpace
+    ]
     subnets: [
       {
         name: 'snet-workload'
-        properties: {
-          addressPrefix: workloadSubnetPrefix
-          networkSecurityGroup: {
-            id: spokeNsg.id
-          }
-          // Use NAT Gateway if deployed, otherwise rely on UDR for firewall routing
-          natGateway: deployNatGateway ? {
-            id: natGateway.id
-          } : null
-          // Apply route table if provided (when using firewall)
-          routeTable: hasRouteTable ? {
-            id: routeTableId
-          } : null
-        }
+        addressPrefix: workloadSubnetPrefix
+        networkSecurityGroupResourceId: spokeNsg.outputs.resourceId
+        natGatewayResourceId: deployNatGateway ? natGateway.outputs.resourceId : null
+        routeTableResourceId: hasRouteTable ? routeTableId : null
       }
       {
         name: 'snet-data'
-        properties: {
-          addressPrefix: dataSubnetPrefix
-          networkSecurityGroup: {
-            id: spokeNsg.id
-          }
-          natGateway: deployNatGateway ? {
-            id: natGateway.id
-          } : null
-          routeTable: hasRouteTable ? {
-            id: routeTableId
-          } : null
-        }
+        addressPrefix: dataSubnetPrefix
+        networkSecurityGroupResourceId: spokeNsg.outputs.resourceId
+        natGatewayResourceId: deployNatGateway ? natGateway.outputs.resourceId : null
+        routeTableResourceId: hasRouteTable ? routeTableId : null
       }
       {
         name: 'snet-app'
-        properties: {
-          addressPrefix: appSubnetPrefix
-          networkSecurityGroup: {
-            id: spokeNsg.id
-          }
-          natGateway: deployNatGateway ? {
-            id: natGateway.id
-          } : null
-          routeTable: hasRouteTable ? {
-            id: routeTableId
-          } : null
-        }
+        addressPrefix: appSubnetPrefix
+        networkSecurityGroupResourceId: spokeNsg.outputs.resourceId
+        natGatewayResourceId: deployNatGateway ? natGateway.outputs.resourceId : null
+        routeTableResourceId: hasRouteTable ? routeTableId : null
       }
     ]
   }
@@ -234,27 +195,25 @@ resource spokeVnet 'Microsoft.Network/virtualNetworks@2024-01-01' = {
 // ============================================================================
 
 @description('Spoke VNet resource ID')
-output vnetId string = spokeVnet.id
+output vnetId string = spokeVnet.outputs.resourceId
 
 @description('Spoke VNet name')
-output vnetName string = spokeVnet.name
+output vnetName string = spokeVnet.outputs.name
 
 @description('Workload Subnet resource ID')
-output workloadSubnetId string = spokeVnet.properties.subnets[0].id
+output workloadSubnetId string = spokeVnet.outputs.subnetResourceIds[0]
 
 @description('Data Subnet resource ID')
-output dataSubnetId string = spokeVnet.properties.subnets[1].id
+output dataSubnetId string = spokeVnet.outputs.subnetResourceIds[1]
 
 @description('App Subnet resource ID')
-output appSubnetId string = spokeVnet.properties.subnets[2].id
+output appSubnetId string = spokeVnet.outputs.subnetResourceIds[2]
 
 @description('Spoke NSG resource ID')
-output nsgId string = spokeNsg.id
+output nsgId string = spokeNsg.outputs.resourceId
 
 @description('NAT Gateway resource ID (empty if firewall deployed)')
-#disable-next-line BCP318
-output natGatewayId string = deployNatGateway ? natGateway.id : ''
+output natGatewayId string = deployNatGateway ? natGateway.outputs.resourceId : ''
 
-@description('NAT Gateway public IP address (empty if firewall deployed)')
-#disable-next-line BCP318
-output natGatewayPublicIp string = deployNatGateway ? natPublicIp.properties.ipAddress : ''
+@description('NAT Gateway name (empty if firewall deployed)')
+output natGatewayName string = deployNatGateway ? natGateway.outputs.name : ''

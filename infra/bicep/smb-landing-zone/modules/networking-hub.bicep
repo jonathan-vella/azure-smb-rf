@@ -1,8 +1,12 @@
 // ============================================================================
-// SMB Landing Zone - Hub Networking
+// SMB Landing Zone - Hub Networking (AVM)
 // ============================================================================
-// Purpose: Deploy hub VNet with NSG and Private DNS Zone
-// Version: v0.2
+// Purpose: Deploy hub VNet with NSG and Private DNS Zone using Azure Verified Modules
+// Version: v0.3 (AVM Migration)
+// AVM Modules:
+//   - Virtual Network: br/public:avm/res/network/virtual-network:0.7.2
+//   - NSG: br/public:avm/res/network/network-security-group:0.5.2
+//   - Private DNS Zone: br/public:avm/res/network/private-dns-zone:0.8.0
 // ============================================================================
 
 // ============================================================================
@@ -53,15 +57,16 @@ var managementSubnetPrefix = cidrSubnet(vnetAddressSpace, 26, 2)        // /26 =
 var gatewaySubnetPrefix = cidrSubnet(vnetAddressSpace, 27, 6)           // /27 = 32 IPs (starts at 10.0.0.192)
 
 // ============================================================================
-// Network Security Group
+// Network Security Group (AVM)
 // ============================================================================
 
 @description('Hub NSG with default deny inbound rules')
-resource hubNsg 'Microsoft.Network/networkSecurityGroups@2024-01-01' = {
-  name: nsgName
-  location: location
-  tags: tags
-  properties: {
+module hubNsg 'br/public:avm/res/network/network-security-group:0.5.2' = {
+  name: 'deploy-hub-nsg'
+  params: {
+    name: nsgName
+    location: location
+    tags: tags
     securityRules: [
       {
         name: 'DenyAllInbound'
@@ -82,79 +87,63 @@ resource hubNsg 'Microsoft.Network/networkSecurityGroups@2024-01-01' = {
 }
 
 // ============================================================================
-// Hub Virtual Network
+// Hub Virtual Network (AVM)
 // ============================================================================
 
 @description('Hub VNet with reserved subnets for Firewall, Firewall Management, and Gateway')
-resource hubVnet 'Microsoft.Network/virtualNetworks@2024-01-01' = {
-  name: vnetName
-  location: location
-  tags: tags
-  properties: {
-    addressSpace: {
-      addressPrefixes: [
-        vnetAddressSpace
-      ]
-    }
+module hubVnet 'br/public:avm/res/network/virtual-network:0.7.2' = {
+  name: 'deploy-hub-vnet'
+  params: {
+    name: vnetName
+    location: location
+    tags: tags
+    addressPrefixes: [
+      vnetAddressSpace
+    ]
     subnets: [
       {
         name: 'AzureFirewallSubnet'
-        properties: {
-          addressPrefix: firewallSubnetPrefix
-          // Firewall subnet does not support NSG
-        }
+        addressPrefix: firewallSubnetPrefix
+        // Firewall subnet does not support NSG
       }
       {
         name: 'AzureFirewallManagementSubnet'
-        properties: {
-          addressPrefix: firewallMgmtSubnetPrefix
-          // Required for Azure Firewall Basic SKU - management traffic
-          // Does not support NSG or UDR
-        }
+        addressPrefix: firewallMgmtSubnetPrefix
+        // Required for Azure Firewall Basic SKU - management traffic
+        // Does not support NSG or UDR
       }
       {
         name: 'GatewaySubnet'
-        properties: {
-          addressPrefix: gatewaySubnetPrefix
-          // Gateway subnet does not support NSG
-        }
+        addressPrefix: gatewaySubnetPrefix
+        // Gateway subnet does not support NSG
       }
       {
         name: 'snet-management'
-        properties: {
-          addressPrefix: managementSubnetPrefix
-          networkSecurityGroup: {
-            id: hubNsg.id
-          }
-        }
+        addressPrefix: managementSubnetPrefix
+        networkSecurityGroupResourceId: hubNsg.outputs.resourceId
       }
     ]
   }
 }
 
 // ============================================================================
-// Private DNS Zone
+// Private DNS Zone (AVM)
 // ============================================================================
 
 @description('Private DNS Zone for Azure Private Link endpoints')
-resource privateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' = {
-  name: privateDnsZoneName
-  location: 'global'
-  tags: tags
-  properties: {}
-}
-
-@description('Link Private DNS Zone to Hub VNet')
-resource privateDnsZoneLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2024-06-01' = {
-  parent: privateDnsZone
-  name: 'link-${vnetName}'
-  location: 'global'
-  tags: tags
-  properties: {
-    virtualNetwork: {
-      id: hubVnet.id
-    }
-    registrationEnabled: true
+module privateDnsZone 'br/public:avm/res/network/private-dns-zone:0.8.0' = {
+  name: 'deploy-private-dns-zone'
+  params: {
+    name: privateDnsZoneName
+    location: 'global'
+    tags: tags
+    virtualNetworkLinks: [
+      {
+        name: 'link-${vnetName}'
+        virtualNetworkResourceId: hubVnet.outputs.resourceId
+        registrationEnabled: true
+      }
+    ]
   }
 }
 
@@ -163,25 +152,25 @@ resource privateDnsZoneLink 'Microsoft.Network/privateDnsZones/virtualNetworkLin
 // ============================================================================
 
 @description('Hub VNet resource ID')
-output vnetId string = hubVnet.id
+output vnetId string = hubVnet.outputs.resourceId
 
 @description('Hub VNet name')
-output vnetName string = hubVnet.name
+output vnetName string = hubVnet.outputs.name
 
 @description('Azure Firewall Subnet resource ID')
-output firewallSubnetId string = hubVnet.properties.subnets[0].id
+output firewallSubnetId string = hubVnet.outputs.subnetResourceIds[0]
 
 @description('Azure Firewall Management Subnet resource ID (required for Basic SKU)')
-output firewallManagementSubnetId string = hubVnet.properties.subnets[1].id
+output firewallManagementSubnetId string = hubVnet.outputs.subnetResourceIds[1]
 
 @description('Gateway Subnet resource ID')
-output gatewaySubnetId string = hubVnet.properties.subnets[2].id
+output gatewaySubnetId string = hubVnet.outputs.subnetResourceIds[2]
 
 @description('Management Subnet resource ID')
-output managementSubnetId string = hubVnet.properties.subnets[3].id
+output managementSubnetId string = hubVnet.outputs.subnetResourceIds[3]
 
 @description('Hub NSG resource ID')
-output nsgId string = hubNsg.id
+output nsgId string = hubNsg.outputs.resourceId
 
 @description('Private DNS Zone resource ID')
-output privateDnsZoneId string = privateDnsZone.id
+output privateDnsZoneId string = privateDnsZone.outputs.resourceId

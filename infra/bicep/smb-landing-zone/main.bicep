@@ -370,8 +370,8 @@ output recoveryServicesVaultId string = backup.outputs.vaultId
 @description('Azure Migrate Project ID')
 output migrateProjectId string = migrate.outputs.projectId
 
-@description('NAT Gateway public IP address (if deployed)')
-output natGatewayPublicIp string = networkingSpoke.outputs.natGatewayPublicIp
+@description('NAT Gateway name (if deployed)')
+output natGatewayName string = networkingSpoke.outputs.natGatewayName
 
 @description('Azure Firewall private IP (if deployed)')
 #disable-next-line BCP318

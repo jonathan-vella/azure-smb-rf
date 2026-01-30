@@ -1,263 +1,166 @@
-# Copilot Processing Log
+# Copilot Processing - SMB Landing Zone Validation
+
+> **Purpose**: Track gradual testing and validation of all deployment scenarios
+> **Last Updated**: 2026-01-30
+> **Project Version**: 0.2.0
 
 ---
 
-## Current Request: Update Artifacts with AVM Module Specifications
+## Context for New Session
 
-Update requirements and implementation plan with explicit AVM module mappings after enforcing AVM-first guardrails.
+This file preserves context from previous sessions. The SMB Landing Zone has completed
+AVM migration (v0.2.0) and needs validation across all deployment scenarios.
 
-### Action Plan
+### What Was Done (Previous Sessions)
 
-| ID  | Task                                                | Status      |
-| --- | --------------------------------------------------- | ----------- |
-| 1   | Update 01-requirements.md with AVM module tables    | ✅ Complete |
-| 2   | Update 04-implementation-plan.md Resource Inventory | ✅ Complete |
-| 3   | Update 04-implementation-plan.md Module Structure   | ✅ Complete |
-| 4   | Create ISSUE-avm-migration.md for tracking          | ✅ Complete |
-| 5   | Commit and push changes                             | ✅ Complete |
+1. **AVM Migration Complete** - 7 modules migrated, 13 AVM references total
+2. **Artifacts Updated** - 04-implementation-plan.md, 05-implementation-reference.md to v0.2
+3. **GitHub Issue #1 Closed** - AVM migration tracked and completed
+4. **CHANGELOG.md Created** - v0.1.0 and v0.2.0 documented
+5. **Version Bumped** - package.json → 0.2.0
 
-### Summary
+### Current State
 
-- Added **AVM Module Requirements (MANDATORY)** section to requirements.md with tables per scenario
-- Added **AVM Module Requirements** section to implementation plan with:
-  - Module versions (VNet 0.7.2, NSG 0.5.2, Bastion 0.8.2, etc.)
-  - Justified exceptions (migrate.bicep, policy assignments)
-- Added **AVM Migration Status** table showing current vs target for each module
-- Created GitHub issue template for tracking migration work
-- Committed as 73d8217
+| Item                     | Status     | Notes                                |
+| ------------------------ | ---------- | ------------------------------------ |
+| `bicep build main.bicep` | ✅ SUCCESS | 10 warnings (BCP318, BCP321, BCP081) |
+| Artifact validation      | ✅ PASSED  | Minor drift warnings on extra H2s    |
+| What-if (baseline)       | ✅ PASSED  | 32 create, 1 modify, 0 delete        |
 
 ---
 
-## Previous Request: Implement AVM-First Guardrails
+## Validation Plan
 
-Enforce mandatory AVM usage across all agent and instruction files.
+### Deployment Scenarios to Test
 
-### Action Plan
+| Scenario   | Description                             | Monthly Cost | Status    | Resources                     |
+| ---------- | --------------------------------------- | ------------ | --------- | ----------------------------- |
+| `baseline` | NAT Gateway only, cloud-native          | ~$48/mo      | ✅ PASSED | 32 create, 0 delete           |
+| `firewall` | Azure Firewall + UDR, egress filtering  | ~$336/mo     | ✅ PASSED | 29 create, 1 modify, 0 delete |
+| `vpn`      | VPN Gateway + Gateway Transit, hybrid   | ~$187/mo     | ✅ PASSED | 32 create, 1 modify, 0 delete |
+| `full`     | Firewall + VPN + UDR, complete security | ~$476/mo     | ✅ PASSED | 29 create, 1 modify, 0 delete |
 
-| ID  | Task                                              | Status      |
-| --- | ------------------------------------------------- | ----------- |
-| 1   | Update \_shared/defaults.md (MUST use AVM)        | ✅ Complete |
-| 2   | Update bicep-code.agent.md (AVM gate check)       | ✅ Complete |
-| 3   | Update bicep-plan.agent.md (AVM gate check)       | ✅ Complete |
-| 4   | Update architect.agent.md (MANDATORY language)    | ✅ Complete |
-| 5   | Update bicep-code-best-practices.instructions.md  | ✅ Complete |
-| 6   | Update copilot-instructions.md (AVM-First Policy) | ✅ Complete |
-| 7   | Commit and push changes                           | ✅ Complete |
+### Test Commands
 
----
+```bash
+# Set subscription (replace with actual)
+az account set --subscription "<subscription-id>"
 
-## Previous Request: Fix Agent/Instructions Diagnostics Errors
+# Baseline scenario (default)
+az deployment sub what-if \
+  --location swedencentral \
+  --template-file main.bicep \
+  --parameters main.bicepparam \
+  --parameters owner='test@contoso.com' scenario='baseline'
 
-Fix prompts-diagnostics-provider errors in agent and instruction files.
+# Firewall scenario
+az deployment sub what-if \
+  --location swedencentral \
+  --template-file main.bicep \
+  --parameters main.bicepparam \
+  --parameters owner='test@contoso.com' scenario='firewall'
 
-### Action Plan
+# VPN scenario (requires onPremisesAddressSpace)
+az deployment sub what-if \
+  --location swedencentral \
+  --template-file main.bicep \
+  --parameters main.bicepparam \
+  --parameters owner='test@contoso.com' scenario='vpn' onPremisesAddressSpace='192.168.0.0/16'
 
-| ID  | Task                                                 | Status      |
-| --- | ---------------------------------------------------- | ----------- |
-| 1   | Remove unknown tools (microsoft-docs/_, bicep-_)     | ✅ Complete |
-| 2   | Fix \_shared/defaults.md path in bicep-code.agent.md | ✅ Complete |
-| 3   | Fix \_shared/defaults.md path in bicep-plan.agent.md | ✅ Complete |
-| 4   | Fix template paths in bicep-code.agent.md            | ✅ Complete |
-| 5   | Fix template paths in bicep-plan.agent.md            | ✅ Complete |
-| 6   | Fix paths in copilot-instructions.md                 | ✅ Complete |
-| 7   | Commit and push fixes                                | ✅ Complete |
-
----
-
-## Previous Request: Selective Updates to Agent-Output Files
-
-Update agent-output files to align with backup automation and VMware neutralization changes.
-
-### Action Plan
-
-| ID  | Task                                               | Status      |
-| --- | -------------------------------------------------- | ----------- |
-| 1   | Update 01-requirements.md (neutralize VMware)      | ✅ Complete |
-| 2   | Update 02-architecture-assessment.md (21 policies) | ✅ Complete |
-| 3   | Update 03-des-adr-0001.md (neutral title)          | ✅ Complete |
-| 4   | Update 05-implementation-reference.md (file list)  | ✅ Complete |
-| 5   | Commit and push all changes                        | ✅ Complete |
+# Full scenario (requires onPremisesAddressSpace)
+az deployment sub what-if \
+  --location swedencentral \
+  --template-file main.bicep \
+  --parameters main.bicepparam \
+  --parameters owner='test@contoso.com' scenario='full' onPremisesAddressSpace='192.168.0.0/16'
+```
 
 ---
 
-## Previous Request: VM Backup Automation with Azure Policy
+## Build Warnings (Non-Blocking)
 
-Implement automated VM backup using `Backup: true` tag that triggers Azure Policy to
-auto-enroll VMs into Recovery Services Vault.
+Last build: 2026-01-30 | Result: ✅ SUCCESS with 10 warnings
 
-### Action Plan
+| File                                       | Warning                 | Description                          |
+| ------------------------------------------ | ----------------------- | ------------------------------------ |
+| route-tables.bicep:140,143                 | BCP318                  | Null access on conditional module    |
+| networking-spoke.bicep:133                 | BCP081                  | API version 2025-05-01 not validated |
+| networking-spoke.bicep:172,179,186,216,219 | BCP318                  | Null access on conditional modules   |
+| vpn-gateway.bicep:85                       | BCP321, use-safe-access | Nullable string, should use .?       |
 
-| ID  | Task                                           | Status                   |
-| --- | ---------------------------------------------- | ------------------------ |
-| 1   | Delete deployed resources (parallel)           | ✅ Complete              |
-| 2   | Add backup policy to backup.bicep              | ✅ Complete              |
-| 3   | Add `Backup` tag to defaults.md                | ✅ Complete              |
-| 4   | Add DeployIfNotExists policy assignment        | ✅ Complete              |
-| 5   | Update documentation                           | ✅ Complete              |
-| 6   | Deploy and test full scenario                  | ⏳ Waiting (RG deleting) |
-| 7   | Update agents/instructions (neutralize VMware) | ✅ Complete              |
-
-### Implementation Summary
-
-**Bicep Files Modified:**
-
-- `infra/bicep/smb-landing-zone/modules/backup.bicep` - Added DefaultVMPolicy with Standard retention
-- `infra/bicep/smb-landing-zone/modules/policy-backup-auto.bicep` - NEW: DeployIfNotExists policy module
-- `infra/bicep/smb-landing-zone/modules/policy-assignments.bicep` - Updated comments
-- `infra/bicep/smb-landing-zone/main.bicep` - Added policyBackupAuto module deployment
-
-**Agent/Instruction Files Modified:**
-
-- `.github/agents/_shared/defaults.md` - Added `Backup: true` tag + VM Backup Auto-Enrollment section
-- `.github/agents/bicep-code.agent.md` - Added VM backup tag to final checklist
-- `.github/agents/bicep-plan.agent.md` - Added backup-02 policy to greenfield example
-- `.github/instructions/bicep-code-best-practices.instructions.md` - Added VM Backup rule
-- `.github/copilot-instructions.md` - Added VM Backup Tag row + auto-enrollment section
-- `.github/prompts/plan-smb-landing-zone.prompt.md` - Neutralized VMware → on-premises
-- `.github/templates/01-requirements-infrastructure.template.md` - Neutralized VMware
-
-**Other Files Modified:**
-
-- `README.md` - Neutralized VMware references (6 occurrences)
-- `package.json` - Neutralized description
-- `agent-output/smb-landing-zone/06-deployment-summary.md` - Updated backup automation docs
-- `agent-output/smb-landing-zone/04-implementation-plan.md` - Added policy #21
+**Note**: These are warnings, not errors. The deployment will succeed.
 
 ---
 
-## Previous Request: Deploy All 4 Scenarios + Firewall AVM Migration
+## AVM Module Inventory
 
-Deploy each scenario sequentially using the Deploy agent with in-place redeployment and cleanup between runs.
+| Module                 | AVM Reference                   | Version |
+| ---------------------- | ------------------------------- | ------- |
+| networking-hub.bicep   | network/virtual-network         | 0.7.2   |
+| networking-hub.bicep   | network/network-security-group  | 0.5.2   |
+| networking-hub.bicep   | network/private-dns-zone        | 0.8.0   |
+| networking-spoke.bicep | network/virtual-network         | 0.7.2   |
+| networking-spoke.bicep | network/network-security-group  | 0.5.2   |
+| networking-spoke.bicep | network/nat-gateway             | 2.0.1   |
+| vpn-gateway.bicep      | network/virtual-network-gateway | 0.10.1  |
+| firewall.bicep         | network/azure-firewall          | 0.9.2   |
+| firewall.bicep         | network/firewall-policy         | 0.3.4   |
+| firewall.bicep         | network/public-ip-address       | 0.12.0  |
+| monitoring.bicep       | operational-insights/workspace  | 0.15.0  |
+| backup.bicep           | recovery-services/vault         | 0.11.1  |
+| route-tables.bicep     | network/route-table             | 0.5.0   |
 
-### Action Plan
-
-| ID  | Task                                   | Status      |
-| --- | -------------------------------------- | ----------- |
-| 0   | Reduce deploy.ps1 verbosity            | ✅ Complete |
-| 1   | Deploy Scenario 1: baseline            | ✅ Complete |
-| 2   | Validate baseline deployment           | ✅ Complete |
-| 3   | Cleanup baseline (policies + RGs)      | ⏭️ Skipped  |
-| 4   | Deploy Scenario 2: firewall            | ✅ Complete |
-| 5   | Validate firewall deployment           | ✅ Complete |
-| 6   | Cleanup firewall (policies + RGs)      | ✅ Complete |
-| 7   | Deploy Scenario 3: vpn                 | ✅ Complete |
-| 8   | Validate vpn deployment                | ✅ Complete |
-| 9   | Cleanup vpn (policies + RGs)           | ✅ Complete |
-| 10  | Deploy Scenario 4: full                | ✅ Complete |
-| 10a | - Diagnose firewall failure            | ✅ Complete |
-| 10b | - Migrate to AVM module                | ✅ Complete |
-| 10c | - Deploy with AVM firewall             | ✅ Complete |
-| 11  | Validate full deployment               | ✅ Complete |
-| 12  | Final decision: retain or cleanup      | ✅ Cleanup  |
-| 13  | Retrofit changes to repo (docs/agents) | ✅ Complete |
+**Total**: 13 AVM module references across 7 Bicep files
 
 ---
 
-## Session Summary (Jan 30, 2026)
+## Justified Exceptions (Raw Bicep)
 
-### Issue: Azure Firewall Basic Deployment Failures
-
-**Root Cause Analysis:**
-
-The `full` scenario deployment failed with `InternalServerError` on Azure Firewall Basic. Investigation found:
-
-1. ✅ Firewall Policy provisioned successfully
-2. ✅ IP Configurations provisioned successfully
-3. ✅ Management IP Configuration provisioned successfully
-4. ❌ Firewall itself failed with `privateIp: null`
-5. ✅ VPN Gateway deployed successfully (parallel)
-
-**Diagnosis:** Azure Firewall Basic's raw ARM resource approach (`Microsoft.Network/azureFirewalls@2024-01-01`)
-has known reliability issues. The ALZ Bicep Accelerator uses Azure Verified Modules (AVM) instead.
-
-### Resolution: Migrate to AVM Module
-
-Created new `firewall-avm.bicep` using the ALZ Bicep Accelerator pattern:
-
-| Before (firewall.bicep)                           | After (firewall-avm.bicep)                            |
-| ------------------------------------------------- | ----------------------------------------------------- |
-| Raw ARM resource                                  | `br/public:avm/res/network/azure-firewall:0.9.2`      |
-| Manual Public IP resources                        | `publicIPAddressObject` / `managementIPAddressObject` |
-| `firewallSubnetId` + `firewallManagementSubnetId` | `hubVnetId` (AVM finds subnets automatically)         |
-| Inline firewall policy resource                   | `br/public:avm/res/network/firewall-policy:0.3.4`     |
-
-### Files Changed (Jan 30, 2026)
-
-| File                         | Change Type | Description                           |
-| ---------------------------- | ----------- | ------------------------------------- |
-| `modules/firewall-avm.bicep` | **Created** | New AVM-based firewall module         |
-| `modules/firewall.bicep`     | Unchanged   | Kept for reference (can delete later) |
-| `main.bicep`                 | Modified    | Updated to use `firewall-avm.bicep`   |
-
-### Retrofit Tasks (Post-Deployment)
-
-After successful deployment, these need updating:
-
-| Item                     | File(s)                                                          | Action                             |
-| ------------------------ | ---------------------------------------------------------------- | ---------------------------------- |
-| Implementation Plan      | `04-implementation-plan.md`                                      | Update firewall module description |
-| Implementation Reference | `05-implementation-reference.md`                                 | Document AVM pattern               |
-| ADR                      | Create `07-ab-adr-0003-*.md`                                     | Document AVM migration decision    |
-| Agent Instructions       | `.github/instructions/bicep-code-best-practices.instructions.md` | Add AVM guidance                   |
-| Diagram Module           | `03-des-diagram-*.py`                                            | Verify no changes needed           |
-| Old Module               | `modules/firewall.bicep`                                         | Delete after validation            |
+| Module                   | Reason                                 |
+| ------------------------ | -------------------------------------- |
+| networking-peering.bicep | No AVM module exists for VNet peering  |
+| migrate.bicep            | No AVM module exists for Azure Migrate |
+| budget.bicep             | Simple resource, AVM would be overkill |
+| resource-groups.bicep    | Uses az-scope deployment pattern       |
+| policy-\*.bicep          | Subscription-scope policy assignments  |
 
 ---
 
-### Session Summary (Jan 29, 2026)
+## Key Files
 
-**Completed Today:**
-
-- ✅ Reduced deploy.ps1 verbosity (single banner, condensed what-if)
-- ✅ Deployed & validated: baseline, firewall, vpn scenarios
-- ✅ Cleaned up all Azure resources (5 RGs deleting)
-
-**Resume Tomorrow:**
-
-- Deploy `full` scenario (Firewall + VPN, ~$476/mo)
-- Validate full deployment
-- Final cleanup decision
-
-### Task 0: Reduce deploy.ps1 Verbosity ✅
-
-**Changes Applied:**
-
-1. ~~Remove duplicate banner display~~ ✅ Removed second `Write-Banner` call
-2. ~~Add condensed what-if output~~ ✅ Default shows summary only, use `-Verbose` for full details
-3. ~~Keep banner once~~ ✅ Single banner at script start
-
-### Deployment Parameters
-
-| Parameter                | Value            | Scenarios |
-| ------------------------ | ---------------- | --------- |
-| `Location`               | `swedencentral`  | all       |
-| `Environment`            | `prod`           | all       |
-| `OnPremisesAddressSpace` | `192.168.0.0/16` | vpn, full |
-
-### Cost Control
-
-- Sequential deployment (one scenario at a time)
-- Cleanup between runs (policies + resource groups)
-- Maximum concurrent cost: ~$476/mo (full scenario only)
+| File                                                           | Purpose                              |
+| -------------------------------------------------------------- | ------------------------------------ |
+| `infra/bicep/smb-landing-zone/main.bicep`                      | Orchestration entry point            |
+| `infra/bicep/smb-landing-zone/main.bicepparam`                 | Parameter file with scenario presets |
+| `infra/bicep/smb-landing-zone/deploy.ps1`                      | PowerShell deployment script         |
+| `agent-output/smb-landing-zone/04-implementation-plan.md`      | Implementation plan (v0.2)           |
+| `agent-output/smb-landing-zone/05-implementation-reference.md` | Implementation reference (v0.2)      |
+| `agent-output/smb-landing-zone/06-deployment-summary.md`       | Deployment summary                   |
+| `CHANGELOG.md`                                                 | Version history                      |
 
 ---
 
-## Previous Request: Repository Validation (Completed)
+## Next Steps
 
-Validate the SMB Landing Zone repository end-to-date after scenario syntax updates and enterprise→full rename.
+1. [x] Test `baseline` scenario with what-if
+2. [x] Test `firewall` scenario with what-if
+3. [x] Test `vpn` scenario with what-if
+4. [x] Test `full` scenario with what-if
+5. [ ] Fix build warnings (optional, low priority)
+6. [ ] Perform actual deployment of baseline scenario
+7. [ ] Validate deployed resources match expectations
+8. [ ] Document any issues found
 
-### Validation Results
+---
 
-| Phase               | Status  | Details                      |
-| ------------------- | ------- | ---------------------------- |
-| Phase 1: Bicep      | ✅ Pass | 14 modules + main.bicep      |
-| Phase 2: Diagrams   | ✅ Pass | 5 Python → 5 PNGs            |
-| Phase 3: Docs Audit | ✅ Pass | 0 stale references           |
-| Phase 4: PowerShell | ✅ Pass | 9 scripts validated          |
-| Phase 5: Templates  | ✅ Pass | Artifact + cost-estimate     |
-| Phase 6: Markdown   | ✅ Pass | 0 lint errors                |
-| Phase 7: What-If    | ✅ Pass | All 4 scenarios deploy-ready |
+## Session Handoff Notes
 
-### Commits
+When continuing in a new chat:
 
-- `bf053f3` - chore: add validate-all.ps1 and fix remaining enterprise refs
+1. Reference this file: `/workspaces/azure-agentic-smb-lz/Copilot-Processing.md`
+2. The project is at version 0.2.0 (AVM migration complete)
+3. All modules build successfully
+4. What-if was run once for baseline - needs full scenario validation
+5. User wants to gradually test each scenario before actual deployment
+
+**Remember**: Delete this file after validation is complete.

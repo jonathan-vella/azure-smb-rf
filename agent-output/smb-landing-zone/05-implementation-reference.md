@@ -96,25 +96,25 @@ infra/bicep/smb-landing-zone/
 
 All applicable modules have been migrated to Azure Verified Modules (AVM) for improved reliability, security, and maintainability:
 
-| Module                   | AVM Module                                          | Version | Status            |
-| ------------------------ | --------------------------------------------------- | ------- | ----------------- |
-| networking-hub.bicep     | `br/public:avm/res/network/virtual-network`         | 0.7.2   | ✅ AVM            |
-| networking-hub.bicep     | `br/public:avm/res/network/network-security-group`  | 0.5.2   | ✅ AVM            |
-| networking-hub.bicep     | `br/public:avm/res/network/private-dns-zone`        | 0.8.0   | ✅ AVM            |
-| networking-spoke.bicep   | `br/public:avm/res/network/virtual-network`         | 0.7.2   | ✅ AVM            |
-| networking-spoke.bicep   | `br/public:avm/res/network/network-security-group`  | 0.5.2   | ✅ AVM            |
-| networking-spoke.bicep   | `br/public:avm/res/network/nat-gateway`             | 2.0.1   | ✅ AVM            |
-| vpn-gateway.bicep        | `br/public:avm/res/network/virtual-network-gateway` | 0.10.1  | ✅ AVM            |
-| firewall.bicep           | `br/public:avm/res/network/azure-firewall`          | 0.9.2   | ✅ AVM            |
-| firewall.bicep           | `br/public:avm/res/network/firewall-policy`         | 0.3.4   | ✅ AVM            |
-| firewall.bicep           | `br/public:avm/res/network/public-ip-address`       | 0.12.0  | ✅ AVM            |
-| monitoring.bicep         | `br/public:avm/res/operational-insights/workspace`  | 0.15.0  | ✅ AVM            |
-| backup.bicep             | `br/public:avm/res/recovery-services/vault`         | 0.11.1  | ✅ AVM            |
-| route-tables.bicep       | `br/public:avm/res/network/route-table`             | 0.5.0   | ✅ AVM            |
-| networking-peering.bicep | N/A                                                 | -       | ⚠️ Raw (no AVM)   |
-| migrate.bicep            | N/A                                                 | -       | ⚠️ Raw (no AVM)   |
-| budget.bicep             | N/A                                                 | -       | ⚠️ Raw (sub-scope)|
-| policy-*.bicep           | N/A                                                 | -       | ⚠️ Raw (native)   |
+| Module                   | AVM Module                                          | Version | Status             |
+| ------------------------ | --------------------------------------------------- | ------- | ------------------ |
+| networking-hub.bicep     | `br/public:avm/res/network/virtual-network`         | 0.7.2   | ✅ AVM             |
+| networking-hub.bicep     | `br/public:avm/res/network/network-security-group`  | 0.5.2   | ✅ AVM             |
+| networking-hub.bicep     | `br/public:avm/res/network/private-dns-zone`        | 0.8.0   | ✅ AVM             |
+| networking-spoke.bicep   | `br/public:avm/res/network/virtual-network`         | 0.7.2   | ✅ AVM             |
+| networking-spoke.bicep   | `br/public:avm/res/network/network-security-group`  | 0.5.2   | ✅ AVM             |
+| networking-spoke.bicep   | `br/public:avm/res/network/nat-gateway`             | 2.0.1   | ✅ AVM             |
+| vpn-gateway.bicep        | `br/public:avm/res/network/virtual-network-gateway` | 0.10.1  | ✅ AVM             |
+| firewall.bicep           | `br/public:avm/res/network/azure-firewall`          | 0.9.2   | ✅ AVM             |
+| firewall.bicep           | `br/public:avm/res/network/firewall-policy`         | 0.3.4   | ✅ AVM             |
+| firewall.bicep           | `br/public:avm/res/network/public-ip-address`       | 0.12.0  | ✅ AVM             |
+| monitoring.bicep         | `br/public:avm/res/operational-insights/workspace`  | 0.15.0  | ✅ AVM             |
+| backup.bicep             | `br/public:avm/res/recovery-services/vault`         | 0.11.1  | ✅ AVM             |
+| route-tables.bicep       | `br/public:avm/res/network/route-table`             | 0.5.0   | ✅ AVM             |
+| networking-peering.bicep | N/A                                                 | -       | ⚠️ Raw (no AVM)    |
+| migrate.bicep            | N/A                                                 | -       | ⚠️ Raw (no AVM)    |
+| budget.bicep             | N/A                                                 | -       | ⚠️ Raw (sub-scope) |
+| policy-\*.bicep          | N/A                                                 | -       | ⚠️ Raw (native)    |
 
 **Key Pattern**: Public IPs are pre-created before the firewall to avoid transient provisioning
 failures. See [ADR-0003](07-ab-adr-0003-avm-firewall-migration.md) for details.
