@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.39.26.7824",
-      "templateHash": "2243584039809558226"
+      "templateHash": "12724179012741958273"
     }
   },
   "parameters": {
@@ -11623,7 +11623,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "17121900268782570195"
+              "templateHash": "17183554234643915661"
             }
           },
           "parameters": {
@@ -11667,7 +11667,7 @@
           },
           "variables": {
             "workspaceName": "[format('log-smblz-{0}-{1}', parameters('environment'), parameters('regionShort'))]",
-            "dailyQuotaGbValue": "[json(parameters('dailyCapGb'))]"
+            "dailyQuotaGbString": "[if(and(not(empty(parameters('dailyCapGb'))), not(equals(parameters('dailyCapGb'), '0'))), parameters('dailyCapGb'), '-1')]"
           },
           "resources": {
             "logAnalytics": {
@@ -11695,7 +11695,9 @@
                   "dataRetention": {
                     "value": 30
                   },
-                  "dailyQuotaGb": "[if(greater(variables('dailyQuotaGbValue'), 0), createObject('value', string(variables('dailyQuotaGbValue'))), createObject('value', '-1'))]",
+                  "dailyQuotaGb": {
+                    "value": "[variables('dailyQuotaGbString')]"
+                  },
                   "publicNetworkAccessForIngestion": {
                     "value": "Enabled"
                   },

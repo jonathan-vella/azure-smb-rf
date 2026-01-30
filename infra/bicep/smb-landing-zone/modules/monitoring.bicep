@@ -38,9 +38,9 @@ param tags object
 // Resource naming
 var workspaceName = 'log-smblz-${environment}-${regionShort}'
 
-// Parse daily cap from string to allow decimal values
-// Minimum Azure allows is 0.023 GB (~24 MB). If dailyCapGb is '0', omit the cap.
-var dailyQuotaGbValue = json(dailyCapGb)
+// Daily cap - pass as-is since AVM expects string, or '-1' to disable
+// If dailyCapGb is '0' or empty, we pass '-1' to indicate no cap
+var dailyQuotaGbString = !empty(dailyCapGb) && dailyCapGb != '0' ? dailyCapGb : '-1'
 
 // ============================================================================
 // Log Analytics Workspace (AVM Module)
@@ -57,8 +57,8 @@ module logAnalytics 'br/public:avm/res/operational-insights/workspace:0.15.0' = 
     skuName: 'PerGB2018'
     // Retention policy - 30 days for cost optimization
     dataRetention: 30
-    // Daily cap for cost control (if > 0) - AVM expects string format
-    dailyQuotaGb: dailyQuotaGbValue > 0 ? string(dailyQuotaGbValue) : '-1'
+    // Daily cap for cost control - AVM expects string format or -1 for no cap
+    dailyQuotaGb: dailyQuotaGbString
     // Network access - enabled for SMB simplicity
     publicNetworkAccessForIngestion: 'Enabled'
     publicNetworkAccessForQuery: 'Enabled'
