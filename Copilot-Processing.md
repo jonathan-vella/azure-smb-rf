@@ -79,16 +79,19 @@ az deployment sub what-if \
 
 ## Build Warnings (Non-Blocking)
 
-Last build: 2026-01-30 | Result: ✅ SUCCESS with 10 warnings
+Last build: 2026-01-30 | Result: ✅ SUCCESS with 1 warning (down from 10)
 
-| File                                       | Warning                 | Description                          |
-| ------------------------------------------ | ----------------------- | ------------------------------------ |
-| route-tables.bicep:140,143                 | BCP318                  | Null access on conditional module    |
-| networking-spoke.bicep:133                 | BCP081                  | API version 2025-05-01 not validated |
-| networking-spoke.bicep:172,179,186,216,219 | BCP318                  | Null access on conditional modules   |
-| vpn-gateway.bicep:85                       | BCP321, use-safe-access | Nullable string, should use .?       |
+| File                   | Warning | Description                                       | Status       |
+| ---------------------- | ------- | ------------------------------------------------- | ------------ |
+| networking-spoke.bicep | BCP081  | API version 2025-05-01 not validated (AVM module) | ⚠️ AVM issue |
 
-**Note**: These are warnings, not errors. The deployment will succeed.
+**Fixed warnings (9)**:
+
+- ✅ route-tables.bicep: BCP318 - Added safe access operators (.?)
+- ✅ networking-spoke.bicep: BCP318 - Added safe access operators (.?)
+- ✅ vpn-gateway.bicep: BCP321/use-safe-access - Added safe access operator (.?)
+
+**Note**: The remaining BCP081 warning is inside the AVM NAT Gateway module (uses newer API) - not fixable in our code.
 
 ---
 
@@ -146,7 +149,7 @@ Last build: 2026-01-30 | Result: ✅ SUCCESS with 10 warnings
 2. [x] Test `firewall` scenario with what-if
 3. [x] Test `vpn` scenario with what-if
 4. [x] Test `full` scenario with what-if
-5. [ ] Fix build warnings (optional, low priority)
+5. [x] Fix build warnings (reduced from 10 to 1, remaining is AVM upstream issue)
 6. [ ] Perform actual deployment of baseline scenario
 7. [ ] Validate deployed resources match expectations
 8. [ ] Document any issues found

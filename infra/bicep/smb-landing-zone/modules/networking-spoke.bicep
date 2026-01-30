@@ -169,21 +169,21 @@ module spokeVnet 'br/public:avm/res/network/virtual-network:0.7.2' = {
         name: 'snet-workload'
         addressPrefix: workloadSubnetPrefix
         networkSecurityGroupResourceId: spokeNsg.outputs.resourceId
-        natGatewayResourceId: deployNatGateway ? natGateway.outputs.resourceId : null
+        natGatewayResourceId: natGateway.?outputs.?resourceId
         routeTableResourceId: hasRouteTable ? routeTableId : null
       }
       {
         name: 'snet-data'
         addressPrefix: dataSubnetPrefix
         networkSecurityGroupResourceId: spokeNsg.outputs.resourceId
-        natGatewayResourceId: deployNatGateway ? natGateway.outputs.resourceId : null
+        natGatewayResourceId: natGateway.?outputs.?resourceId
         routeTableResourceId: hasRouteTable ? routeTableId : null
       }
       {
         name: 'snet-app'
         addressPrefix: appSubnetPrefix
         networkSecurityGroupResourceId: spokeNsg.outputs.resourceId
-        natGatewayResourceId: deployNatGateway ? natGateway.outputs.resourceId : null
+        natGatewayResourceId: natGateway.?outputs.?resourceId
         routeTableResourceId: hasRouteTable ? routeTableId : null
       }
     ]
@@ -213,7 +213,7 @@ output appSubnetId string = spokeVnet.outputs.subnetResourceIds[2]
 output nsgId string = spokeNsg.outputs.resourceId
 
 @description('NAT Gateway resource ID (empty if firewall deployed)')
-output natGatewayId string = deployNatGateway ? natGateway.outputs.resourceId : ''
+output natGatewayId string = natGateway.?outputs.?resourceId ?? ''
 
 @description('NAT Gateway name (empty if firewall deployed)')
-output natGatewayName string = deployNatGateway ? natGateway.outputs.name : ''
+output natGatewayName string = natGateway.?outputs.?name ?? ''

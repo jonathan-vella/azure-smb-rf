@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.39.26.7824",
-      "templateHash": "8853405540457330568"
+      "templateHash": "2243584039809558226"
     }
   },
   "parameters": {
@@ -6889,7 +6889,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "1902065586089490198"
+              "templateHash": "5938542960250623594"
             }
           },
           "parameters": {
@@ -9859,21 +9859,21 @@
                         "name": "snet-workload",
                         "addressPrefix": "[variables('workloadSubnetPrefix')]",
                         "networkSecurityGroupResourceId": "[reference(resourceId('Microsoft.Resources/deployments', 'deploy-spoke-nsg'), '2025-04-01').outputs.resourceId.value]",
-                        "natGatewayResourceId": "[if(parameters('deployNatGateway'), reference(resourceId('Microsoft.Resources/deployments', 'deploy-nat-gateway'), '2025-04-01').outputs.resourceId.value, null())]",
+                        "natGatewayResourceId": "[tryGet(tryGet(tryGet(if(parameters('deployNatGateway'), reference(resourceId('Microsoft.Resources/deployments', 'deploy-nat-gateway'), '2025-04-01'), null()), 'outputs'), 'resourceId'), 'value')]",
                         "routeTableResourceId": "[if(variables('hasRouteTable'), parameters('routeTableId'), null())]"
                       },
                       {
                         "name": "snet-data",
                         "addressPrefix": "[variables('dataSubnetPrefix')]",
                         "networkSecurityGroupResourceId": "[reference(resourceId('Microsoft.Resources/deployments', 'deploy-spoke-nsg'), '2025-04-01').outputs.resourceId.value]",
-                        "natGatewayResourceId": "[if(parameters('deployNatGateway'), reference(resourceId('Microsoft.Resources/deployments', 'deploy-nat-gateway'), '2025-04-01').outputs.resourceId.value, null())]",
+                        "natGatewayResourceId": "[tryGet(tryGet(tryGet(if(parameters('deployNatGateway'), reference(resourceId('Microsoft.Resources/deployments', 'deploy-nat-gateway'), '2025-04-01'), null()), 'outputs'), 'resourceId'), 'value')]",
                         "routeTableResourceId": "[if(variables('hasRouteTable'), parameters('routeTableId'), null())]"
                       },
                       {
                         "name": "snet-app",
                         "addressPrefix": "[variables('appSubnetPrefix')]",
                         "networkSecurityGroupResourceId": "[reference(resourceId('Microsoft.Resources/deployments', 'deploy-spoke-nsg'), '2025-04-01').outputs.resourceId.value]",
-                        "natGatewayResourceId": "[if(parameters('deployNatGateway'), reference(resourceId('Microsoft.Resources/deployments', 'deploy-nat-gateway'), '2025-04-01').outputs.resourceId.value, null())]",
+                        "natGatewayResourceId": "[tryGet(tryGet(tryGet(if(parameters('deployNatGateway'), reference(resourceId('Microsoft.Resources/deployments', 'deploy-nat-gateway'), '2025-04-01'), null()), 'outputs'), 'resourceId'), 'value')]",
                         "routeTableResourceId": "[if(variables('hasRouteTable'), parameters('routeTableId'), null())]"
                       }
                     ]
@@ -11568,14 +11568,14 @@
               "metadata": {
                 "description": "NAT Gateway resource ID (empty if firewall deployed)"
               },
-              "value": "[if(parameters('deployNatGateway'), reference(resourceId('Microsoft.Resources/deployments', 'deploy-nat-gateway'), '2025-04-01').outputs.resourceId.value, '')]"
+              "value": "[coalesce(tryGet(tryGet(tryGet(if(parameters('deployNatGateway'), reference(resourceId('Microsoft.Resources/deployments', 'deploy-nat-gateway'), '2025-04-01'), null()), 'outputs'), 'resourceId'), 'value'), '')]"
             },
             "natGatewayName": {
               "type": "string",
               "metadata": {
                 "description": "NAT Gateway name (empty if firewall deployed)"
               },
-              "value": "[if(parameters('deployNatGateway'), reference(resourceId('Microsoft.Resources/deployments', 'deploy-nat-gateway'), '2025-04-01').outputs.name.value, '')]"
+              "value": "[coalesce(tryGet(tryGet(tryGet(if(parameters('deployNatGateway'), reference(resourceId('Microsoft.Resources/deployments', 'deploy-nat-gateway'), '2025-04-01'), null()), 'outputs'), 'name'), 'value'), '')]"
             }
           }
         }
@@ -23998,7 +23998,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "6086253304319306533"
+              "templateHash": "3940767766120788347"
             }
           },
           "parameters": {
@@ -24771,14 +24771,14 @@
               "metadata": {
                 "description": "Gateway route table resource ID (empty if no VPN)"
               },
-              "value": "[if(variables('hasOnPremises'), reference(resourceId('Microsoft.Resources/deployments', format('deploy-{0}', variables('gatewayRouteTableName'))), '2025-04-01').outputs.resourceId.value, '')]"
+              "value": "[coalesce(tryGet(tryGet(tryGet(if(variables('hasOnPremises'), reference(resourceId('Microsoft.Resources/deployments', format('deploy-{0}', variables('gatewayRouteTableName'))), '2025-04-01'), null()), 'outputs'), 'resourceId'), 'value'), '')]"
             },
             "gatewayRouteTableName": {
               "type": "string",
               "metadata": {
                 "description": "Gateway route table name (empty if no VPN)"
               },
-              "value": "[if(variables('hasOnPremises'), reference(resourceId('Microsoft.Resources/deployments', format('deploy-{0}', variables('gatewayRouteTableName'))), '2025-04-01').outputs.name.value, '')]"
+              "value": "[coalesce(tryGet(tryGet(tryGet(if(variables('hasOnPremises'), reference(resourceId('Microsoft.Resources/deployments', format('deploy-{0}', variables('gatewayRouteTableName'))), '2025-04-01'), null()), 'outputs'), 'name'), 'value'), '')]"
             }
           }
         }
@@ -24825,7 +24825,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "5174467663068755409"
+              "templateHash": "3494117635174533902"
             }
           },
           "parameters": {
@@ -27231,7 +27231,7 @@
               "metadata": {
                 "description": "VPN Gateway public IP address"
               },
-              "value": "[reference(resourceId('Microsoft.Resources/deployments', 'deploy-vpn-gateway'), '2025-04-01').outputs.primaryPublicIpAddress.value]"
+              "value": "[coalesce(tryGet(tryGet(reference(resourceId('Microsoft.Resources/deployments', 'deploy-vpn-gateway'), '2025-04-01').outputs, 'primaryPublicIpAddress'), 'value'), '')]"
             }
           }
         }

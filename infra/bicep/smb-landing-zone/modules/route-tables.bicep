@@ -137,7 +137,7 @@ output spokeRouteTableId string = spokeRouteTable.outputs.resourceId
 output spokeRouteTableName string = spokeRouteTable.outputs.name
 
 @description('Gateway route table resource ID (empty if no VPN)')
-output gatewayRouteTableId string = hasOnPremises ? gatewayRouteTable.outputs.resourceId : ''
+output gatewayRouteTableId string = gatewayRouteTable.?outputs.?resourceId ?? ''
 
 @description('Gateway route table name (empty if no VPN)')
-output gatewayRouteTableName string = hasOnPremises ? gatewayRouteTable.outputs.name : ''
+output gatewayRouteTableName string = gatewayRouteTable.?outputs.?name ?? ''

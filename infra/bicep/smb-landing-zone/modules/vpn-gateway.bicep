@@ -82,4 +82,4 @@ output gatewayId string = vpnGateway.outputs.resourceId
 output gatewayName string = vpnGateway.outputs.name
 
 @description('VPN Gateway public IP address')
-output gatewayPublicIp string = vpnGateway.outputs.primaryPublicIpAddress
+output gatewayPublicIp string = vpnGateway.outputs.?primaryPublicIpAddress ?? ''
