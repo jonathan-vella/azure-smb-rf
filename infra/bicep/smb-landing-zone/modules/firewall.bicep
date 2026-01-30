@@ -1,17 +1,11 @@
 // ============================================================================
-// SMB Landing Zone - Azure Firewall (Optional)
+// SMB Landing Zone - Azure Firewall (AVM-based, Sequential Deployment)
 // ============================================================================
-// Purpose: Deploy Azure Firewall Basic with best-practice rules
-// Version: v0.2
+// Purpose: Deploy Azure Firewall Basic using Azure Verified Modules (AVM)
+// Version: v0.4
 // ============================================================================
-// Azure Firewall Basic SKU Limitations:
-// - Throughput: 250 Mbps max
-// - DNS proxy: NOT supported (VMs use Azure DNS directly)
-// - Threat intelligence: Alert mode only
-// - Network FQDN filtering: NOT supported (application rules only)
-// - Web categories: NOT supported
-// - Forced tunneling: NOT supported
-// - Multiple public IPs: NOT supported
+// Key Change: Pre-create Public IPs before Firewall to avoid transient failures
+// This pattern follows Azure best practices for reliable deployments.
 // ============================================================================
 
 // ============================================================================
@@ -33,11 +27,8 @@ param environment string
 @description('Region abbreviation for naming')
 param regionShort string
 
-@description('Azure Firewall Subnet resource ID')
-param firewallSubnetId string
-
-@description('Azure Firewall Management Subnet resource ID (required for Basic SKU)')
-param firewallManagementSubnetId string
+@description('Hub Virtual Network resource ID')
+param hubVnetId string
 
 @description('Spoke VNet address space for firewall rules')
 param spokeAddressSpace string
@@ -61,11 +52,18 @@ var firewallMgmtPublicIpName = 'pip-fw-mgmt-${environment}-${regionShort}'
 // Determine if on-prem rules are needed
 var hasOnPremises = !empty(onPremisesAddressSpace)
 
+// Availability zones for zone-redundant deployment
+var availabilityZones = [
+  1
+  2
+  3
+]
+
 // ============================================================================
-// Firewall Public IPs
+// Phase 1: Public IP Addresses (Created FIRST for reliability)
 // ============================================================================
 
-@description('Public IP for Azure Firewall data traffic')
+@description('Public IP for Azure Firewall data traffic (zone-redundant)')
 resource firewallPublicIp 'Microsoft.Network/publicIPAddresses@2024-01-01' = {
   name: firewallPublicIpName
   location: location
@@ -74,13 +72,18 @@ resource firewallPublicIp 'Microsoft.Network/publicIPAddresses@2024-01-01' = {
     name: 'Standard'
     tier: 'Regional'
   }
+  zones: [
+    '1'
+    '2'
+    '3'
+  ]
   properties: {
     publicIPAllocationMethod: 'Static'
     publicIPAddressVersion: 'IPv4'
   }
 }
 
-@description('Public IP for Azure Firewall management traffic (required for Basic SKU)')
+@description('Public IP for Azure Firewall management traffic (zone-redundant)')
 resource firewallMgmtPublicIp 'Microsoft.Network/publicIPAddresses@2024-01-01' = {
   name: firewallMgmtPublicIpName
   location: location
@@ -89,6 +92,11 @@ resource firewallMgmtPublicIp 'Microsoft.Network/publicIPAddresses@2024-01-01' =
     name: 'Standard'
     tier: 'Regional'
   }
+  zones: [
+    '1'
+    '2'
+    '3'
+  ]
   properties: {
     publicIPAllocationMethod: 'Static'
     publicIPAddressVersion: 'IPv4'
@@ -96,30 +104,29 @@ resource firewallMgmtPublicIp 'Microsoft.Network/publicIPAddresses@2024-01-01' =
 }
 
 // ============================================================================
-// Firewall Policy
+// Phase 2: Firewall Policy (AVM Module)
 // ============================================================================
 
-@description('Firewall Policy with Basic tier and best-practice rules')
-resource firewallPolicy 'Microsoft.Network/firewallPolicies@2024-01-01' = {
-  name: firewallPolicyName
-  location: location
-  tags: tags
-  properties: {
-    sku: {
-      tier: 'Basic'
-    }
+@description('Firewall Policy with Basic tier')
+module firewallPolicy 'br/public:avm/res/network/firewall-policy:0.3.4' = {
+  name: 'deploy-${firewallPolicyName}'
+  params: {
+    name: firewallPolicyName
+    location: location
+    tier: 'Basic'
     threatIntelMode: 'Alert' // Basic SKU only supports Alert mode
+    enableProxy: false // DNS proxy not supported on Basic SKU
+    tags: tags
   }
 }
 
 // ============================================================================
-// Network Rule Collection Group - Infrastructure Rules
+// Phase 3: Network Rule Collection Groups (after Policy)
 // ============================================================================
 
 @description('Network rules for DNS, NTP, ICMP, and Azure services')
 resource networkRuleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleCollectionGroups@2024-01-01' = {
-  parent: firewallPolicy
-  name: 'NetworkRuleCollectionGroup'
+  name: '${firewallPolicyName}/NetworkRuleCollectionGroup'
   properties: {
     priority: 200
     ruleCollections: [
@@ -135,102 +142,59 @@ resource networkRuleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleColl
             ruleType: 'NetworkRule'
             name: 'AllowDNS'
             description: 'Allow DNS queries to Azure DNS'
-            ipProtocols: [
-              'UDP'
-              'TCP'
-            ]
-            sourceAddresses: [
-              spokeAddressSpace
-            ]
-            destinationAddresses: [
-              '168.63.129.16' // Azure DNS
-            ]
-            destinationPorts: [
-              '53'
-            ]
+            ipProtocols: ['UDP', 'TCP']
+            sourceAddresses: [spokeAddressSpace]
+            destinationAddresses: ['168.63.129.16']
+            destinationPorts: ['53']
           }
           {
             ruleType: 'NetworkRule'
             name: 'AllowNTP'
             description: 'Allow NTP for time synchronization'
-            ipProtocols: [
-              'UDP'
-            ]
-            sourceAddresses: [
-              spokeAddressSpace
-            ]
-            destinationAddresses: [
-              '*'
-            ]
-            destinationPorts: [
-              '123'
-            ]
+            ipProtocols: ['UDP']
+            sourceAddresses: [spokeAddressSpace]
+            destinationAddresses: ['*']
+            destinationPorts: ['123']
           }
           {
             ruleType: 'NetworkRule'
             name: 'AllowICMP'
             description: 'Allow all ICMP traffic for diagnostics'
-            ipProtocols: [
-              'ICMP'
-            ]
-            sourceAddresses: [
-              spokeAddressSpace
-            ]
-            destinationAddresses: [
-              '*'
-            ]
-            destinationPorts: [
-              '*'
-            ]
+            ipProtocols: ['ICMP']
+            sourceAddresses: [spokeAddressSpace]
+            destinationAddresses: ['*']
+            destinationPorts: ['*']
           }
           {
             ruleType: 'NetworkRule'
             name: 'AllowOutboundHTTP'
             description: 'Allow outbound HTTP traffic'
-            ipProtocols: [
-              'TCP'
-            ]
-            sourceAddresses: [
-              spokeAddressSpace
-            ]
-            destinationAddresses: [
-              '*'
-            ]
-            destinationPorts: [
-              '80'
-            ]
+            ipProtocols: ['TCP']
+            sourceAddresses: [spokeAddressSpace]
+            destinationAddresses: ['*']
+            destinationPorts: ['80']
           }
           {
             ruleType: 'NetworkRule'
             name: 'AllowOutboundHTTPS'
             description: 'Allow outbound HTTPS traffic'
-            ipProtocols: [
-              'TCP'
-            ]
-            sourceAddresses: [
-              spokeAddressSpace
-            ]
-            destinationAddresses: [
-              '*'
-            ]
-            destinationPorts: [
-              '443'
-            ]
+            ipProtocols: ['TCP']
+            sourceAddresses: [spokeAddressSpace]
+            destinationAddresses: ['*']
+            destinationPorts: ['443']
           }
         ]
       }
     ]
   }
+  dependsOn: [
+    firewallPolicy
+  ]
 }
-
-// ============================================================================
-// On-Premises Network Rule Collection (Conditional)
-// ============================================================================
 
 @description('Network rules for on-premises connectivity (conditional)')
 resource onPremRuleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleCollectionGroups@2024-01-01' = if (hasOnPremises) {
-  parent: firewallPolicy
-  name: 'OnPremisesRuleCollectionGroup'
+  name: '${firewallPolicyName}/OnPremisesRuleCollectionGroup'
   properties: {
     priority: 300
     ruleCollections: [
@@ -246,35 +210,19 @@ resource onPremRuleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleColle
             ruleType: 'NetworkRule'
             name: 'AllowAzureToOnPrem'
             description: 'Allow Azure spoke resources to reach on-premises'
-            ipProtocols: [
-              'Any'
-            ]
-            sourceAddresses: [
-              spokeAddressSpace
-            ]
-            destinationAddresses: [
-              onPremisesAddressSpace
-            ]
-            destinationPorts: [
-              '*'
-            ]
+            ipProtocols: ['Any']
+            sourceAddresses: [spokeAddressSpace]
+            destinationAddresses: [onPremisesAddressSpace]
+            destinationPorts: ['*']
           }
           {
             ruleType: 'NetworkRule'
             name: 'AllowOnPremToAzure'
             description: 'Allow on-premises to reach Azure spoke resources'
-            ipProtocols: [
-              'Any'
-            ]
-            sourceAddresses: [
-              onPremisesAddressSpace
-            ]
-            destinationAddresses: [
-              spokeAddressSpace
-            ]
-            destinationPorts: [
-              '*'
-            ]
+            ipProtocols: ['Any']
+            sourceAddresses: [onPremisesAddressSpace]
+            destinationAddresses: [spokeAddressSpace]
+            destinationPorts: ['*']
           }
         ]
       }
@@ -286,55 +234,24 @@ resource onPremRuleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleColle
 }
 
 // ============================================================================
-// Note: Application Rule Collection Group removed
-// ============================================================================
-// Application rules (FQDN tags, wildcards) are NOT needed for basic SMB scenarios.
-// Network rules for HTTP/HTTPS on ports 80/443 cover outbound web traffic.
-// Azure Backup uses private endpoints (not FQDN tags) in this architecture.
-// Windows Update can use network rules or be handled via WSUS/SCCM.
+// Phase 4: Azure Firewall (AVM Module - depends on PIPs + Policy)
 // ============================================================================
 
-// ============================================================================
-// Azure Firewall
-// ============================================================================
-
-@description('Azure Firewall with Basic SKU and management IP configuration')
-resource firewall 'Microsoft.Network/azureFirewalls@2024-01-01' = {
-  name: firewallName
-  location: location
-  tags: tags
-  properties: {
-    sku: {
-      name: 'AZFW_VNet'
-      tier: 'Basic'
-    }
-    firewallPolicy: {
-      id: firewallPolicy.id
-    }
-    ipConfigurations: [
-      {
-        name: 'fw-ipconfig'
-        properties: {
-          subnet: {
-            id: firewallSubnetId
-          }
-          publicIPAddress: {
-            id: firewallPublicIp.id
-          }
-        }
-      }
-    ]
-    managementIpConfiguration: {
-      name: 'fw-mgmt-ipconfig'
-      properties: {
-        subnet: {
-          id: firewallManagementSubnetId
-        }
-        publicIPAddress: {
-          id: firewallMgmtPublicIp.id
-        }
-      }
-    }
+@description('Azure Firewall Basic using AVM module with pre-created PIPs')
+module firewall 'br/public:avm/res/network/azure-firewall:0.9.2' = {
+  name: 'deploy-${firewallName}'
+  params: {
+    name: firewallName
+    location: location
+    azureSkuTier: 'Basic'
+    virtualNetworkResourceId: hubVnetId
+    firewallPolicyId: firewallPolicy.outputs.resourceId
+    // Reference pre-created Public IPs instead of letting AVM create them
+    publicIPResourceID: firewallPublicIp.id
+    managementIPResourceID: firewallMgmtPublicIp.id
+    // Zone redundancy for High Availability
+    availabilityZones: availabilityZones
+    tags: tags
   }
   dependsOn: [
     networkRuleCollectionGroup
@@ -347,16 +264,16 @@ resource firewall 'Microsoft.Network/azureFirewalls@2024-01-01' = {
 // ============================================================================
 
 @description('Azure Firewall resource ID')
-output firewallId string = firewall.id
+output firewallId string = firewall.outputs.resourceId
 
 @description('Azure Firewall name')
-output firewallName string = firewall.name
+output firewallName string = firewall.outputs.name
 
 @description('Azure Firewall private IP address (for UDR next hop)')
-output firewallPrivateIp string = firewall.properties.ipConfigurations[0].properties.privateIPAddress
+output firewallPrivateIp string = firewall.outputs.privateIp
 
 @description('Azure Firewall public IP address')
-output firewallPublicIp string = firewallPublicIp.properties.ipAddress
+output firewallPublicIpAddress string = firewallPublicIp.properties.ipAddress
 
 @description('Azure Firewall management public IP address')
-output firewallMgmtPublicIp string = firewallMgmtPublicIp.properties.ipAddress
+output firewallMgmtPublicIpAddress string = firewallMgmtPublicIp.properties.ipAddress

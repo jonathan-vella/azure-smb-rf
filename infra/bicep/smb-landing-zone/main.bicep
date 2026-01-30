@@ -255,7 +255,7 @@ module migrate 'modules/migrate.bicep' = {
 // Phase 5: Optional Services (Firewall, Route Tables, VPN Gateway)
 // ----------------------------------------------------------------------------
 
-@description('Deploy Azure Firewall Basic with best-practice rules (optional)')
+@description('Deploy Azure Firewall Basic with sequential PIP creation for reliability (optional)')
 module firewall 'modules/firewall.bicep' = if (deployFirewall) {
   name: 'firewall-${uniqueSuffix}'
   scope: resourceGroup(rgNames.hub)
@@ -263,8 +263,7 @@ module firewall 'modules/firewall.bicep' = if (deployFirewall) {
     location: location
     environment: 'slz'
     regionShort: regionShort
-    firewallSubnetId: networkingHub.outputs.firewallSubnetId
-    firewallManagementSubnetId: networkingHub.outputs.firewallManagementSubnetId
+    hubVnetId: networkingHub.outputs.vnetId
     spokeAddressSpace: spokeVnetAddressSpace
     onPremisesAddressSpace: onPremisesAddressSpace
     tags: sharedServicesTags
