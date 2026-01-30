@@ -236,6 +236,15 @@ module backup 'modules/backup.bicep' = {
   ]
 }
 
+@description('Deploy auto-backup policy for VMs tagged with Backup:true')
+module policyBackupAuto 'modules/policy-backup-auto.bicep' = {
+  name: 'policy-backup-auto-${uniqueSuffix}'
+  params: {
+    location: location
+    defaultVmBackupPolicyId: backup.outputs.defaultVmPolicyId
+  }
+}
+
 @description('Deploy Azure Migrate project for VMware assessment')
 module migrate 'modules/migrate.bicep' = {
   name: 'migrate-${uniqueSuffix}'

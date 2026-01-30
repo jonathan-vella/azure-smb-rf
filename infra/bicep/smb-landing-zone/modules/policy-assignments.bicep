@@ -2,7 +2,9 @@
 // SMB Landing Zone - Azure Policy Assignments
 // ============================================================================
 // Purpose: Deploy 20 Azure Policy assignments at subscription scope
-// Version: v0.1
+// Note: Auto-backup policy (smb-lz-backup-02) is deployed separately via
+//       policy-backup-auto.bicep after the Recovery Services Vault is created
+// Version: v0.2
 // ============================================================================
 
 targetScope = 'subscription'
@@ -424,5 +426,5 @@ output policyAssignmentNames array = [
   policyMonitoring01.name
 ]
 
-@description('Total number of policy assignments')
+@description('Total number of policy assignments (excludes auto-backup policy deployed separately)')
 output policyCount int = 20

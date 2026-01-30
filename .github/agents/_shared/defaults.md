@@ -32,6 +32,7 @@ All Azure resources MUST include these tags:
 | `Owner`        | ✅ Yes   | Team or individual     | `platform-team`, `john.doe`          |
 | `CostCenter`   | Optional | Billing allocation     | `CC-12345`                           |
 | `WorkloadType` | Optional | Resource category      | `app`, `data`, `network`, `security` |
+| `Backup`       | Optional | Enable VM auto-backup  | `true` (triggers Azure Policy)       |
 
 ### Bicep Tag Pattern
 
@@ -45,6 +46,22 @@ var tags = {
   DeploymentDate: utcNow('yyyy-MM-dd')
 }
 ```
+
+### VM Backup Auto-Enrollment
+
+VMs tagged with `Backup: true` are automatically enrolled in Azure Backup via Azure Policy:
+
+| Setting               | Value                                  |
+| --------------------- | -------------------------------------- |
+| **Policy**            | `smb-lz-backup-02` (DeployIfNotExists) |
+| **Tag**               | `Backup: true` (or `yes`, `True`)      |
+| **Backup Policy**     | DefaultVMPolicy                        |
+| **Schedule**          | Daily @ 02:00 UTC                      |
+| **Daily Retention**   | 30 days                                |
+| **Weekly Retention**  | 12 weeks (Sunday)                      |
+| **Monthly Retention** | 12 months (1st of month)               |
+
+**Recommendation**: Add `Backup: 'true'` tag to all production VMs for automatic protection.
 
 ## CAF Naming Conventions
 

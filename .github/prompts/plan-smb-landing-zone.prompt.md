@@ -10,12 +10,12 @@ tools:
 # SMB Landing Zone - Azure Migrate Ready
 
 Capture requirements for a repeatable, single-subscription Azure environment optimized for
-VMware-to-Azure migrations for SMB customers.
+on-premises workload migrations for SMB customers.
 
 ## Context
 
-Microsoft partner and VMware hosting provider with 1000+ SMB customers. Each customer has a handful of
-VMs. Building a repeatable, single-subscription Azure environment for VMware-to-Azure migrations.
+Microsoft partner and infrastructure hosting provider with 1000+ SMB customers. Each customer has a handful of
+VMs. Building a repeatable, single-subscription Azure environment for on-premises to Azure migrations.
 
 ## Core Principles
 
@@ -67,7 +67,7 @@ VMs. Building a repeatable, single-subscription Azure environment for VMware-to-
 
 | Service                 | Resource Group   | Configuration                              |
 | ----------------------- | ---------------- | ------------------------------------------ |
-| Azure Migrate Project   | rg-migrate       | VMware assessment only (no ASR)            |
+| Azure Migrate Project   | rg-migrate       | Server assessment only (no ASR)            |
 | Log Analytics Workspace | rg-monitor       | 500 MB/day cap, 30-day retention           |
 | Recovery Services Vault | rg-backup        | For post-migration VM backups              |
 | NAT Gateway             | rg-spoke         | Attached to spoke workload subnets         |

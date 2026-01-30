@@ -185,10 +185,14 @@ Use greenfield mode unless the user explicitly requests brownfield (existing sub
    These policies will be assigned at subscription scope as part of the Bicep deployment.
    Policy cleanup script: `scripts/Remove-{project-name}Policies.ps1`
 
-   | #   | Policy          | Built-in ID  | Effect | Bicep Assignment Name |
-   | --- | --------------- | ------------ | ------ | --------------------- |
-   | 1   | Allowed VM SKUs | cccc23c7-... | Deny   | {project}-compute-01  |
+   | #   | Policy          | Built-in ID  | Effect            | Bicep Assignment Name |
+   | --- | --------------- | ------------ | ----------------- | --------------------- |
+   | 1   | Allowed VM SKUs | cccc23c7-... | Deny              | {project}-compute-01  |
+   | ... | VM Backup Audit | 013e242c-... | AuditIfNotExists  | {project}-backup-01   |
+   | ... | VM Auto-Backup  | 345fa903-... | DeployIfNotExists | {project}-backup-02   |
    ```
+
+   **Note**: Policy `{project}-backup-02` auto-enrolls VMs tagged `Backup: true` into Azure Backup.
 
 4. **Include in implementation plan:**
    - Add `modules/policy-assignments.bicep` to module structure

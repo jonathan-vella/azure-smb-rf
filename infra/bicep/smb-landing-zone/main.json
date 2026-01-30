@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.39.26.7824",
-      "templateHash": "4881800088761256721"
+      "templateHash": "59576967199968123"
     }
   },
   "parameters": {
@@ -157,7 +157,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "14525703166816057413"
+              "templateHash": "4947401580927454321"
             }
           },
           "parameters": {
@@ -612,7 +612,7 @@
             "policyCount": {
               "type": "int",
               "metadata": {
-                "description": "Total number of policy assignments"
+                "description": "Total number of policy assignments (excludes auto-backup policy deployed separately)"
               },
               "value": 20
             }
@@ -1718,7 +1718,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "12941598578613445886"
+              "templateHash": "1434781542863267997"
             }
           },
           "parameters": {
@@ -1780,6 +1780,71 @@
               "metadata": {
                 "description": "Recovery Services Vault for VM backup with LRS storage"
               }
+            },
+            {
+              "type": "Microsoft.RecoveryServices/vaults/backupPolicies",
+              "apiVersion": "2024-04-01",
+              "name": "[format('{0}/{1}', variables('vaultName'), 'DefaultVMPolicy')]",
+              "properties": {
+                "backupManagementType": "AzureIaasVM",
+                "instantRpRetentionRangeInDays": 2,
+                "schedulePolicy": {
+                  "schedulePolicyType": "SimpleSchedulePolicy",
+                  "scheduleRunFrequency": "Daily",
+                  "scheduleRunTimes": [
+                    "2026-01-01T02:00:00Z"
+                  ]
+                },
+                "retentionPolicy": {
+                  "retentionPolicyType": "LongTermRetentionPolicy",
+                  "dailySchedule": {
+                    "retentionTimes": [
+                      "2026-01-01T02:00:00Z"
+                    ],
+                    "retentionDuration": {
+                      "count": 30,
+                      "durationType": "Days"
+                    }
+                  },
+                  "weeklySchedule": {
+                    "daysOfTheWeek": [
+                      "Sunday"
+                    ],
+                    "retentionTimes": [
+                      "2026-01-01T02:00:00Z"
+                    ],
+                    "retentionDuration": {
+                      "count": 12,
+                      "durationType": "Weeks"
+                    }
+                  },
+                  "monthlySchedule": {
+                    "retentionScheduleFormatType": "Daily",
+                    "retentionScheduleDaily": {
+                      "daysOfTheMonth": [
+                        {
+                          "date": 1,
+                          "isLast": false
+                        }
+                      ]
+                    },
+                    "retentionTimes": [
+                      "2026-01-01T02:00:00Z"
+                    ],
+                    "retentionDuration": {
+                      "count": 12,
+                      "durationType": "Months"
+                    }
+                  }
+                },
+                "timeZone": "UTC"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.RecoveryServices/vaults', variables('vaultName'))]"
+              ],
+              "metadata": {
+                "description": "Default VM backup policy with Standard retention"
+              }
             }
           ],
           "outputs": {
@@ -1796,6 +1861,20 @@
                 "description": "Recovery Services Vault name"
               },
               "value": "[variables('vaultName')]"
+            },
+            "defaultVmPolicyId": {
+              "type": "string",
+              "metadata": {
+                "description": "Default VM Backup Policy ID"
+              },
+              "value": "[resourceId('Microsoft.RecoveryServices/vaults/backupPolicies', variables('vaultName'), 'DefaultVMPolicy')]"
+            },
+            "defaultVmPolicyName": {
+              "type": "string",
+              "metadata": {
+                "description": "Default VM Backup Policy name"
+              },
+              "value": "DefaultVMPolicy"
             }
           }
         }
@@ -1805,6 +1884,152 @@
       ],
       "metadata": {
         "description": "Deploy Recovery Services Vault for VM backup"
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "[format('policy-backup-auto-{0}', variables('uniqueSuffix'))]",
+      "location": "[deployment().location]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "defaultVmBackupPolicyId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').backup), 'Microsoft.Resources/deployments', format('backup-{0}', variables('uniqueSuffix'))), '2025-04-01').outputs.defaultVmPolicyId.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.39.26.7824",
+              "templateHash": "12805632524769872344"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Location for policy assignment metadata"
+              }
+            },
+            "defaultVmBackupPolicyId": {
+              "type": "string",
+              "metadata": {
+                "description": "Default VM Backup Policy ID (full resource ID)"
+              }
+            }
+          },
+          "variables": {
+            "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/345fa903-145c-4fe1-8bcd-93ec2adccde8",
+            "backupContributorRoleId": "5e467623-bb1f-42f4-a55d-6e525e11384b",
+            "vmContributorRoleId": "9980e02c-c2be-4d73-94e8-173b1dc7cf3c"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/policyAssignments",
+              "apiVersion": "2024-04-01",
+              "name": "smb-lz-backup-02",
+              "location": "[parameters('location')]",
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "properties": {
+                "displayName": "SMB LZ: Auto-Backup VMs with Backup Tag",
+                "description": "Automatically configure backup on VMs tagged with Backup:true to the central Recovery Services Vault using DefaultVMPolicy (30d daily, 12w weekly, 12m monthly retention)",
+                "policyDefinitionId": "[variables('policyDefinitionId')]",
+                "enforcementMode": "Default",
+                "parameters": {
+                  "vaultLocation": {
+                    "value": "[parameters('location')]"
+                  },
+                  "inclusionTagName": {
+                    "value": "Backup"
+                  },
+                  "inclusionTagValue": {
+                    "value": [
+                      "true",
+                      "True",
+                      "yes",
+                      "Yes"
+                    ]
+                  },
+                  "backupPolicyId": {
+                    "value": "[parameters('defaultVmBackupPolicyId')]"
+                  },
+                  "effect": {
+                    "value": "DeployIfNotExists"
+                  }
+                }
+              },
+              "metadata": {
+                "description": "Auto-configure backup on VMs with Backup:true tag"
+              }
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(subscription().id, 'smb-lz-backup-02', 'Backup Contributor')]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('backupContributorRoleId'))]",
+                "principalId": "[reference(subscriptionResourceId('Microsoft.Authorization/policyAssignments', 'smb-lz-backup-02'), '2024-04-01', 'full').identity.principalId]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', 'smb-lz-backup-02')]"
+              ],
+              "metadata": {
+                "description": "Backup Contributor role for policy managed identity"
+              }
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(subscription().id, 'smb-lz-backup-02', 'VM Contributor')]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('vmContributorRoleId'))]",
+                "principalId": "[reference(subscriptionResourceId('Microsoft.Authorization/policyAssignments', 'smb-lz-backup-02'), '2024-04-01', 'full').identity.principalId]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', 'smb-lz-backup-02')]"
+              ],
+              "metadata": {
+                "description": "Virtual Machine Contributor role for policy managed identity"
+              }
+            }
+          ],
+          "outputs": {
+            "policyAssignmentName": {
+              "type": "string",
+              "metadata": {
+                "description": "Auto-backup policy assignment name"
+              },
+              "value": "smb-lz-backup-02"
+            },
+            "managedIdentityPrincipalId": {
+              "type": "string",
+              "metadata": {
+                "description": "Auto-backup policy managed identity principal ID"
+              },
+              "value": "[reference(subscriptionResourceId('Microsoft.Authorization/policyAssignments', 'smb-lz-backup-02'), '2024-04-01', 'full').identity.principalId]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').backup), 'Microsoft.Resources/deployments', format('backup-{0}', variables('uniqueSuffix')))]"
+      ],
+      "metadata": {
+        "description": "Deploy auto-backup policy for VMs tagged with Backup:true"
       }
     },
     {

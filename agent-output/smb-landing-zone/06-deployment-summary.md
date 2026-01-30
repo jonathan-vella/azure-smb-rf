@@ -70,9 +70,23 @@
 | ------------------ | ---------------------- | ------------------ | --------- |
 | Log Analytics      | log-smblz-slz-swc      | rg-monitor-slz-swc | Succeeded |
 | Recovery Vault     | rsv-smblz-slz-swc      | rg-backup-slz-swc  | Succeeded |
+| VM Backup Policy   | DefaultVMPolicy        | rg-backup-slz-swc  | Succeeded |
 | Azure Migrate      | migrate-smblz-slz-swc  | rg-migrate-slz-swc | Succeeded |
 | Budget             | budget-smb-lz-monthly  | Subscription scope | Succeeded |
-| Policy Assignments | 20 `smb-lz-*` policies | Subscription scope | Succeeded |
+| Policy Assignments | 21 `smb-lz-*` policies | Subscription scope | Succeeded |
+
+### VM Backup Configuration
+
+| Setting               | Value                                         |
+| --------------------- | --------------------------------------------- |
+| **Auto-Enrollment**   | Enabled via Azure Policy (`smb-lz-backup-02`) |
+| **Trigger Tag**       | `Backup: true` (or `yes`, `True`, `Yes`)      |
+| **Backup Policy**     | DefaultVMPolicy                               |
+| **Schedule**          | Daily @ 02:00 UTC                             |
+| **Daily Retention**   | 30 days                                       |
+| **Weekly Retention**  | 12 weeks (Sunday)                             |
+| **Monthly Retention** | 12 months (1st of month)                      |
+| **Policy Effect**     | DeployIfNotExists                             |
 
 ### VNet Peering Status
 
@@ -142,17 +156,19 @@ cd infra/bicep/smb-landing-zone
 - [x] Route table applied to spoke subnets
 - [x] Firewall rules configured for outbound traffic
 - [x] Log Analytics workspace operational
-- [x] Recovery Services vault ready for backup policies
+- [x] Recovery Services vault with DefaultVMPolicy configured
+- [x] Auto-backup policy assignment (smb-lz-backup-02) deployed
 - [x] Azure Migrate project created
-- [x] Policy assignments applied at subscription scope
+- [x] Policy assignments applied at subscription scope (21 policies)
 - [x] Budget alerts configured at $500/month
 
 ## Post-Deployment Tasks
 
-- [ ] Configure VM backup policies in Recovery Services Vault
+- [x] ~~Configure VM backup policies in Recovery Services Vault~~ (Automated via DefaultVMPolicy)
+- [x] ~~Set up backup tag for VMs~~ (Use `Backup: true` tag for auto-enrollment)
 - [ ] Set up Azure Migrate appliance for VMware discovery
 - [ ] Create VPN connection to on-premises (if VPN Gateway deployed)
-- [ ] Deploy test VM to verify Bastion Developer connectivity
+- [ ] Deploy test VM with `Backup: true` tag to verify auto-enrollment
 - [ ] Verify firewall logs flowing to Log Analytics
 - [ ] Review budget alerts: Cost Management → Budgets
 

@@ -29,6 +29,7 @@ Source of truth: [`.github/agents/_shared/defaults.md`](.github/agents/_shared/d
 | ------------------- | ---------------------------------------------- | -------------------------------------------------- |
 | **Default Region**  | `swedencentral`                                | EU GDPR-compliant; alt: `germanywestcentral`       |
 | **Required Tags**   | `Environment`, `ManagedBy`, `Project`, `Owner` | All resources must include these tags              |
+| **VM Backup Tag**   | `Backup: 'true'`                               | Recommended for VMs; auto-enrolls via Azure Policy |
 | **Unique Suffix**   | `uniqueString(resourceGroup().id)` in bicep    | Generate once in `main.bicep`, pass to all modules |
 | **Key Vault Name**  | `kv-{short}-{env}-{suffix}` (≤24 chars)        | Always include suffix to guarantee uniqueness      |
 | **Storage Account** | `st{short}{env}{suffix}` (≤24 chars, no `-`)   | Lowercase+numbers only; no hyphens                 |
@@ -182,8 +183,17 @@ tags: {
   ManagedBy: 'Bicep'      // or 'Terraform'
   Project: projectName
   Owner: owner
+  Backup: 'true'          // Recommended for VMs - triggers auto-enrollment
 }
 ```
+
+### VM Backup Auto-Enrollment
+
+VMs tagged with `Backup: true` are automatically enrolled via Azure Policy (`smb-lz-backup-02`):
+
+- **Schedule**: Daily @ 02:00 UTC
+- **Retention**: 30 days daily, 12 weeks weekly, 12 months monthly
+- **Policy Effect**: DeployIfNotExists (auto-configures backup)
 
 ### Security Defaults
 

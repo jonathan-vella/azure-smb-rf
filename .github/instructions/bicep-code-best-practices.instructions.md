@@ -7,22 +7,23 @@ applyTo: "**/*.bicep"
 
 ## Quick Reference
 
-| Rule | Standard |
-|------|----------|
-| Region | `swedencentral` (alt: `germanywestcentral`) |
-| Unique suffix | `var uniqueSuffix = uniqueString(resourceGroup().id)` in main.bicep |
-| AVM first | Use Azure Verified Modules when available |
-| Tags | Environment, ManagedBy, Project, Owner on ALL resources |
+| Rule          | Standard                                                             |
+| ------------- | -------------------------------------------------------------------- |
+| Region        | `swedencentral` (alt: `germanywestcentral`)                          |
+| Unique suffix | `var uniqueSuffix = uniqueString(resourceGroup().id)` in main.bicep  |
+| AVM first     | Use Azure Verified Modules when available                            |
+| Tags          | Environment, ManagedBy, Project, Owner on ALL resources              |
+| VM Backup     | Add `Backup: 'true'` tag on VMs for auto-enrollment via Azure Policy |
 
 ## Naming Conventions
 
 ### Resource Patterns
 
-| Resource | Max | Pattern | Example |
-|----------|-----|---------|---------|
-| Storage | 24 | `st{project}{env}{suffix}` | `stcontosodev7xk2` |
-| Key Vault | 24 | `kv-{project}-{env}-{suffix}` | `kv-contoso-dev-abc123` |
-| SQL Server | 63 | `sql-{project}-{env}-{suffix}` | `sql-contoso-dev-abc123` |
+| Resource   | Max | Pattern                        | Example                  |
+| ---------- | --- | ------------------------------ | ------------------------ |
+| Storage    | 24  | `st{project}{env}{suffix}`     | `stcontosodev7xk2`       |
+| Key Vault  | 24  | `kv-{project}-{env}-{suffix}`  | `kv-contoso-dev-abc123`  |
+| SQL Server | 63  | `sql-{project}-{env}-{suffix}` | `sql-contoso-dev-abc123` |
 
 ### Identifiers
 
@@ -133,23 +134,23 @@ For Azure Firewall Basic, pre-create Public IPs before the firewall to avoid tra
 
 ## Patterns to Avoid
 
-| Anti-Pattern | Problem | Solution |
-|--------------|---------|----------|
-| Hardcoded names | Collisions | Use `uniqueString()` suffix |
-| Missing `@description` | Poor docs | Document all parameters |
-| Explicit `dependsOn` | Unnecessary | Use symbolic references |
-| Resource ID for scope | BCP036 error | Use `existing` + names |
-| S1 for zone redundancy | Policy blocks | Use P1v3+ |
-| `RequestHeaders` | ARM error | Use `RequestHeader` (singular) |
-| WAF policy hyphens | Validation fails | `wafpolicy{name}` alphanumeric only |
+| Anti-Pattern           | Problem          | Solution                            |
+| ---------------------- | ---------------- | ----------------------------------- |
+| Hardcoded names        | Collisions       | Use `uniqueString()` suffix         |
+| Missing `@description` | Poor docs        | Document all parameters             |
+| Explicit `dependsOn`   | Unnecessary      | Use symbolic references             |
+| Resource ID for scope  | BCP036 error     | Use `existing` + names              |
+| S1 for zone redundancy | Policy blocks    | Use P1v3+                           |
+| `RequestHeaders`       | ARM error        | Use `RequestHeader` (singular)      |
+| WAF policy hyphens     | Validation fails | `wafpolicy{name}` alphanumeric only |
 
 ## Zone Redundancy SKUs
 
-| SKU | Zone Redundancy | Use Case |
-|-----|-----------------|----------|
-| S1/S2 | ❌ Not supported | Dev/test |
-| P1v3/P2v3 | ✅ Supported | Production |
-| P1v4/P2v4 | ✅ Supported | Production (latest) |
+| SKU       | Zone Redundancy  | Use Case            |
+| --------- | ---------------- | ------------------- |
+| S1/S2     | ❌ Not supported | Dev/test            |
+| P1v3/P2v3 | ✅ Supported     | Production          |
+| P1v4/P2v4 | ✅ Supported     | Production (latest) |
 
 ## Deployment Scripts
 

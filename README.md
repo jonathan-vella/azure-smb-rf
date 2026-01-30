@@ -1,7 +1,9 @@
 <!-- markdownlint-disable MD013 MD033 MD041 -->
+
 <a id="readme-top"></a>
 
 <!-- PROJECT SHIELDS -->
+
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
@@ -21,7 +23,7 @@
   <p align="center">
     <strong>Repeatable Azure landing zone for SMB customers.</strong>
     <br />
-    VMware-to-Azure migration ready • Policy-enforced • CAF-aligned
+    On-premises migration ready • Policy-enforced • CAF-aligned
     <br />
     <br />
     <a href="#-quick-start"><strong>Quick Start »</strong></a>
@@ -59,13 +61,13 @@
 ## 🚀 About The Project
 
 Single-subscription Azure environment designed for **Microsoft Partners** hosting 1000+ small
-business customers on VMware infrastructure.
+business customers on on-premises infrastructure.
 
 <div align="center">
 
-| ✅ VMware-to-Azure migrations | ✅ Cost-first design | ✅ Policy-enforced security | ✅ Repeatable deployments |
-|:-----------------------------:|:--------------------:|:---------------------------:|:-------------------------:|
-| Via Azure Migrate             | Resilience traded for affordability | 20 guardrail policies | No per-customer customization |
+| ✅ On-premises migrations |        ✅ Cost-first design         | ✅ Policy-enforced security |   ✅ Repeatable deployments   |
+| :-----------------------: | :---------------------------------: | :-------------------------: | :---------------------------: |
+|     Via Azure Migrate     | Resilience traded for affordability |    20 guardrail policies    | No per-customer customization |
 
 </div>
 
@@ -96,13 +98,13 @@ using AI agents for requirements gathering, architecture assessment, and Bicep c
 
 The landing zone follows a **hub-and-spoke** topology within a single subscription:
 
-| Component | Purpose |
-|-----------|---------|
-| **Hub VNet** | Centralized services (Bastion, Firewall, VPN Gateway, Private DNS) |
-| **Spoke VNet** | Workload hosting with NAT Gateway for outbound internet |
-| **Azure Migrate** | VMware discovery and assessment |
-| **Log Analytics** | Centralized monitoring with 500 MB/day cap |
-| **Recovery Services** | VM backup with default policy |
+| Component             | Purpose                                                            |
+| --------------------- | ------------------------------------------------------------------ |
+| **Hub VNet**          | Centralized services (Bastion, Firewall, VPN Gateway, Private DNS) |
+| **Spoke VNet**        | Workload hosting with NAT Gateway for outbound internet            |
+| **Azure Migrate**     | Server discovery and assessment                                    |
+| **Log Analytics**     | Centralized monitoring with 500 MB/day cap                         |
+| **Recovery Services** | VM backup with default policy                                      |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -114,12 +116,12 @@ Choose the scenario that fits your budget and connectivity requirements:
 
 <div align="center">
 
-| Scenario | Firewall | VPN | NAT GW | Peering | UDR | Monthly Cost |
-|:--------:|:--------:|:---:|:------:|:-------:|:---:|-------------:|
-| **`baseline`** | ❌ | ❌ | ✅ | ❌ | ❌ | **~$48** |
-| **`firewall`** | ✅ | ❌ | ❌ | ✅ | ✅ | **~$336** |
-| **`vpn`** | ❌ | ✅ | ❌ | ✅ | ❌ | **~$187** |
-| **`full`** | ✅ | ✅ | ❌ | ✅ | ✅ | **~$476** |
+|    Scenario    | Firewall | VPN | NAT GW | Peering | UDR | Monthly Cost |
+| :------------: | :------: | :-: | :----: | :-----: | :-: | -----------: |
+| **`baseline`** |    ❌    | ❌  |   ✅   |   ❌    | ❌  |     **~$48** |
+| **`firewall`** |    ✅    | ❌  |   ❌   |   ✅    | ✅  |    **~$336** |
+|   **`vpn`**    |    ❌    | ✅  |   ❌   |   ✅    | ❌  |    **~$187** |
+|   **`full`**   |    ✅    | ✅  |   ❌   |   ✅    | ✅  |    **~$476** |
 
 </div>
 
@@ -186,18 +188,18 @@ cd infra/bicep/smb-landing-zone
 
 ### Always Deployed
 
-| Resource | Resource Group | Configuration |
-|----------|----------------|---------------|
-| 🌐 Hub VNet | `rg-hub` | Pre-provisioned subnets |
-| 🌐 Spoke VNet | `rg-spoke` | Workload subnets + NSG |
-| 🚪 NAT Gateway | `rg-spoke` | Outbound internet |
-| 🔐 Azure Bastion Developer | `rg-hub` | Secure VM access |
-| 🔗 Azure Private DNS | `rg-hub` | Auto-registration |
-| 📦 Azure Migrate Project | `rg-migrate` | VMware assessment |
-| 📊 Log Analytics Workspace | `rg-monitor` | 500 MB/day, 30-day retention |
-| 💾 Recovery Services Vault | `rg-backup` | VM backup |
-| 💰 Cost Management Budget | subscription | $500/month + alerts |
-| 🛡️ Defender for Cloud | subscription | Free tier |
+| Resource                   | Resource Group | Configuration                |
+| -------------------------- | -------------- | ---------------------------- |
+| 🌐 Hub VNet                | `rg-hub`       | Pre-provisioned subnets      |
+| 🌐 Spoke VNet              | `rg-spoke`     | Workload subnets + NSG       |
+| 🚪 NAT Gateway             | `rg-spoke`     | Outbound internet            |
+| 🔐 Azure Bastion Developer | `rg-hub`       | Secure VM access             |
+| 🔗 Azure Private DNS       | `rg-hub`       | Auto-registration            |
+| 📦 Azure Migrate Project   | `rg-migrate`   | Server assessment            |
+| 📊 Log Analytics Workspace | `rg-monitor`   | 500 MB/day, 30-day retention |
+| 💾 Recovery Services Vault | `rg-backup`    | VM backup                    |
+| 💰 Cost Management Budget  | subscription   | $500/month + alerts          |
+| 🛡️ Defender for Cloud      | subscription   | Free tier                    |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -207,13 +209,13 @@ cd infra/bicep/smb-landing-zone
 
 20 policies enforcing security best practices:
 
-| Category | Policies |
-|----------|----------|
-| **Compute** | Allowed SKUs (B/D/E only), no public IPs, managed disks |
-| **Network** | NSG required, management ports closed, no IP forwarding |
-| **Storage** | HTTPS only, no public blob, TLS 1.2+ |
-| **Identity** | Azure AD-only SQL, no classic resources |
-| **Compliance** | Required tags, allowed locations, backup audit |
+| Category       | Policies                                                |
+| -------------- | ------------------------------------------------------- |
+| **Compute**    | Allowed SKUs (B/D/E only), no public IPs, managed disks |
+| **Network**    | NSG required, management ports closed, no IP forwarding |
+| **Storage**    | HTTPS only, no public blob, TLS 1.2+                    |
+| **Identity**   | Azure AD-only SQL, no classic resources                 |
+| **Compliance** | Required tags, allowed locations, backup audit          |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -244,15 +246,15 @@ cd infra/bicep/smb-landing-zone
 
 ## 🎯 Key Design Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| **Resilience** | Not required | Cost priority for SMB |
-| **SLA/RTO/RPO** | N/A | Rebuild from Bicep if needed |
-| **VM Access** | Azure Bastion Developer | No public IPs on VMs |
-| **Outbound Internet** | NAT Gateway | Default outbound deprecated |
-| **DNS** | Azure Private DNS | Auto-registration for VMs |
-| **Regions** | swedencentral, germanywestcentral | EU GDPR compliant |
-| **Tags** | Environment, Owner (required) | CAF-aligned tagging |
+| Decision              | Choice                            | Rationale                    |
+| --------------------- | --------------------------------- | ---------------------------- |
+| **Resilience**        | Not required                      | Cost priority for SMB        |
+| **SLA/RTO/RPO**       | N/A                               | Rebuild from Bicep if needed |
+| **VM Access**         | Azure Bastion Developer           | No public IPs on VMs         |
+| **Outbound Internet** | NAT Gateway                       | Default outbound deprecated  |
+| **DNS**               | Azure Private DNS                 | Auto-registration for VMs    |
+| **Regions**           | swedencentral, germanywestcentral | EU GDPR compliant            |
+| **Tags**              | Environment, Owner (required)     | CAF-aligned tagging          |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -287,7 +289,7 @@ bicep build infra/bicep/smb-landing-zone/main.bicep
 
 This landing zone is designed for:
 
-- 🏢 **Microsoft Partners** hosting SMB customers on VMware
+- 🏢 **Microsoft Partners** hosting SMB customers on on-premises infrastructure
 - 🔧 **Managed Service Providers** standardizing Azure onboarding
 - 💼 **IT Consultants** delivering repeatable migration projects
 
@@ -297,12 +299,12 @@ This landing zone is designed for:
 
 ## 📚 Additional Resources
 
-| Resource | Description |
-|----------|-------------|
+| Resource                                                                               | Description                                   |
+| -------------------------------------------------------------------------------------- | --------------------------------------------- |
 | [Agentic InfraOps Framework](https://github.com/jonathan-vella/azure-agentic-infraops) | Parent framework for AI-driven infrastructure |
-| [Azure Landing Zones](https://aka.ms/alz) | Microsoft reference architectures |
-| [Azure Verified Modules](https://aka.ms/avm) | Bicep module registry |
-| [Cloud Adoption Framework](https://aka.ms/caf) | Naming and governance standards |
+| [Azure Landing Zones](https://aka.ms/alz)                                              | Microsoft reference architectures             |
+| [Azure Verified Modules](https://aka.ms/avm)                                           | Bicep module registry                         |
+| [Cloud Adoption Framework](https://aka.ms/caf)                                         | Naming and governance standards               |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -345,6 +347,7 @@ Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+
 [contributors-shield]: https://img.shields.io/github/contributors/jonathan-vella/azure-agentic-smb-lz.svg?style=for-the-badge
 [contributors-url]: https://github.com/jonathan-vella/azure-agentic-smb-lz/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/jonathan-vella/azure-agentic-smb-lz.svg?style=for-the-badge
@@ -359,6 +362,7 @@ Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
 [azure-url]: https://azure.microsoft.com
 
 <!-- TECH STACK BADGES -->
+
 [bicep-shield]: https://img.shields.io/badge/Bicep-0.20+-00A4EF?style=for-the-badge&logo=azurefunctions&logoColor=white
 [bicep-url]: https://learn.microsoft.com/azure/azure-resource-manager/bicep/
 [powershell-shield]: https://img.shields.io/badge/PowerShell-7+-5391FE?style=for-the-badge&logo=powershell&logoColor=white

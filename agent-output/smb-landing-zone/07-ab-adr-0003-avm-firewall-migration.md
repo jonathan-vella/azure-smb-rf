@@ -42,10 +42,10 @@ with **sequential resource creation**:
 
 ### AVM Modules Used
 
-| Module | Version | Purpose |
-|--------|---------|---------|
-| `br/public:avm/res/network/azure-firewall` | 0.9.2 | Azure Firewall resource |
-| `br/public:avm/res/network/firewall-policy` | 0.3.4 | Firewall Policy |
+| Module                                      | Version | Purpose                 |
+| ------------------------------------------- | ------- | ----------------------- |
+| `br/public:avm/res/network/azure-firewall`  | 0.9.2   | Azure Firewall resource |
+| `br/public:avm/res/network/firewall-policy` | 0.3.4   | Firewall Policy         |
 
 ### Key Implementation Details
 
@@ -110,12 +110,12 @@ Azure Firewall Standard/Premium may have better provisioning reliability.
 
 ## Validation
 
-| Test | Result |
-|------|--------|
-| Isolated deployment (temp RG) | ✅ Succeeded first attempt |
-| Full scenario deployment | ✅ Succeeded after firewall cleanup |
-| Bicep lint | ✅ No errors |
-| Zone redundancy | ✅ PIPs in zones 1, 2, 3 |
+| Test                          | Result                              |
+| ----------------------------- | ----------------------------------- |
+| Isolated deployment (temp RG) | ✅ Succeeded first attempt          |
+| Full scenario deployment      | ✅ Succeeded after firewall cleanup |
+| Bicep lint                    | ✅ No errors                        |
+| Zone redundancy               | ✅ PIPs in zones 1, 2, 3            |
 
 ## References
 

@@ -63,6 +63,73 @@ resource recoveryVault 'Microsoft.RecoveryServices/vaults@2024-04-01' = {
 }
 
 // ============================================================================
+// VM Backup Policy - Standard Retention
+// ============================================================================
+// Schedule: Daily at 02:00 UTC
+// Retention: 30 days daily, 12 weeks weekly (Sunday), 12 months monthly (1st)
+// ============================================================================
+
+@description('Default VM backup policy with Standard retention')
+resource defaultVmBackupPolicy 'Microsoft.RecoveryServices/vaults/backupPolicies@2024-04-01' = {
+  parent: recoveryVault
+  name: 'DefaultVMPolicy'
+  properties: {
+    backupManagementType: 'AzureIaasVM'
+    instantRpRetentionRangeInDays: 2
+    schedulePolicy: {
+      schedulePolicyType: 'SimpleSchedulePolicy'
+      scheduleRunFrequency: 'Daily'
+      scheduleRunTimes: [
+        '2026-01-01T02:00:00Z' // 02:00 UTC daily
+      ]
+    }
+    retentionPolicy: {
+      retentionPolicyType: 'LongTermRetentionPolicy'
+      dailySchedule: {
+        retentionTimes: [
+          '2026-01-01T02:00:00Z'
+        ]
+        retentionDuration: {
+          count: 30
+          durationType: 'Days'
+        }
+      }
+      weeklySchedule: {
+        daysOfTheWeek: [
+          'Sunday'
+        ]
+        retentionTimes: [
+          '2026-01-01T02:00:00Z'
+        ]
+        retentionDuration: {
+          count: 12
+          durationType: 'Weeks'
+        }
+      }
+      monthlySchedule: {
+        retentionScheduleFormatType: 'Daily'
+        retentionScheduleDaily: {
+          daysOfTheMonth: [
+            {
+              date: 1
+              isLast: false
+            }
+          ]
+        }
+        retentionTimes: [
+          '2026-01-01T02:00:00Z'
+        ]
+        retentionDuration: {
+          count: 12
+          durationType: 'Months'
+        }
+      }
+    }
+    timeZone: 'UTC'
+  }
+}
+
+// ============================================================================
 // Outputs
 // ============================================================================
 
@@ -71,3 +138,9 @@ output vaultId string = recoveryVault.id
 
 @description('Recovery Services Vault name')
 output vaultName string = recoveryVault.name
+
+@description('Default VM Backup Policy ID')
+output defaultVmPolicyId string = defaultVmBackupPolicy.id
+
+@description('Default VM Backup Policy name')
+output defaultVmPolicyName string = defaultVmBackupPolicy.name

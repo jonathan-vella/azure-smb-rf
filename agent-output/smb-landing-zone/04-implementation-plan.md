@@ -94,28 +94,32 @@ infra/bicep/smb-landing-zone/
 
 **Policy Assignments**:
 
-| #   | Policy                   | Built-in ID                          | Effect           | Assignment Name      |
-| --- | ------------------------ | ------------------------------------ | ---------------- | -------------------- |
-| 1   | Allowed VM SKUs          | cccc23c7-8427-4f53-ad12-b6a63eb452b3 | Deny             | smb-lz-compute-01    |
-| 2   | No public IPs on NICs    | 83a86a26-fd1f-447c-b59d-e51f44264114 | Deny             | smb-lz-compute-02    |
-| 3   | Audit managed disks      | 06a78e20-9358-41c9-923c-fb736d382a4d | Audit            | smb-lz-compute-03    |
-| 4   | Audit ARM VMs            | 1d84d5fb-01f6-4d12-ba4f-4a26081d403d | Audit            | smb-lz-compute-04    |
-| 5   | NSG on subnets           | e71308d3-144b-4262-b144-efdc3cc90517 | AuditIfNotExists | smb-lz-network-01    |
-| 6   | Close management ports   | 22730e10-96f6-4aac-ad84-9383d35b5917 | AuditIfNotExists | smb-lz-network-02    |
-| 7   | Restrict NSG ports       | 9daedab3-fb2d-461e-b861-71790eead4f6 | AuditIfNotExists | smb-lz-network-03    |
-| 8   | Disable IP forwarding    | 88c0b9da-ce96-4b03-9635-f29a937e2900 | Deny             | smb-lz-network-04    |
-| 9   | Storage HTTPS only       | 404c3081-a854-4457-ae30-26a93ef643f9 | Deny             | smb-lz-storage-01    |
-| 10  | No public blob access    | 4fa4b6c0-31ca-4c0d-b10d-24b96f62a751 | Deny             | smb-lz-storage-02    |
-| 11  | Storage TLS 1.2          | fe83a0eb-a853-422d-aac2-1bffd182c5d0 | Deny             | smb-lz-storage-03    |
-| 12  | Restrict storage network | 34c877ad-507e-4c82-993e-3452a6e0ad3c | Audit            | smb-lz-storage-04    |
-| 13  | Storage ARM migration    | 37e0d2fe-28a5-43d6-a273-67d37d1f5606 | Audit            | smb-lz-storage-05    |
-| 14  | SQL Azure AD-only        | abda6d70-9778-44e7-84a8-06f9e9f5b64b | Audit            | smb-lz-identity-01   |
-| 15  | SQL no public access     | 1b8ca024-1d5c-4dec-8995-b1a932b41780 | Audit            | smb-lz-identity-02   |
-| 16  | Require Environment tag  | 871b6d14-10aa-478d-b590-94f262ecfa99 | Deny             | smb-lz-tagging-01    |
-| 17  | Require Owner tag        | 871b6d14-10aa-478d-b590-94f262ecfa99 | Deny             | smb-lz-tagging-02    |
-| 18  | Allowed locations        | e56962a6-4747-49cd-b67b-bf8b01975c4c | Deny             | smb-lz-governance-01 |
-| 19  | VM backup required       | 013e242c-8828-4970-87b3-ab247555486d | AuditIfNotExists | smb-lz-backup-01     |
-| 20  | Diagnostic settings      | 7f89b1eb-583c-429a-8828-af049802c1d9 | AuditIfNotExists | smb-lz-monitoring-01 |
+| #   | Policy                   | Built-in ID                          | Effect            | Assignment Name      |
+| --- | ------------------------ | ------------------------------------ | ----------------- | -------------------- |
+| 1   | Allowed VM SKUs          | cccc23c7-8427-4f53-ad12-b6a63eb452b3 | Deny              | smb-lz-compute-01    |
+| 2   | No public IPs on NICs    | 83a86a26-fd1f-447c-b59d-e51f44264114 | Deny              | smb-lz-compute-02    |
+| 3   | Audit managed disks      | 06a78e20-9358-41c9-923c-fb736d382a4d | Audit             | smb-lz-compute-03    |
+| 4   | Audit ARM VMs            | 1d84d5fb-01f6-4d12-ba4f-4a26081d403d | Audit             | smb-lz-compute-04    |
+| 5   | NSG on subnets           | e71308d3-144b-4262-b144-efdc3cc90517 | AuditIfNotExists  | smb-lz-network-01    |
+| 6   | Close management ports   | 22730e10-96f6-4aac-ad84-9383d35b5917 | AuditIfNotExists  | smb-lz-network-02    |
+| 7   | Restrict NSG ports       | 9daedab3-fb2d-461e-b861-71790eead4f6 | AuditIfNotExists  | smb-lz-network-03    |
+| 8   | Disable IP forwarding    | 88c0b9da-ce96-4b03-9635-f29a937e2900 | Deny              | smb-lz-network-04    |
+| 9   | Storage HTTPS only       | 404c3081-a854-4457-ae30-26a93ef643f9 | Deny              | smb-lz-storage-01    |
+| 10  | No public blob access    | 4fa4b6c0-31ca-4c0d-b10d-24b96f62a751 | Deny              | smb-lz-storage-02    |
+| 11  | Storage TLS 1.2          | fe83a0eb-a853-422d-aac2-1bffd182c5d0 | Deny              | smb-lz-storage-03    |
+| 12  | Restrict storage network | 34c877ad-507e-4c82-993e-3452a6e0ad3c | Audit             | smb-lz-storage-04    |
+| 13  | Storage ARM migration    | 37e0d2fe-28a5-43d6-a273-67d37d1f5606 | Audit             | smb-lz-storage-05    |
+| 14  | SQL Azure AD-only        | abda6d70-9778-44e7-84a8-06f9e9f5b64b | Audit             | smb-lz-identity-01   |
+| 15  | SQL no public access     | 1b8ca024-1d5c-4dec-8995-b1a932b41780 | Audit             | smb-lz-identity-02   |
+| 16  | Require Environment tag  | 871b6d14-10aa-478d-b590-94f262ecfa99 | Deny              | smb-lz-tagging-01    |
+| 17  | Require Owner tag        | 871b6d14-10aa-478d-b590-94f262ecfa99 | Deny              | smb-lz-tagging-02    |
+| 18  | Allowed locations        | e56962a6-4747-49cd-b67b-bf8b01975c4c | Deny              | smb-lz-governance-01 |
+| 19  | VM backup required       | 013e242c-8828-4970-87b3-ab247555486d | AuditIfNotExists  | smb-lz-backup-01     |
+| 20  | Diagnostic settings      | 7f89b1eb-583c-429a-8828-af049802c1d9 | AuditIfNotExists  | smb-lz-monitoring-01 |
+| 21  | Auto-backup VMs (tag)    | 345fa903-145c-4fe1-8bcd-93ec2adccde8 | DeployIfNotExists | smb-lz-backup-02     |
+
+> **Note**: Policy #21 (smb-lz-backup-02) automatically configures backup for VMs tagged with `Backup: true`
+> to the central Recovery Services Vault using DefaultVMPolicy (30d daily, 12w weekly, 12m monthly retention).
 
 **Parameters**:
 

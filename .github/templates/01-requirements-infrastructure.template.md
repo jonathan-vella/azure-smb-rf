@@ -28,7 +28,7 @@
 List the core infrastructure capabilities required:
 
 1. {Capability 1 - e.g., Hub-spoke network topology}
-2. {Capability 2 - e.g., VMware migration support}
+2. {Capability 2 - e.g., Server migration support}
 3. {Capability 3 - e.g., Secure VM access}
 
 ### Network Topology
