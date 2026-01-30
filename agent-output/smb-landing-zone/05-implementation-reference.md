@@ -17,13 +17,15 @@ infra/bicep/smb-landing-zone/
 │   └── Remove-SmbLandingZonePolicies.ps1   # Policy cleanup script
 └── modules/
     ├── policy-assignments.bicep        # 20 Azure Policy assignments
+    ├── policy-backup-auto.bicep        # VM backup auto-enrollment (DeployIfNotExists)
     ├── resource-groups.bicep           # 5 resource groups
     ├── networking-hub.bicep            # Hub VNet, Bastion, NSG, DNS
     ├── networking-spoke.bicep          # Spoke VNet, NAT Gateway, NSG
     ├── networking-peering.bicep        # VNet peering orchestration
     ├── networking-peering-spoke.bicep  # Spoke-to-hub peering helper
+    ├── route-tables.bicep              # UDR for firewall routing (optional)
     ├── monitoring.bicep                # Log Analytics Workspace
-    ├── backup.bicep                    # Recovery Services Vault
+    ├── backup.bicep                    # Recovery Services Vault + DefaultVMPolicy
     ├── migrate.bicep                   # Azure Migrate Project
     ├── budget.bicep                    # Cost Management Budget
     ├── firewall.bicep                  # Azure Firewall Basic (optional)
@@ -49,7 +51,7 @@ infra/bicep/smb-landing-zone/
 
 | Resource                | Bicep Type                                | Module                   |
 | ----------------------- | ----------------------------------------- | ------------------------ |
-| Policy Assignments (20) | Microsoft.Authorization/policyAssignments | policy-assignments.bicep |
+| Policy Assignments (21) | Microsoft.Authorization/policyAssignments | policy-assignments.bicep |
 | Cost Management Budget  | Microsoft.Consumption/budgets             | budget.bicep             |
 
 ### Resource Groups (5)
@@ -175,14 +177,17 @@ var regionAbbreviations = {
 
 ### Policy Assignments
 
-20 Azure Policies deployed at subscription scope:
+21 Azure Policies deployed at subscription scope:
 
 - **4 Compute**: VM SKU restrictions, no public IPs, managed disks, ARM VMs
 - **4 Network**: NSG requirements, management ports, IP forwarding
 - **5 Storage**: HTTPS, TLS 1.2, no public access, network restrictions
 - **2 Identity**: SQL Azure AD-only auth, no public access
 - **3 Governance**: Required tags (Environment, Owner), allowed locations
-- **2 Operations**: VM backup, diagnostic settings
+- **3 Operations**: VM backup auto-enrollment (DeployIfNotExists), diagnostic settings, backup
+
+**VM Backup Auto-Enrollment**: VMs tagged with `Backup: true` are automatically enrolled
+into DefaultVMPolicy via Azure Policy (smb-lz-backup-02).
 
 ### Cost Controls
 

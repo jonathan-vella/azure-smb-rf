@@ -1,5 +1,5 @@
 ---
-title: "ADR-0001: Cost-Optimized Landing Zone Architecture for VMware-to-Azure Migrations"
+title: "ADR-0001: Cost-Optimized Landing Zone Architecture for On-Premises Workload Migrations"
 status: "Proposed"
 date: "2026-01-27"
 artifact_version: "0.1"
@@ -17,7 +17,7 @@ supersedes: ""
 superseded_by: ""
 ---
 
-# ADR-0001: Cost-Optimized Landing Zone Architecture for VMware-to-Azure Migrations
+# ADR-0001: Cost-Optimized Landing Zone Architecture for On-Premises Workload Migrations
 
 ## Status
 
@@ -25,8 +25,8 @@ superseded_by: ""
 
 ## Context
 
-A Microsoft partner and VMware hosting provider with 1000+ SMB customers requires a repeatable,
-single-subscription Azure environment optimized for VMware-to-Azure migrations. The business
+A Microsoft partner and infrastructure hosting provider with 1000+ SMB customers requires a repeatable,
+single-subscription Azure environment optimized for on-premises workload migrations. The business
 context drives several critical architectural constraints:
 
 **Business Forces:**

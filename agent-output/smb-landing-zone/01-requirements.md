@@ -7,8 +7,8 @@
 ## Project Overview
 
 **Project Name**: smb-landing-zone  
-**Description**: Repeatable, single-subscription Azure environment optimized for VMware-to-Azure migrations for SMB customers.  
-**Business Context**: Microsoft partner and VMware hosting provider with 1000+ SMB customers. Each customer has a handful of VMs. Building a repeatable, single-subscription Azure environment for VMware-to-Azure migrations.  
+**Description**: Repeatable, single-subscription Azure environment optimized for on-premises workload migrations for SMB customers.  
+**Business Context**: Microsoft partner and infrastructure hosting provider with 1000+ SMB customers. Each customer has a handful of VMs. Building a repeatable, single-subscription Azure environment for on-premises to Azure migrations.  
 **Stakeholders**: Partner operations team, SMB customers  
 **Target Deployment Date**: TBD
 
@@ -29,7 +29,7 @@
 | ---------------- | ----------------------- | ----------------------------------------------------- |
 | Hub networking   | rg-hub-{region}-001     | Hub VNet, Bastion, Firewall, VPN Gateway, Private DNS |
 | Spoke networking | rg-spoke-{region}-001   | Spoke VNet, NAT Gateway, workload subnets             |
-| Azure Migrate    | rg-migrate-{region}-001 | Azure Migrate project for VMware assessment           |
+| Azure Migrate    | rg-migrate-{region}-001 | Azure Migrate project for server assessment            |
 | Monitoring       | rg-monitor-{region}-001 | Log Analytics Workspace                               |
 | Backup           | rg-backup-{region}-001  | Recovery Services Vault                               |
 
@@ -65,9 +65,9 @@
 
 | Service                 | Resource Group   | SKU/Tier  | Configuration                              |
 | ----------------------- | ---------------- | --------- | ------------------------------------------ |
-| Azure Migrate Project   | rg-migrate       | N/A       | VMware assessment only (no ASR)            |
+| Azure Migrate Project   | rg-migrate       | N/A       | Server assessment only (no ASR)            |
 | Log Analytics Workspace | rg-monitor       | Per-GB    | 500 MB/day cap, 30-day retention           |
-| Recovery Services Vault | rg-backup        | Standard  | For post-migration VM backups              |
+| Recovery Services Vault | rg-backup        | Standard  | VM backups with DefaultVMPolicy            |
 | NAT Gateway             | rg-spoke         | Standard  | Attached to spoke workload subnets         |
 | Azure Private DNS Zone  | rg-hub           | N/A       | Enable auto-registration for spoke VNet    |
 | Azure Bastion           | rg-hub           | Developer | Secure VM access without public IPs        |

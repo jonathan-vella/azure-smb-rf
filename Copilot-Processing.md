@@ -2,7 +2,23 @@
 
 ---
 
-## Current Request: VM Backup Automation with Azure Policy
+## Current Request: Selective Updates to Agent-Output Files
+
+Update agent-output files to align with backup automation and VMware neutralization changes.
+
+### Action Plan
+
+| ID  | Task                                               | Status      |
+| --- | -------------------------------------------------- | ----------- |
+| 1   | Update 01-requirements.md (neutralize VMware)      | ✅ Complete |
+| 2   | Update 02-architecture-assessment.md (21 policies) | ✅ Complete |
+| 3   | Update 03-des-adr-0001.md (neutral title)          | ✅ Complete |
+| 4   | Update 05-implementation-reference.md (file list)  | ✅ Complete |
+| 5   | Commit and push all changes                        | 🔄 Pending  |
+
+---
+
+## Previous Request: VM Backup Automation with Azure Policy
 
 Implement automated VM backup using `Backup: true` tag that triggers Azure Policy to
 auto-enroll VMs into Recovery Services Vault.

@@ -5,7 +5,7 @@
 ## Overview
 
 This implementation plan defines the Bicep Infrastructure as Code for a cost-optimized,
-repeatable Azure landing zone designed for VMware-to-Azure migrations targeting SMB customers.
+repeatable Azure landing zone designed for on-premises workload migrations targeting SMB customers.
 
 ### Governance Alignment
 
@@ -13,8 +13,9 @@ This plan complies with governance constraints defined in `01-requirements.md` (
 
 **Key constraints applied:**
 
-- 20 Azure Policies deployed at subscription scope (Deny/Audit effects)
+- 21 Azure Policies deployed at subscription scope (Deny/Audit/DeployIfNotExists effects)
 - Mandatory tags: Environment, Owner (Policy-enforced)
+- Backup tag: `Backup: true` (Recommended for VMs - triggers auto-enrollment)
 - Allowed regions: swedencentral, germanywestcentral, global
 - Allowed VM SKUs: B-series, D/E v5/v6 series only
 
@@ -33,29 +34,32 @@ This plan complies with governance constraints defined in `01-requirements.md` (
 
 ## Resource Inventory
 
-| #   | Resource                   | Type                                                     | SKU       | Resource Group   | Dependencies              |
-| --- | -------------------------- | -------------------------------------------------------- | --------- | ---------------- | ------------------------- |
-| 1   | Policy Assignments (20)    | Microsoft.Authorization/policyAssignments                | N/A       | Subscription     | None                      |
-| 2   | Hub Resource Group         | Microsoft.Resources/resourceGroups                       | N/A       | N/A              | Policy Assignments        |
-| 3   | Spoke Resource Group       | Microsoft.Resources/resourceGroups                       | N/A       | N/A              | Policy Assignments        |
-| 4   | Monitor Resource Group     | Microsoft.Resources/resourceGroups                       | N/A       | N/A              | Policy Assignments        |
-| 5   | Backup Resource Group      | Microsoft.Resources/resourceGroups                       | N/A       | N/A              | Policy Assignments        |
-| 6   | Migrate Resource Group     | Microsoft.Resources/resourceGroups                       | N/A       | N/A              | Policy Assignments        |
-| 7   | Hub VNet                   | Microsoft.Network/virtualNetworks                        | N/A       | rg-hub           | Resource Group            |
-| 8   | Spoke VNet                 | Microsoft.Network/virtualNetworks                        | N/A       | rg-spoke         | Resource Group            |
-| 9   | Hub NSG                    | Microsoft.Network/networkSecurityGroups                  | N/A       | rg-hub           | Resource Group            |
-| 10  | Spoke NSG                  | Microsoft.Network/networkSecurityGroups                  | N/A       | rg-spoke         | Resource Group            |
-| 11  | Azure Bastion              | Microsoft.Network/bastionHosts                           | Developer | rg-hub           | Hub VNet, Bastion Subnet  |
-| 12  | NAT Gateway                | Microsoft.Network/natGateways                            | Standard  | rg-spoke         | Spoke VNet                |
-| 13  | NAT Gateway Public IP      | Microsoft.Network/publicIPAddresses                      | Standard  | rg-spoke         | Resource Group            |
-| 14  | Private DNS Zone           | Microsoft.Network/privateDnsZones                        | N/A       | rg-hub           | Hub VNet                  |
-| 15  | Log Analytics Workspace    | Microsoft.OperationalInsights/workspaces                 | PerGB2018 | rg-monitor       | Resource Group            |
-| 16  | Recovery Services Vault    | Microsoft.RecoveryServices/vaults                        | Standard  | rg-backup        | Resource Group            |
-| 17  | Azure Migrate Project      | Microsoft.Migrate/migrateProjects                        | N/A       | rg-migrate       | Resource Group            |
-| 18  | Cost Management Budget     | Microsoft.Consumption/budgets                            | N/A       | Subscription     | None                      |
-| 19  | Azure Firewall (optional)  | Microsoft.Network/azureFirewalls                         | Basic     | rg-hub           | Hub VNet, Firewall Subnet |
-| 20  | VPN Gateway (optional)     | Microsoft.Network/virtualNetworkGateways                 | VpnGw1AZ  | rg-hub           | Hub VNet, Gateway Subnet  |
-| 21  | VNet Peering (conditional) | Microsoft.Network/virtualNetworks/virtualNetworkPeerings | N/A       | rg-hub, rg-spoke | Firewall or VPN deployed  |
+| #   | Resource                      | Type                                                     | SKU       | Resource Group   | Dependencies              |
+| --- | ----------------------------- | -------------------------------------------------------- | --------- | ---------------- | ------------------------- |
+| 1   | Policy Assignments (20)       | Microsoft.Authorization/policyAssignments                | N/A       | Subscription     | None                      |
+| 2   | Hub Resource Group            | Microsoft.Resources/resourceGroups                       | N/A       | N/A              | Policy Assignments        |
+| 3   | Spoke Resource Group          | Microsoft.Resources/resourceGroups                       | N/A       | N/A              | Policy Assignments        |
+| 4   | Monitor Resource Group        | Microsoft.Resources/resourceGroups                       | N/A       | N/A              | Policy Assignments        |
+| 5   | Backup Resource Group         | Microsoft.Resources/resourceGroups                       | N/A       | N/A              | Policy Assignments        |
+| 6   | Migrate Resource Group        | Microsoft.Resources/resourceGroups                       | N/A       | N/A              | Policy Assignments        |
+| 7   | Hub VNet                      | Microsoft.Network/virtualNetworks                        | N/A       | rg-hub           | Resource Group            |
+| 8   | Spoke VNet                    | Microsoft.Network/virtualNetworks                        | N/A       | rg-spoke         | Resource Group            |
+| 9   | Hub NSG                       | Microsoft.Network/networkSecurityGroups                  | N/A       | rg-hub           | Resource Group            |
+| 10  | Spoke NSG                     | Microsoft.Network/networkSecurityGroups                  | N/A       | rg-spoke         | Resource Group            |
+| 11  | Azure Bastion                 | Microsoft.Network/bastionHosts                           | Developer | rg-hub           | Hub VNet, Bastion Subnet  |
+| 12  | NAT Gateway                   | Microsoft.Network/natGateways                            | Standard  | rg-spoke         | Spoke VNet                |
+| 13  | NAT Gateway Public IP         | Microsoft.Network/publicIPAddresses                      | Standard  | rg-spoke         | Resource Group            |
+| 14  | Private DNS Zone              | Microsoft.Network/privateDnsZones                        | N/A       | rg-hub           | Hub VNet                  |
+| 15  | Log Analytics Workspace       | Microsoft.OperationalInsights/workspaces                 | PerGB2018 | rg-monitor       | Resource Group            |
+| 16  | Recovery Services Vault       | Microsoft.RecoveryServices/vaults                        | Standard  | rg-backup        | Resource Group            |
+| 17  | DefaultVMPolicy               | Microsoft.RecoveryServices/vaults/backupPolicies         | N/A       | rg-backup        | Recovery Services Vault   |
+| 18  | Auto-Backup Policy Assignment | Microsoft.Authorization/policyAssignments                | N/A       | Subscription     | DefaultVMPolicy           |
+| 19  | Azure Migrate Project         | Microsoft.Migrate/migrateProjects                        | N/A       | rg-migrate       | Resource Group            |
+| 20  | Cost Management Budget        | Microsoft.Consumption/budgets                            | N/A       | Subscription     | None                      |
+| 21  | Route Table (conditional)     | Microsoft.Network/routeTables                            | N/A       | rg-hub           | Firewall deployed         |
+| 22  | Azure Firewall (optional)     | Microsoft.Network/azureFirewalls                         | Basic     | rg-hub           | Hub VNet, Firewall Subnet |
+| 23  | VPN Gateway (optional)        | Microsoft.Network/virtualNetworkGateways                 | VpnGw1AZ  | rg-hub           | Hub VNet, Gateway Subnet  |
+| 24  | VNet Peering (conditional)    | Microsoft.Network/virtualNetworks/virtualNetworkPeerings | N/A       | rg-hub, rg-spoke | Firewall or VPN deployed  |
 
 ---
 
@@ -67,15 +71,18 @@ infra/bicep/smb-landing-zone/
 ├── main.bicepparam                 # Parameter file with defaults
 ├── modules/
 │   ├── policy-assignments.bicep   # 20 Azure Policy assignments (subscription scope)
+│   ├── policy-backup-auto.bicep   # Auto-backup policy (smb-lz-backup-02, DeployIfNotExists)
 │   ├── resource-groups.bicep      # 5 resource groups
 │   ├── networking-hub.bicep       # Hub VNet, NSG, Bastion, DNS
 │   ├── networking-spoke.bicep     # Spoke VNet, NSG, NAT Gateway
-│   ├── networking-peering.bicep   # VNet peering (conditional)
+│   ├── networking-peering.bicep   # VNet peering (hub→spoke, conditional)
+│   ├── networking-peering-spoke.bicep # VNet peering (spoke→hub, conditional)
+│   ├── route-tables.bicep         # UDR for firewall routing (conditional)
 │   ├── monitoring.bicep           # Log Analytics Workspace
-│   ├── backup.bicep               # Recovery Services Vault
+│   ├── backup.bicep               # Recovery Services Vault + DefaultVMPolicy
 │   ├── migrate.bicep              # Azure Migrate Project
 │   ├── budget.bicep               # Cost Management Budget
-│   ├── firewall.bicep             # Azure Firewall (optional)
+│   ├── firewall.bicep             # Azure Firewall Basic (AVM module, optional)
 │   └── vpn-gateway.bicep          # VPN Gateway (optional)
 ├── scripts/
 │   └── Remove-SmbLandingZonePolicies.ps1
@@ -89,6 +96,9 @@ infra/bicep/smb-landing-zone/
 ### Task 0: modules/policy-assignments.bicep
 
 **Purpose**: Deploy 20 Azure Policy assignments at subscription scope
+
+> **Note**: Policy #21 (smb-lz-backup-02) is deployed via `policy-backup-auto.bicep` after
+> the Recovery Services Vault is created, as it requires the vault ID as a parameter.
 
 **Scope**: `targetScope = 'subscription'`
 
@@ -184,17 +194,20 @@ var deployPeering = deployFirewall || deployVpnGateway
 
 **Modules Called** (in order):
 
-1. policy-assignments.bicep
-2. resource-groups.bicep
-3. networking-hub.bicep
-4. networking-spoke.bicep
-5. monitoring.bicep
-6. backup.bicep
-7. migrate.bicep
-8. budget.bicep
-9. firewall.bicep (conditional)
-10. vpn-gateway.bicep (conditional)
-11. networking-peering.bicep (conditional)
+1. policy-assignments.bicep (20 base policies)
+2. budget.bicep
+3. resource-groups.bicep
+4. networking-hub.bicep
+5. networking-spoke.bicep
+6. monitoring.bicep
+7. backup.bicep (includes DefaultVMPolicy)
+8. policy-backup-auto.bicep (smb-lz-backup-02, depends on backup.bicep outputs)
+9. migrate.bicep
+10. firewall.bicep (conditional: firewall/full scenarios)
+11. route-tables.bicep (conditional: firewall/full scenarios)
+12. vpn-gateway.bicep (conditional: vpn/full scenarios)
+13. networking-peering.bicep (conditional: hub→spoke, when firewall or vpn deployed)
+14. networking-peering-spoke.bicep (conditional: spoke→hub, when firewall or vpn deployed)
 
 ---
 
@@ -374,13 +387,13 @@ resource vault 'Microsoft.RecoveryServices/vaults@2024-04-01' = {
 
 ### Task 7: modules/migrate.bicep
 
-**Purpose**: Deploy Azure Migrate Project for VMware assessment
+**Purpose**: Deploy Azure Migrate Project for server assessment
 
 **Resources**:
 
-| Resource              | Name Pattern                     | Configuration     |
-| --------------------- | -------------------------------- | ----------------- |
-| Azure Migrate Project | migrate-{project}-{env}-{region} | VMware assessment |
+| Resource              | Name Pattern                     | Configuration      |
+| --------------------- | -------------------------------- | ------------------ |
+| Azure Migrate Project | migrate-{project}-{env}-{region} | Server assessment  |
 
 **Outputs**: Project ID
 

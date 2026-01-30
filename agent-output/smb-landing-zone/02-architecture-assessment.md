@@ -17,15 +17,15 @@
 
 ## Executive Summary
 
-This architecture delivers a **cost-optimized, repeatable Azure landing zone** for VMware-to-Azure migrations targeting SMB customers. The design prioritizes **repeatability and cost efficiency** over high availability, explicitly accepting single-zone deployment risk in exchange for minimal monthly spend.
+This architecture delivers a **cost-optimized, repeatable Azure landing zone** for on-premises workload migrations targeting SMB customers. The design prioritizes **repeatability and cost efficiency** over high availability, explicitly accepting single-zone deployment risk in exchange for minimal monthly spend.
 
 **Key architectural decisions:**
 
 1. **Hub-spoke network** with pre-provisioned subnets for future expansion
 2. **Azure Bastion Developer** (free tier) for secure VM access
 3. **NAT Gateway** for deterministic outbound connectivity
-4. **Azure Migrate** for VMware assessment (no ASR complexity)
-5. **20 Azure Policies** enforcing security guardrails without manual intervention
+4. **Azure Migrate** for server assessment (no ASR complexity)
+5. **21 Azure Policies** enforcing security guardrails + VM backup auto-enrollment
 
 ### Recommended Architecture
 
@@ -56,11 +56,11 @@ This architecture delivers a **cost-optimized, repeatable Azure landing zone** f
 │  ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐    │
 │  │ rg-migrate       │ │ rg-monitor       │ │ rg-backup        │    │
 │  │ Azure Migrate    │ │ Log Analytics    │ │ Recovery Vault   │    │
-│  │ (VMware assess)  │ │ (500MB/day cap)  │ │ (VM backups)     │    │
+│  │ (server assess)  │ │ (500MB/day cap)  │ │ (DefaultVMPolicy)│    │
 │  └──────────────────┘ └──────────────────┘ └──────────────────┘    │
 │                                                                     │
 │  [Cost Management Budget: $500/mo] [Defender for Cloud: Free]      │
-│  [20 Azure Policies: Deny/Audit]                                   │
+│  [21 Azure Policies: Deny/Audit/DeployIfNotExists]                  │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
