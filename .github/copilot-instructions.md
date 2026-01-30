@@ -40,13 +40,13 @@ Source of truth: [.github/agents/\_shared/defaults.md](agents/_shared/defaults.m
 
 **All Bicep implementations MUST use Azure Verified Modules (AVM) where available.**
 
-| Rule | Requirement |
-|------|-------------|
-| **Gate Check** | Run `mcp_bicep_list_avm_metadata` before planning any resource |
-| **AVM Registry** | `br/public:avm/res/{service}/{resource}:{version}` |
-| **Version Freshness** | Always fetch latest version from AVM registry |
+| Rule                    | Requirement                                                      |
+| ----------------------- | ---------------------------------------------------------------- |
+| **Gate Check**          | Run `mcp_bicep_list_avm_metadata` before planning any resource   |
+| **AVM Registry**        | `br/public:avm/res/{service}/{resource}:{version}`               |
+| **Version Freshness**   | Always fetch latest version from AVM registry                    |
 | **Raw Bicep Exception** | Only if no AVM exists—document rationale + create tracking issue |
-| **Documentation** | https://aka.ms/avm |
+| **Documentation**       | https://aka.ms/avm                                               |
 
 ## Architecture Essentials
 

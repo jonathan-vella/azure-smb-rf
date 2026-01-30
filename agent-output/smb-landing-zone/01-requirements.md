@@ -89,6 +89,55 @@ Four pre-defined scenarios control optional service deployment:
 > **VPN Gateway**: VpnGw1AZ (~$140/mo) - 650 Mbps, max 30 S2S tunnels, BGP support, zone-redundant.
 > Zone-redundant SKU ensures high availability across Azure availability zones.
 
+### AVM Module Requirements (MANDATORY)
+
+All Bicep implementations MUST use Azure Verified Modules where available.
+
+#### Core Infrastructure (All Scenarios)
+
+| Resource | AVM Module | Version | Notes |
+|----------|------------|---------|-------|
+| Resource Groups | `avm/res/resources/resource-group` | 0.4.3 | 5 RGs |
+| Hub VNet | `avm/res/network/virtual-network` | 0.7.2 | With subnets |
+| Spoke VNet | `avm/res/network/virtual-network` | 0.7.2 | With subnets |
+| Hub NSG | `avm/res/network/network-security-group` | 0.5.2 | Deny-by-default |
+| Spoke NSG | `avm/res/network/network-security-group` | 0.5.2 | Deny-by-default |
+| Azure Bastion | `avm/res/network/bastion-host` | 0.8.2 | Developer SKU |
+| Private DNS Zone | `avm/res/network/private-dns-zone` | 0.8.0 | Auto-registration |
+| Log Analytics | `avm/res/operational-insights/workspace` | 0.15.0 | 500MB cap |
+| Recovery Vault | `avm/res/recovery-services/vault` | 0.11.1 | LRS + DefaultVMPolicy |
+| Budget | `avm/res/consumption/budget` | 0.3.8 | $500/mo alerts |
+
+#### Baseline Scenario Additions
+
+| Resource | AVM Module | Version | Notes |
+|----------|------------|---------|-------|
+| NAT Gateway | `avm/res/network/nat-gateway` | 2.0.1 | Spoke outbound |
+| NAT Gateway PIP | `avm/res/network/public-ip-address` | 0.12.0 | Standard/Static |
+
+#### Firewall Scenario Additions
+
+| Resource | AVM Module | Version | Notes |
+|----------|------------|---------|-------|
+| Azure Firewall | `avm/res/network/azure-firewall` | 0.9.2 | Basic tier |
+| Firewall Policy | `avm/res/network/firewall-policy` | 0.3.4 | Basic tier |
+| Firewall PIPs | `avm/res/network/public-ip-address` | 0.12.0 | Pre-created |
+| Route Table | `avm/res/network/route-table` | 0.5.0 | UDR to firewall |
+
+#### VPN Scenario Additions
+
+| Resource | AVM Module | Version | Notes |
+|----------|------------|---------|-------|
+| VPN Gateway | `avm/res/network/virtual-network-gateway` | 0.10.1 | VpnGw1AZ |
+| Gateway PIP | `avm/res/network/public-ip-address` | 0.12.0 | Standard/Static |
+
+#### No AVM Available (Justified Exceptions)
+
+| Resource | ARM Type | Rationale |
+|----------|----------|-----------|
+| Azure Migrate | `Microsoft.Migrate/migrateProjects` | No AVM module exists |
+| Policy Assignments | `Microsoft.Authorization/policyAssignments` | Pattern module `avm/ptn/authorization/policy-assignment` is optional |
+
 ### Deploy-Time Parameters
 
 | #   | Parameter                | Type   | Example Value                       |

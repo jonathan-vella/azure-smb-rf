@@ -8,15 +8,15 @@ Enforce mandatory AVM usage across all agent and instruction files.
 
 ### Action Plan
 
-| ID  | Task                                               | Status      |
-| --- | -------------------------------------------------- | ----------- |
-| 1   | Update _shared/defaults.md (MUST use AVM)          | ✅ Complete |
-| 2   | Update bicep-code.agent.md (AVM gate check)        | ✅ Complete |
-| 3   | Update bicep-plan.agent.md (AVM gate check)        | ✅ Complete |
-| 4   | Update architect.agent.md (MANDATORY language)     | ✅ Complete |
-| 5   | Update bicep-code-best-practices.instructions.md   | ✅ Complete |
-| 6   | Update copilot-instructions.md (AVM-First Policy)  | ✅ Complete |
-| 7   | Commit and push changes                            | 🔄 Pending  |
+| ID  | Task                                              | Status      |
+| --- | ------------------------------------------------- | ----------- |
+| 1   | Update \_shared/defaults.md (MUST use AVM)        | ✅ Complete |
+| 2   | Update bicep-code.agent.md (AVM gate check)       | ✅ Complete |
+| 3   | Update bicep-plan.agent.md (AVM gate check)       | ✅ Complete |
+| 4   | Update architect.agent.md (MANDATORY language)    | ✅ Complete |
+| 5   | Update bicep-code-best-practices.instructions.md  | ✅ Complete |
+| 6   | Update copilot-instructions.md (AVM-First Policy) | ✅ Complete |
+| 7   | Commit and push changes                           | 🔄 Pending  |
 
 ---
 
