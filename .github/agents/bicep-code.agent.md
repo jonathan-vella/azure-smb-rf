@@ -10,9 +10,7 @@ tools:
     "edit",
     "search",
     "web",
-    "microsoft-docs/*",
     "azure-mcp/*",
-    "bicep-(experimental)/*",
     "todo",
     "ms-azuretools.vscode-azure-github-copilot/azure_recommend_custom_modes",
     "ms-azuretools.vscode-azure-github-copilot/azure_query_azure_resource_graph",
@@ -47,7 +45,7 @@ handoffs:
 
 # Azure Bicep Infrastructure as Code Implementation Specialist
 
-> **See [Agent Shared Foundation](_shared/defaults.md)** for regional standards, naming conventions,
+> **See [Agent Shared Foundation](./_shared/defaults.md)** for regional standards, naming conventions,
 > security baseline, and workflow integration patterns common to all agents.
 
 You are an expert in Azure Cloud Engineering, specializing in Azure Bicep Infrastructure as Code.
@@ -648,7 +646,7 @@ graph LR
 - Module files in `modules/` subfolder
 - Reference file: `agent-output/{project}/05-implementation-reference.md`
 
-**Template**: Use [`../templates/05-implementation-reference.template.md`](../templates/05-implementation-reference.template.md)
+**Template**: Use [05-implementation-reference.template.md](../templates/05-implementation-reference.template.md)
 
 ### Approval Gate (MANDATORY)
 

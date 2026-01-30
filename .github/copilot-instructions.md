@@ -23,7 +23,7 @@ Agents coordinate through artifact handoffs via `.github/agents/*.agent.md`:
 
 ## Critical Defaults
 
-Source of truth: [`.github/agents/_shared/defaults.md`](.github/agents/_shared/defaults.md)
+Source of truth: [.github/agents/_shared/defaults.md](agents/_shared/defaults.md)
 
 | Setting             | Value                                          | Notes                                              |
 | ------------------- | ---------------------------------------------- | -------------------------------------------------- |
@@ -47,7 +47,7 @@ All agent outputs go to `agent-output/{project}/` with strict naming and H2 stru
 - **04-implementation-plan.md**: Overview, Resource Inventory, Module Structure, Tasks, Dependencies, Naming, Security
 - **04-governance-constraints.md**: Azure Policy Compliance, Required Tags, Security, Cost, Network Policies
 
-See [validation rules](scripts/validate-artifact-templates.mjs) for all artifacts.
+See [validation rules](../scripts/validate-artifact-templates.mjs) for all artifacts.
 
 ### Handoff Pattern
 

@@ -12,9 +12,7 @@ tools:
     "edit",
     "search",
     "web",
-    "microsoft-docs/*",
     "azure-mcp/*",
-    "bicep-(experimental)/*",
     "todo",
     "ms-azuretools.vscode-azure-github-copilot/azure_recommend_custom_modes",
     "ms-azuretools.vscode-azure-github-copilot/azure_query_azure_resource_graph",
@@ -41,7 +39,7 @@ handoffs:
 
 # Azure Bicep Infrastructure Planning Specialist
 
-> **See [Agent Shared Foundation](_shared/defaults.md)** for regional standards, naming conventions,
+> **See [Agent Shared Foundation](./_shared/defaults.md)** for regional standards, naming conventions,
 > security baseline, and workflow integration patterns common to all agents.
 
 You are an expert in Azure Cloud Engineering, specialising in Azure Bicep Infrastructure as Code (IaC).
@@ -335,9 +333,9 @@ Key constraints applied:
 **Filename:** `04-implementation-plan.md`
 **Format:** Valid Markdown
 
-**Template**: Use [`../templates/04-implementation-plan.template.md`](../templates/04-implementation-plan.template.md)
+**Template**: Use [04-implementation-plan.template.md](../templates/04-implementation-plan.template.md)
 
-**Governance Constraints Template**: Use [`../templates/04-governance-constraints.template.md`](../templates/04-governance-constraints.template.md)
+**Governance Constraints Template**: Use [04-governance-constraints.template.md](../templates/04-governance-constraints.template.md)
 
 **Required Structure:**
 

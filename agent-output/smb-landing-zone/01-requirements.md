@@ -29,7 +29,7 @@
 | ---------------- | ----------------------- | ----------------------------------------------------- |
 | Hub networking   | rg-hub-{region}-001     | Hub VNet, Bastion, Firewall, VPN Gateway, Private DNS |
 | Spoke networking | rg-spoke-{region}-001   | Spoke VNet, NAT Gateway, workload subnets             |
-| Azure Migrate    | rg-migrate-{region}-001 | Azure Migrate project for server assessment            |
+| Azure Migrate    | rg-migrate-{region}-001 | Azure Migrate project for server assessment           |
 | Monitoring       | rg-monitor-{region}-001 | Log Analytics Workspace                               |
 | Backup           | rg-backup-{region}-001  | Recovery Services Vault                               |
 

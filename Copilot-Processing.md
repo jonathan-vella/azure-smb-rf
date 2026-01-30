@@ -2,7 +2,25 @@
 
 ---
 
-## Current Request: Selective Updates to Agent-Output Files
+## Current Request: Fix Agent/Instructions Diagnostics Errors
+
+Fix prompts-diagnostics-provider errors in agent and instruction files.
+
+### Action Plan
+
+| ID  | Task                                                     | Status      |
+| --- | -------------------------------------------------------- | ----------- |
+| 1   | Remove unknown tools (microsoft-docs/*, bicep-*)         | ✅ Complete |
+| 2   | Fix _shared/defaults.md path in bicep-code.agent.md      | ✅ Complete |
+| 3   | Fix _shared/defaults.md path in bicep-plan.agent.md      | ✅ Complete |
+| 4   | Fix template paths in bicep-code.agent.md                | ✅ Complete |
+| 5   | Fix template paths in bicep-plan.agent.md                | ✅ Complete |
+| 6   | Fix paths in copilot-instructions.md                     | ✅ Complete |
+| 7   | Commit and push fixes                                    | 🔄 Pending  |
+
+---
+
+## Previous Request: Selective Updates to Agent-Output Files
 
 Update agent-output files to align with backup automation and VMware neutralization changes.
 
@@ -14,7 +32,7 @@ Update agent-output files to align with backup automation and VMware neutralizat
 | 2   | Update 02-architecture-assessment.md (21 policies) | ✅ Complete |
 | 3   | Update 03-des-adr-0001.md (neutral title)          | ✅ Complete |
 | 4   | Update 05-implementation-reference.md (file list)  | ✅ Complete |
-| 5   | Commit and push all changes                        | 🔄 Pending  |
+| 5   | Commit and push all changes                        | ✅ Complete |
 
 ---
 

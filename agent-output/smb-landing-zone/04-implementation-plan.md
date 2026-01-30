@@ -391,9 +391,9 @@ resource vault 'Microsoft.RecoveryServices/vaults@2024-04-01' = {
 
 **Resources**:
 
-| Resource              | Name Pattern                     | Configuration      |
-| --------------------- | -------------------------------- | ------------------ |
-| Azure Migrate Project | migrate-{project}-{env}-{region} | Server assessment  |
+| Resource              | Name Pattern                     | Configuration     |
+| --------------------- | -------------------------------- | ----------------- |
+| Azure Migrate Project | migrate-{project}-{env}-{region} | Server assessment |
 
 **Outputs**: Project ID
 
