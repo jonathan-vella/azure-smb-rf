@@ -2,7 +2,33 @@
 
 ---
 
-## Current Request: Implement AVM-First Guardrails
+## Current Request: Update Artifacts with AVM Module Specifications
+
+Update requirements and implementation plan with explicit AVM module mappings after enforcing AVM-first guardrails.
+
+### Action Plan
+
+| ID  | Task                                                | Status      |
+| --- | --------------------------------------------------- | ----------- |
+| 1   | Update 01-requirements.md with AVM module tables    | ✅ Complete |
+| 2   | Update 04-implementation-plan.md Resource Inventory | ✅ Complete |
+| 3   | Update 04-implementation-plan.md Module Structure   | ✅ Complete |
+| 4   | Create ISSUE-avm-migration.md for tracking          | ✅ Complete |
+| 5   | Commit and push changes                             | ✅ Complete |
+
+### Summary
+
+- Added **AVM Module Requirements (MANDATORY)** section to requirements.md with tables per scenario
+- Added **AVM Module Requirements** section to implementation plan with:
+  - Module versions (VNet 0.7.2, NSG 0.5.2, Bastion 0.8.2, etc.)
+  - Justified exceptions (migrate.bicep, policy assignments)
+- Added **AVM Migration Status** table showing current vs target for each module
+- Created GitHub issue template for tracking migration work
+- Committed as 73d8217
+
+---
+
+## Previous Request: Implement AVM-First Guardrails
 
 Enforce mandatory AVM usage across all agent and instruction files.
 
@@ -16,7 +42,7 @@ Enforce mandatory AVM usage across all agent and instruction files.
 | 4   | Update architect.agent.md (MANDATORY language)    | ✅ Complete |
 | 5   | Update bicep-code-best-practices.instructions.md  | ✅ Complete |
 | 6   | Update copilot-instructions.md (AVM-First Policy) | ✅ Complete |
-| 7   | Commit and push changes                           | 🔄 Pending  |
+| 7   | Commit and push changes                           | ✅ Complete |
 
 ---
 

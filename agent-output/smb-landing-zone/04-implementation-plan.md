@@ -39,31 +39,31 @@ This plan complies with governance constraints defined in `01-requirements.md` (
 All resources MUST use Azure Verified Modules where available. Raw Bicep resources are only
 permitted when no AVM module exists for the resource type.
 
-| Resource Type | AVM Module | Version | Notes |
-|---------------|------------|---------|-------|
-| Resource Group | `avm/res/resources/resource-group` | 0.4.3 | All 5 RGs |
-| Virtual Network | `avm/res/network/virtual-network` | 0.7.2 | Hub + Spoke |
-| Network Security Group | `avm/res/network/network-security-group` | 0.5.2 | Deny-by-default |
-| Bastion Host | `avm/res/network/bastion-host` | 0.8.2 | Developer SKU |
-| NAT Gateway | `avm/res/network/nat-gateway` | 2.0.1 | Spoke outbound |
-| Public IP Address | `avm/res/network/public-ip-address` | 0.12.0 | NAT/FW/VPN |
-| Route Table | `avm/res/network/route-table` | 0.5.0 | UDR to firewall |
-| Private DNS Zone | `avm/res/network/private-dns-zone` | 0.8.0 | Auto-registration |
-| Azure Firewall | `avm/res/network/azure-firewall` | 0.9.2 | ✅ Already using |
-| Firewall Policy | `avm/res/network/firewall-policy` | 0.3.4 | ✅ Already using |
-| VPN Gateway | `avm/res/network/virtual-network-gateway` | 0.10.1 | VpnGw1AZ |
-| Log Analytics | `avm/res/operational-insights/workspace` | 0.15.0 | 500MB cap |
-| Recovery Vault | `avm/res/recovery-services/vault` | 0.11.1 | LRS + policy |
-| Budget | `avm/res/consumption/budget` | 0.3.8 | $500/mo alerts |
+| Resource Type          | AVM Module                                | Version | Notes             |
+| ---------------------- | ----------------------------------------- | ------- | ----------------- |
+| Resource Group         | `avm/res/resources/resource-group`        | 0.4.3   | All 5 RGs         |
+| Virtual Network        | `avm/res/network/virtual-network`         | 0.7.2   | Hub + Spoke       |
+| Network Security Group | `avm/res/network/network-security-group`  | 0.5.2   | Deny-by-default   |
+| Bastion Host           | `avm/res/network/bastion-host`            | 0.8.2   | Developer SKU     |
+| NAT Gateway            | `avm/res/network/nat-gateway`             | 2.0.1   | Spoke outbound    |
+| Public IP Address      | `avm/res/network/public-ip-address`       | 0.12.0  | NAT/FW/VPN        |
+| Route Table            | `avm/res/network/route-table`             | 0.5.0   | UDR to firewall   |
+| Private DNS Zone       | `avm/res/network/private-dns-zone`        | 0.8.0   | Auto-registration |
+| Azure Firewall         | `avm/res/network/azure-firewall`          | 0.9.2   | ✅ Already using  |
+| Firewall Policy        | `avm/res/network/firewall-policy`         | 0.3.4   | ✅ Already using  |
+| VPN Gateway            | `avm/res/network/virtual-network-gateway` | 0.10.1  | VpnGw1AZ          |
+| Log Analytics          | `avm/res/operational-insights/workspace`  | 0.15.0  | 500MB cap         |
+| Recovery Vault         | `avm/res/recovery-services/vault`         | 0.11.1  | LRS + policy      |
+| Budget                 | `avm/res/consumption/budget`              | 0.3.8   | $500/mo alerts    |
 
 #### Justified Exceptions (No AVM Available)
 
-| Resource | ARM Type | Rationale |
-|----------|----------|-----------|
-| Azure Migrate Project | `Microsoft.Migrate/migrateProjects` | No AVM module exists |
-| Policy Assignments | `Microsoft.Authorization/policyAssignments` | Raw ARM simplest for subscription-scope |
-| VNet Peering | `Microsoft.Network/virtualNetworks/virtualNetworkPeerings` | Inline in VNet module |
-| Backup Policy | `Microsoft.RecoveryServices/vaults/backupPolicies` | Nested in vault module |
+| Resource              | ARM Type                                                   | Rationale                               |
+| --------------------- | ---------------------------------------------------------- | --------------------------------------- |
+| Azure Migrate Project | `Microsoft.Migrate/migrateProjects`                        | No AVM module exists                    |
+| Policy Assignments    | `Microsoft.Authorization/policyAssignments`                | Raw ARM simplest for subscription-scope |
+| VNet Peering          | `Microsoft.Network/virtualNetworks/virtualNetworkPeerings` | Inline in VNet module                   |
+| Backup Policy         | `Microsoft.RecoveryServices/vaults/backupPolicies`         | Nested in vault module                  |
 
 ### Resource Details
 
@@ -124,19 +124,19 @@ infra/bicep/smb-landing-zone/
 
 ### AVM Migration Status
 
-| Module | Current | Target AVM | Migration Priority |
-|--------|---------|------------|-------------------|
-| `firewall.bicep` | ✅ AVM 0.9.2 | - | Complete |
-| `networking-hub.bicep` | ❌ Raw | VNet 0.7.2, NSG 0.5.2, Bastion 0.8.2, DNS 0.8.0 | High |
-| `networking-spoke.bicep` | ❌ Raw | VNet 0.7.2, NSG 0.5.2, NAT 2.0.1, PIP 0.12.0 | High |
-| `vpn-gateway.bicep` | ❌ Raw | `virtual-network-gateway` 0.10.1 | High |
-| `backup.bicep` | ❌ Raw | `recovery-services/vault` 0.11.1 | Medium |
-| `monitoring.bicep` | ❌ Raw | `operational-insights/workspace` 0.15.0 | Medium |
-| `route-tables.bicep` | ❌ Raw | `route-table` 0.5.0 | Medium |
-| `budget.bicep` | ❌ Raw | `consumption/budget` 0.3.8 | Low |
-| `resource-groups.bicep` | ❌ Raw | `resources/resource-group` 0.4.3 | Low |
-| `migrate.bicep` | ❌ Raw | **No AVM exists** | Exception |
-| `policy-*.bicep` | ❌ Raw | Pattern exists but not required | Exception |
+| Module                   | Current      | Target AVM                                      | Migration Priority |
+| ------------------------ | ------------ | ----------------------------------------------- | ------------------ |
+| `firewall.bicep`         | ✅ AVM 0.9.2 | -                                               | Complete           |
+| `networking-hub.bicep`   | ❌ Raw       | VNet 0.7.2, NSG 0.5.2, Bastion 0.8.2, DNS 0.8.0 | High               |
+| `networking-spoke.bicep` | ❌ Raw       | VNet 0.7.2, NSG 0.5.2, NAT 2.0.1, PIP 0.12.0    | High               |
+| `vpn-gateway.bicep`      | ❌ Raw       | `virtual-network-gateway` 0.10.1                | High               |
+| `backup.bicep`           | ❌ Raw       | `recovery-services/vault` 0.11.1                | Medium             |
+| `monitoring.bicep`       | ❌ Raw       | `operational-insights/workspace` 0.15.0         | Medium             |
+| `route-tables.bicep`     | ❌ Raw       | `route-table` 0.5.0                             | Medium             |
+| `budget.bicep`           | ❌ Raw       | `consumption/budget` 0.3.8                      | Low                |
+| `resource-groups.bicep`  | ❌ Raw       | `resources/resource-group` 0.4.3                | Low                |
+| `migrate.bicep`          | ❌ Raw       | **No AVM exists**                               | Exception          |
+| `policy-*.bicep`         | ❌ Raw       | Pattern exists but not required                 | Exception          |
 
 ---
 
