@@ -97,14 +97,39 @@ output principalId string = resource.identity.principalId
 
 ## Azure Verified Modules (AVM)
 
+Prefer AVM modules for complex resources. They are Microsoft-maintained and tested.
+
 ```bicep
-// ✅ Use AVM
+// ✅ Use AVM for Key Vault
 module keyVault 'br/public:avm/res/key-vault/vault:0.11.0' = {
   params: { name: kvName, location: location, tags: tags }
 }
 
+// ✅ Use AVM for Azure Firewall (with pre-created PIPs for reliability)
+resource firewallPublicIp 'Microsoft.Network/publicIPAddresses@2024-01-01' = {
+  name: 'pip-fw-${environment}-${regionShort}'
+  zones: ['1', '2', '3']  // Zone-redundant
+  // ...
+}
+
+module firewall 'br/public:avm/res/network/azure-firewall:0.9.2' = {
+  params: {
+    name: firewallName
+    publicIPResourceID: firewallPublicIp.id  // Reference pre-created
+    // ...
+  }
+}
+
 // ❌ Only use raw resources if no AVM exists (document why)
 ```
+
+### AVM Sequential Deployment Pattern
+
+For Azure Firewall Basic, pre-create Public IPs before the firewall to avoid transient failures:
+
+1. **Phase 1**: Create zone-redundant Public IPs (explicit resources)
+2. **Phase 2**: Create Firewall Policy (AVM module)
+3. **Phase 3**: Create Firewall (AVM module, references pre-created PIPs)
 
 ## Patterns to Avoid
 

@@ -80,15 +80,27 @@ infra/bicep/smb-landing-zone/
 
 ### Optional Resources (Per Scenario)
 
-| Resource           | Bicep Type                               | Module             | Scenarios                 |
-| ------------------ | ---------------------------------------- | ------------------ | ------------------------- |
-| Azure Firewall     | Microsoft.Network/azureFirewalls         | firewall.bicep     | `firewall`, `full`        |
-| Firewall Policy    | Microsoft.Network/firewallPolicies       | firewall.bicep     | `firewall`, `full`        |
-| Firewall Public IP | Microsoft.Network/publicIPAddresses      | firewall.bicep     | `firewall`, `full`        |
-| VPN Gateway        | Microsoft.Network/virtualNetworkGateways | vpn-gateway.bicep  | `vpn`, `full`             |
-| Gateway Public IP  | Microsoft.Network/publicIPAddresses      | vpn-gateway.bicep  | `vpn`, `full`             |
-| VNet Peering       | Microsoft.Network/virtualNetworkPeerings | networking-peering | `firewall`, `vpn`, `full` |
-| Route Table (UDR)  | Microsoft.Network/routeTables            | route-tables.bicep | `firewall`, `full`        |
+| Resource           | Bicep Type                               | Module             | Scenarios                 | Notes |
+| ------------------ | ---------------------------------------- | ------------------ | ------------------------- | ----- |
+| Azure Firewall     | AVM Module (0.9.2)                       | firewall.bicep     | `firewall`, `full`        | Zone-redundant |
+| Firewall Policy    | AVM Module (0.3.4)                       | firewall.bicep     | `firewall`, `full`        | Basic tier |
+| Firewall Public IP | Microsoft.Network/publicIPAddresses      | firewall.bicep     | `firewall`, `full`        | Pre-created for reliability |
+| VPN Gateway        | Microsoft.Network/virtualNetworkGateways | vpn-gateway.bicep  | `vpn`, `full`             | VpnGw1AZ |
+| Gateway Public IP  | Microsoft.Network/publicIPAddresses      | vpn-gateway.bicep  | `vpn`, `full`             | |
+| VNet Peering       | Microsoft.Network/virtualNetworkPeerings | networking-peering | `firewall`, `vpn`, `full` | |
+| Route Table (UDR)  | Microsoft.Network/routeTables            | route-tables.bicep | `firewall`, `full`        | |
+
+### Azure Verified Modules (AVM) Usage
+
+The firewall module uses Azure Verified Modules for improved reliability:
+
+| AVM Module | Version | Purpose |
+|------------|---------|---------|
+| `br/public:avm/res/network/azure-firewall` | 0.9.2 | Azure Firewall Basic |
+| `br/public:avm/res/network/firewall-policy` | 0.3.4 | Firewall Policy |
+
+**Key Pattern**: Public IPs are pre-created before the firewall to avoid transient provisioning
+failures. See [ADR-0003](07-ab-adr-0003-avm-firewall-migration.md) for details.
 
 ## Deployment Instructions
 
