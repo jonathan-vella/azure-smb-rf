@@ -12,7 +12,7 @@ During validation of the SMB Landing Zone `full` scenario (Firewall + VPN Gatewa
 ```
 Deployment attempt 1: FAILED
   Error: InternalServerError on Microsoft.Network/azureFirewalls
-  
+
 Deployment attempt 2 (after 30s): SUCCEEDED
   All resources provisioned correctly
 ```
@@ -31,9 +31,11 @@ Investigation revealed a **race condition** when deploying Azure Firewall and VP
 ### Evidence
 
 From the Bicep module documentation:
+
 > "Like resources, modules are deployed in parallel unless they depend on other modules or resources."
 
 From Azure deployment error reference:
+
 > `AnotherOperationInProgress`: Wait for concurrent operation to complete.
 
 ## Decision

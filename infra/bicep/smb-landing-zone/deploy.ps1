@@ -423,24 +423,28 @@ function Remove-OrphanedRoleAssignments {
         When policy assignments with managed identities are deleted, the role
         assignments may remain orphaned. This causes deployment failures when
         trying to recreate them with different principal IDs.
+
+        Searches for Backup and VM Contributor role assignments and checks
+        if their service principals still exist in Azure AD.
     #>
     param([string]$SubscriptionId)
 
     Write-Step "CLEANUP" "Checking for orphaned role assignments..."
 
-    # Get backup-related role assignments
+    # Get backup-related role assignments (Backup Contributor + VM Contributor)
     $roleAssignments = az role assignment list --scope "/subscriptions/$SubscriptionId" `
-        --query "[?contains(roleDefinitionName, 'Backup') || contains(roleDefinitionName, 'Contributor')].{name:name, principal:principalId}" `
+        --query "[?contains(roleDefinitionName, 'Backup') || roleDefinitionName=='Virtual Machine Contributor'].{name:name, principal:principalId, role:roleDefinitionName}" `
         -o json 2>$null | ConvertFrom-Json
 
     $deletedCount = 0
     foreach ($ra in $roleAssignments) {
         if (-not $ra.principal) { continue }
 
-        # Check if principal still exists
+        # Check if principal still exists in Azure AD
         $exists = az ad sp show --id $ra.principal 2>$null
         if (-not $exists -and $LASTEXITCODE -ne 0) {
             # Orphaned - delete it
+            Write-SubStep "Found orphaned: $($ra.role) for principal $($ra.principal.Substring(0,8))..."
             $raId = "/subscriptions/$SubscriptionId/providers/Microsoft.Authorization/roleAssignments/$($ra.name)"
             az role assignment delete --ids $raId 2>$null
             if ($LASTEXITCODE -eq 0) {

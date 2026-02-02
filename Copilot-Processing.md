@@ -30,12 +30,12 @@ AVM migration (v0.2.0), race condition fix (v0.3.0), and full validation.
 
 ### Current State
 
-| Item                     | Status     | Notes                                  |
-| ------------------------ | ---------- | -------------------------------------- |
-| `bicep build main.bicep` | ✅ SUCCESS | 10 warnings (BCP318, BCP321, BCP081)   |
-| Artifact validation      | ✅ PASSED  | Minor drift warnings on extra H2s      |
-| Race condition fix       | ✅ APPLIED | VPN depends on Firewall in full        |
-| What-if (all scenarios)  | ✅ PASSED  | All 4 scenarios validated              |
+| Item                     | Status     | Notes                                |
+| ------------------------ | ---------- | ------------------------------------ |
+| `bicep build main.bicep` | ✅ SUCCESS | 10 warnings (BCP318, BCP321, BCP081) |
+| Artifact validation      | ✅ PASSED  | Minor drift warnings on extra H2s    |
+| Race condition fix       | ✅ APPLIED | VPN depends on Firewall in full      |
+| What-if (all scenarios)  | ✅ PASSED  | All 4 scenarios validated            |
 
 ---
 
@@ -43,11 +43,11 @@ AVM migration (v0.2.0), race condition fix (v0.3.0), and full validation.
 
 ### Deployment Scenarios to Test
 
-| Scenario   | Description                             | Monthly Cost | Status    | Resources                     |
-| ---------- | --------------------------------------- | ------------ | --------- | ----------------------------- |
-| `baseline` | NAT Gateway only, cloud-native          | ~$48/mo      | ✅ PASSED | 32 create, 0 delete           |
-| `firewall` | Azure Firewall + UDR, egress filtering  | ~$336/mo     | ✅ PASSED | 29 create, 1 modify, 0 delete |
-| `vpn`      | VPN Gateway + Gateway Transit, hybrid   | ~$187/mo     | ✅ PASSED | 32 create, 1 modify, 0 delete |
+| Scenario   | Description                             | Monthly Cost | Status     | Resources                     |
+| ---------- | --------------------------------------- | ------------ | ---------- | ----------------------------- |
+| `baseline` | NAT Gateway only, cloud-native          | ~$48/mo      | ✅ PASSED  | 32 create, 0 delete           |
+| `firewall` | Azure Firewall + UDR, egress filtering  | ~$336/mo     | ✅ PASSED  | 29 create, 1 modify, 0 delete |
+| `vpn`      | VPN Gateway + Gateway Transit, hybrid   | ~$187/mo     | ✅ PASSED  | 32 create, 1 modify, 0 delete |
 | `full`     | Firewall + VPN + UDR, complete security | ~$476/mo     | 🔄 PENDING | Awaiting validation with fix  |
 
 ### Test Commands
