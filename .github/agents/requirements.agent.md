@@ -94,7 +94,7 @@ MANDATORY: DON'T start implementation, but run the <workflow> again based on new
 <requirements_research>
 Research the user's Azure workload comprehensively using read-only tools:
 
-1. **Existing patterns**: Search workspace for similar projects in `agent-output/` and `scenarios/`
+1. **Existing patterns**: Search workspace for similar projects in `agent-output/`
 2. **Template compliance**: Review [`../templates/01-requirements.template.md`](../templates/01-requirements.template.md)
    for structure
 3. **Regional defaults**: Check `.github/agents/_shared/defaults.md` for region standards

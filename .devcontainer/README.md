@@ -74,9 +74,8 @@ az account set --subscription "<your-subscription-id>"
 # 3. Verify tools are installed (auto-displayed after setup)
 terraform version && az bicep version && pwsh --version
 
-# 4. Explore demos and infrastructure
-cd scenarios/ && ls -la
-cd ../infra/bicep/ && tree -L 2
+# 4. Explore infrastructure templates
+cd infra/bicep/smb-landing-zone && ls -la
 ```
 
 ## 📁 Environment Configuration
@@ -141,7 +140,7 @@ sudo npm update -g markdownlint-cli           # markdownlint
 | Azure auth fails      | Use `az login --use-device-code`                         |
 | Rebuild needed        | `F1` → `Dev Containers: Rebuild Container Without Cache` |
 
-📖 **Full troubleshooting guide:** [docs/guides/troubleshooting.md](../docs/guides/troubleshooting.md)
+📖 **Need help?** Check the [main README](../README.md) or open an issue.
 
 ## 📊 Resource Usage
 
@@ -161,9 +160,8 @@ sudo npm update -g markdownlint-cli           # markdownlint
 
 ## 📚 Related Documentation
 
-- [Workflow Guide](../docs/reference/workflow.md)
-- [Scenarios](../scenarios/)
 - [Copilot Instructions](../.github/copilot-instructions.md)
+- [Agent Artifacts](../agent-output/smb-landing-zone/)
 - [Repository README](../README.md)
 
 ---

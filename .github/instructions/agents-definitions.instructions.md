@@ -66,8 +66,7 @@ All top-level workflow agents in `.github/agents/` MUST include this near the to
 > security baseline, and workflow integration patterns common to all agents.
 ```
 
-If you author scenario-local agents (for example under `scenarios/**/agents/`), link to the shared
-foundation using a correct relative path from that folder.
+If you author project-specific agents, link to the shared foundation using a correct relative path.
 
 ## Authoritative Standards (Avoid Drift)
 

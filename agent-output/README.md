@@ -88,8 +88,8 @@ This file is automatically updated by agents as they create new outputs.
 
 ## Related Resources
 
-- **Bicep Code**: [`infra/bicep/{project}/`](../../infra/bicep/{project}/)
-- **Scenarios**: [`scenarios/`](../../scenarios/)
+- **Bicep Code**: [`infra/bicep/smb-landing-zone/`](../infra/bicep/smb-landing-zone/)
+- **Templates**: [`.github/templates/`](../.github/templates/)
 ```
 
 ## Existing Demo Outputs
