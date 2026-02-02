@@ -1,6 +1,8 @@
 # Agentic InfraOps - Copilot Instructions
 
 > **Agentic InfraOps** - Azure infrastructure engineered by agents. Verified. Well-Architected. Deployable.
+>
+> **Version**: 0.3.0 | **Region**: swedencentral | **License**: MIT
 
 ## Core Mission
 
@@ -17,9 +19,22 @@ Agents coordinate through artifact handoffs via `.github/agents/*.agent.md`:
 4. **Planning** (`bicep-plan` agent) → `04-implementation-plan.md` + governance constraints
 5. **Implementation** (`bicep-code` agent) → Bicep templates in `infra/bicep/{project}/`
 6. **Deploy** (`deploy` agent) → `06-deployment-summary.md` + resource validation
-7. **As-Built** (`diagram`, `adr`, `docs` agents) → `07-*.md` documentation suite
+7. **As-Built** (`diagram`, `adr`, `docs` agents) → `07-*.md` documentation suite (6 files)
 
 **Key Rule**: Each agent saves outputs to `agent-output/{project}/` and passes context via handoff prompts.
+
+## Deployment Scenarios
+
+Choose scenario via `./deploy.ps1 -Scenario <name>`:
+
+| Scenario     | Features                        | Deploy Time | Monthly Cost |
+| ------------ | ------------------------------- | ----------- | ------------ |
+| **baseline** | NAT Gateway only (cloud-native) | ~4 min      | ~$48         |
+| **firewall** | Azure Firewall + UDR            | ~15 min     | ~$336        |
+| **vpn**      | VPN Gateway + Gateway Transit   | ~25 min     | ~$187        |
+| **full**     | Firewall + VPN + UDR            | ~40-55 min  | ~$476        |
+
+> 💡 Start with `baseline` for testing; upgrade to `firewall` or `full` for production.
 
 ## Critical Defaults
 
@@ -100,10 +115,20 @@ npm run lint:md
 # Set Azure subscription
 az account set --subscription "<sub-id>"
 
-# Preview Bicep deployment (what-if analysis)
-bicep build infra/bicep/{project}/main.bicep
-az deployment group what-if --template-file main.json ...
+# Deploy (PowerShell)
+cd infra/bicep/smb-landing-zone
+./deploy.ps1 -Scenario baseline -WhatIf  # Preview
+./deploy.ps1 -Scenario baseline          # Deploy
+
+# Cleanup (⚠️ deletes policies, RGs, role assignments)
+cd scripts
+./Remove-SmbLandingZone.ps1 -Location swedencentral -WhatIf  # Preview
+./Remove-SmbLandingZone.ps1 -Location swedencentral -Force   # Delete all
 ```
+
+> **⚠️ Cleanup deletes**: 20 Azure Policy assignments, 5 resource groups (`rg-hub-*`,
+> `rg-spoke-*`, `rg-monitor-*`, `rg-backup-*`, `rg-migrate-*`), Cost Management budget,
+> and orphaned role assignments. Takes 10-15 minutes (Firewall/VPN deletions are slow).
 
 ### MCP Integration
 
@@ -127,6 +152,19 @@ The Azure Pricing MCP server (`.mcp/azure-pricing-mcp/`) integrates with agents 
 | `.vscode/mcp.json`                        | MCP server configuration (pre-configured)                   |
 | `scripts/validate-artifact-templates.mjs` | CI validation of artifact H2 structure                      |
 
+## Skills
+
+Reusable skills in `.github/skills/` provide domain-specific capabilities:
+
+| Skill            | Purpose                                     | Trigger Keywords                                                             |
+| ---------------- | ------------------------------------------- | ---------------------------------------------------------------------------- |
+| `azure-diagrams` | Architecture diagrams with 700+ Azure icons | "create diagram", "visualize", "architecture diagram", "generate from Bicep" |
+| `github-issues`  | Create/update GitHub issues via MCP         | "create issue", "file bug", "request feature", "update issue"                |
+
+**Invocation**: Skills are activated when trigger keywords appear in prompts.
+The `diagram.agent.md` references `azure-diagrams` skill files via `references:` front matter,
+giving it access to 700+ component imports and layout patterns.
+
 ## Project Structure
 
 ```
@@ -145,6 +183,7 @@ azure-smb-landing-zone/
 │   │   ├── docs.agent.md          # Step 7: Workload documentation
 │   │   └── diagnose.agent.md      # Troubleshooting helper
 │   ├── instructions/              # Rules for specific file types (applied via .gitattributes)
+│   ├── skills/                    # Reusable skills (azure-diagrams, github-issues)
 │   ├── templates/                 # H2 skeleton files for artifact generation
 │   └── copilot-instructions.md    # THIS FILE
 ├── agent-output/{project}/        # All agent-generated artifacts (01-07)
@@ -287,8 +326,13 @@ npm run lint:md
 ### Docs Agent
 
 - Generates comprehensive workload documentation
-- Creates `07-design-document.md`, `07-operations-runbook.md`, and related docs
-- Includes cost summaries, compliance matrices, backup/DR plans
+- Creates 6 Step 7 documents:
+  - `07-design-document.md` - Complete technical design
+  - `07-operations-runbook.md` - Day-2 operations procedures
+  - `07-backup-dr-plan.md` - Backup and disaster recovery
+  - `07-compliance-matrix.md` - Security control mapping
+  - `07-resource-inventory.md` - Deployed resource catalog
+  - `07-documentation-index.md` - Document package contents
 
 ---
 
