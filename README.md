@@ -116,12 +116,12 @@ Choose the scenario that fits your budget and connectivity requirements:
 
 <div align="center">
 
-|    Scenario    | Firewall | VPN | NAT GW | Peering | UDR | Monthly Cost |
-| :------------: | :------: | :-: | :----: | :-----: | :-: | -----------: |
-| **`baseline`** |    ❌    | ❌  |   ✅   |   ❌    | ❌  |     **~$48** |
-| **`firewall`** |    ✅    | ❌  |   ❌   |   ✅    | ✅  |    **~$336** |
-|   **`vpn`**    |    ❌    | ✅  |   ❌   |   ✅    | ❌  |    **~$187** |
-|   **`full`**   |    ✅    | ✅  |   ❌   |   ✅    | ✅  |    **~$476** |
+|    Scenario    | Firewall | VPN | NAT GW | Peering | UDR | Deploy Time | Monthly Cost |
+| :------------: | :------: | :-: | :----: | :-----: | :-: | :---------: | -----------: |
+| **`baseline`** |    ❌    | ❌  |   ✅   |   ❌    | ❌  |   ~4 min    |     **~$48** |
+| **`firewall`** |    ✅    | ❌  |   ❌   |   ✅    | ✅  |   ~15 min   |    **~$336** |
+|   **`vpn`**    |    ❌    | ✅  |   ❌   |   ✅    | ❌  |   ~25 min   |    **~$187** |
+|   **`full`**   |    ✅    | ✅  |   ❌   |   ✅    | ✅  |  ~40-55 min |    **~$476** |
 
 </div>
 
@@ -179,6 +179,22 @@ cd infra/bicep/smb-landing-zone
 # Deploy full scenario (~$476/mo)
 ./deploy.ps1 -Scenario full
 ```
+
+### 5️⃣ Cleanup (Optional)
+
+When you're done testing, remove all deployed resources:
+
+```powershell
+cd infra/bicep/smb-landing-zone/scripts
+
+# Preview what will be deleted
+./Remove-SmbLandingZone.ps1 -Location swedencentral -WhatIf
+
+# Delete all resources (no confirmation prompts)
+./Remove-SmbLandingZone.ps1 -Location swedencentral -Force
+```
+
+> ⏱️ Cleanup takes 10-15 minutes (Azure Firewall and VPN Gateway take longest to delete)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -301,6 +317,7 @@ This landing zone is designed for:
 
 | Resource                                                                               | Description                                   |
 | -------------------------------------------------------------------------------------- | --------------------------------------------- |
+| [Partner Quick Reference](docs/partner-quick-reference.md)                             | One-page deployment guide for partners        |
 | [Agentic InfraOps Framework](https://github.com/jonathan-vella/azure-agentic-infraops) | Parent framework for AI-driven infrastructure |
 | [Azure Landing Zones](https://aka.ms/alz)                                              | Microsoft reference architectures             |
 | [Azure Verified Modules](https://aka.ms/avm)                                           | Bicep module registry                         |

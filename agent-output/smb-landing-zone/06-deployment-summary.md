@@ -1,26 +1,29 @@
 # Step 6: Deployment Summary - SMB Landing Zone
 
-> Generated: 2026-01-29 | Artifact v0.1  
-> Status: **SUCCEEDED** (All Test Scenarios Passed)
+> Generated: 2026-02-02 | Artifact v0.2  
+> Status: **SUCCEEDED** (All Scenarios Validated - Greenfield + Update Deployments)
 
 ## Deployment Details
 
-| Field               | Value                         |
-| ------------------- | ----------------------------- |
-| **Deployment Name** | `smb-lz-prod-20260129-095407` |
-| **Resource Group**  | Multiple (see below)          |
-| **Location**        | swedencentral                 |
-| **Duration**        | 9.3 minutes                   |
-| **Status**          | ✅ Succeeded                  |
+| Field               | Value                              |
+| ------------------- | ---------------------------------- |
+| **Deployment Name** | `smb-lz-prod-20260202-143501`      |
+| **Resource Group**  | Multiple (see below)               |
+| **Location**        | swedencentral                      |
+| **Duration**        | 30 min 10 sec (greenfield, full)   |
+| **Status**          | ✅ Succeeded                       |
 
-### Test Scenarios Validated
+### Validated Deployment Scenarios
 
-| #   | Scenario                        | Firewall | VPN | Status        | Duration | Monthly Cost |
-| --- | ------------------------------- | -------- | --- | ------------- | -------- | ------------ |
-| 1   | Hub-Spoke with Firewall only    | ✅       | ❌  | ✅ **Passed** | 9.3 min  | ~$336        |
-| 2   | Hub-Spoke with VPN Gateway only | ❌       | ✅  | 🔲 Skipped    | —        | ~$187        |
-| 3   | Hub-Spoke with Firewall + VPN   | ✅       | ✅  | ✅ **Passed** | 9.8 min  | ~$476        |
-| 4   | Hub-Spoke with NAT Gateway only | ❌       | ❌  | ✅ **Passed** | 2.2 min  | ~$48         |
+| Scenario     | Firewall | VPN | Status        | First Deploy | Update  | Monthly Cost |
+| ------------ | :------: | :-: | ------------- | ------------ | ------- | ------------ |
+| `baseline`   |    ❌    | ❌  | ✅ **Passed** | ~4 min       | ~2 min  | ~$48         |
+| `firewall`   |    ✅    | ❌  | ✅ **Passed** | ~15 min      | ~5 min  | ~$336        |
+| `vpn`        |    ❌    | ✅  | ✅ **Passed** | ~25 min      | ~6 min  | ~$187        |
+| `full`       |    ✅    | ✅  | ✅ **Passed** | ~40-55 min   | ~10 min | ~$476        |
+
+> **Note**: The `full` scenario includes a race condition fix (v0.3.0) that serializes
+> Firewall → VPN Gateway deployment to prevent VNet conflicts. See ADR-0004.
 
 ## Deployed Resources
 

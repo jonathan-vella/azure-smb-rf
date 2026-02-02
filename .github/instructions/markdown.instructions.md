@@ -15,8 +15,7 @@ Follow these guidelines to ensure documentation quality across the repository.
 - Break long lines at natural points (after punctuation, before conjunctions)
 - Use LF line endings (enforced by `.gitattributes`)
 - Include meaningful alt text for all images
-- Validate with `markdownlint` before committing
-- Refer to `docs/guides/markdown-style-guide.md` for quick rules and examples
+- Validate with `markdownlint` before committing (`npm run lint:md`)
 
 ## Line Length Guidelines
 
