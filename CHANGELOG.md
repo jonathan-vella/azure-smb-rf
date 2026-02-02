@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-02-02
+
+### Fixed
+
+- **Firewall/VPN race condition**: Serialized deployment order (Firewall → VPN → Peering)
+  to avoid VNet update conflicts in full scenario
+- **First-attempt deployment success**: Eliminated intermittent `InternalServerError` on
+  Azure Firewall when deploying with VPN Gateway
+- Enhanced retry logic to detect `AnotherOperationInProgress` and `Conflict` errors
+
+### Added
+
+- **VPN Gateway cleanup**: `Remove-FaultedVpnGateway` function in deploy.ps1 for failed deployment recovery
+- **Progress indicators**: Estimated deployment times displayed before confirmation (e.g., "40-55 minutes" for full scenario)
+- **ADR-0004**: Architecture Decision Record documenting the deployment ordering fix
+- Orphaned VPN public IP cleanup in Remove-SmbLandingZone.ps1
+
+### Changed
+
+- **main.bicep** (v0.3): Added conditional `dependsOn: [firewall]` to VPN Gateway module
+- **deploy.ps1** (v0.5): Enhanced retry patterns, VPN cleanup, progress indicators
+- **Remove-SmbLandingZone.ps1** (v1.1): Added VPN Gateway and public IP cleanup
+
+### Documentation
+
+- Updated deployment ordering notes in main.bicep header
+- See [ADR-0004](agent-output/smb-landing-zone/07-ab-adr-0004-firewall-vpn-deployment-ordering.md) for root cause analysis
+
 ## [0.2.0] - 2026-01-30
 
 ### Added

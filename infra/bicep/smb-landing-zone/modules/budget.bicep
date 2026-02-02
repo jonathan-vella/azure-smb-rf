@@ -2,7 +2,18 @@
 // SMB Landing Zone - Budget
 // ============================================================================
 // Purpose: Deploy Cost Management Budget with alerts
-// Version: v0.1
+// Version: v0.3
+// ============================================================================
+// IMPORTANT: Azure Budgets API Limitation
+// ========================================
+// Azure Budgets do NOT allow updating the start date after creation.
+// This means redeploying with a different month will FAIL.
+//
+// Solution: The deploy.ps1 script automatically deletes any existing
+// budget before deployment, ensuring a clean state.
+//
+// If deploying manually (not via deploy.ps1), run:
+//   az consumption budget delete --budget-name 'budget-smb-lz-monthly'
 // ============================================================================
 
 targetScope = 'subscription'
@@ -19,7 +30,7 @@ param budgetAmount int = 500
 @description('Email address for budget alerts')
 param alertEmail string
 
-@description('Budget start date (first day of month, format: yyyy-MM-dd)')
+@description('Budget start date (first day of month, format: yyyy-MM-dd). MUST be fixed - cannot be updated after creation.')
 param startDate string
 
 // ============================================================================

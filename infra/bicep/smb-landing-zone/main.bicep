@@ -2,8 +2,9 @@
 // SMB Landing Zone - Main Orchestration Template
 // ============================================================================
 // Purpose: Cost-optimized Azure landing zone for VMware-to-Azure migrations
-// Version: v0.2
-// Generated: 2026-01-29
+// Version: v0.3
+// Generated: 2026-02-02
+// Deployment Order: Firewall → VPN Gateway → Peering (serialized to avoid VNet conflicts)
 // ============================================================================
 // Deployment Scenarios:
 // - baseline:   NAT Gateway only (~$48/mo) - cloud-native, no hybrid
@@ -65,8 +66,8 @@ param budgetAmount int = 500
 @description('Budget alert email address')
 param budgetAlertEmail string = owner
 
-@description('Deployment timestamp for budget start date')
-param deploymentTimestamp string = utcNow('yyyy-MM-01')
+@description('Budget start date - uses current month. Azure Budgets cannot update start date after creation, so deploy.ps1 deletes existing budget before redeployment.')
+param budgetStartDate string = utcNow('yyyy-MM-01')
 
 // ============================================================================
 // Variables - Scenario-Derived Feature Flags
@@ -139,7 +140,7 @@ module budget 'modules/budget.bicep' = {
   params: {
     budgetAmount: budgetAmount
     alertEmail: budgetAlertEmail
-    startDate: deploymentTimestamp
+    startDate: budgetStartDate
   }
 }
 
@@ -306,6 +307,11 @@ module vpnGateway 'modules/vpn-gateway.bicep' = if (deployVpnGateway) {
     gatewaySubnetId: networkingHub.outputs.gatewaySubnetId
     tags: sharedServicesTags
   }
+  // CRITICAL: Serialize VPN Gateway after Firewall to avoid VNet update race condition
+  // Both modify hub VNet subnets; parallel deployment causes InternalServerError
+  // See ADR-0004 for root cause analysis
+  #disable-next-line BCP319
+  dependsOn: deployFirewall ? [firewall] : []
 }
 
 // ----------------------------------------------------------------------------
