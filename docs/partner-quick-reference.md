@@ -6,12 +6,12 @@
 
 ## 📋 Prerequisites Checklist
 
-| Requirement | Details |
-|-------------|---------|
-| ☐ Docker Desktop | Or Podman, Colima, Rancher Desktop |
-| ☐ VS Code | With [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension |
-| ☐ GitHub Copilot | Active subscription required |
-| ☐ Azure Subscription | Owner role required |
+| Requirement          | Details                                                                                                                 |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| ☐ Docker Desktop     | Or Podman, Colima, Rancher Desktop                                                                                      |
+| ☐ VS Code            | With [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension |
+| ☐ GitHub Copilot     | Active subscription required                                                                                            |
+| ☐ Azure Subscription | Owner role required                                                                                                     |
 
 ---
 
@@ -40,12 +40,12 @@ cd infra/bicep/smb-landing-zone
 
 ## 💰 Scenario Comparison
 
-| Scenario | Use Case | Deploy Time | Monthly Cost |
-|----------|----------|-------------|--------------|
-| **baseline** | Testing, cloud-only workloads | ~4 min | ~$48 |
-| **firewall** | Egress filtering, compliance | ~15 min | ~$336 |
-| **vpn** | Hybrid connectivity, migrations | ~25 min | ~$187 |
-| **full** | Enterprise: filtering + hybrid | ~45 min | ~$476 |
+| Scenario     | Use Case                        | Deploy Time | Monthly Cost |
+| ------------ | ------------------------------- | ----------- | ------------ |
+| **baseline** | Testing, cloud-only workloads   | ~4 min      | ~$48         |
+| **firewall** | Egress filtering, compliance    | ~15 min     | ~$336        |
+| **vpn**      | Hybrid connectivity, migrations | ~25 min     | ~$187        |
+| **full**     | Enterprise: filtering + hybrid  | ~45 min     | ~$476        |
 
 ---
 
@@ -65,12 +65,12 @@ cd infra/bicep/smb-landing-zone
 
 ### Scenario-Specific
 
-| Resource | baseline | firewall | vpn | full |
-|----------|:--------:|:--------:|:---:|:----:|
-| Azure Firewall | ❌ | ✅ | ❌ | ✅ |
-| VPN Gateway | ❌ | ❌ | ✅ | ✅ |
-| Hub-Spoke Peering | ❌ | ✅ | ✅ | ✅ |
-| User-Defined Routes | ❌ | ✅ | ❌ | ✅ |
+| Resource            | baseline | firewall | vpn | full |
+| ------------------- | :------: | :------: | :-: | :--: |
+| Azure Firewall      |    ❌    |    ✅    | ❌  |  ✅  |
+| VPN Gateway         |    ❌    |    ❌    | ✅  |  ✅  |
+| Hub-Spoke Peering   |    ❌    |    ✅    | ✅  |  ✅  |
+| User-Defined Routes |    ❌    |    ✅    | ❌  |  ✅  |
 
 ---
 
@@ -89,12 +89,12 @@ cd infra/bicep/smb-landing-zone/scripts
 
 ## 🆘 Support
 
-| Issue | Solution |
-|-------|----------|
-| Container won't start | Check Docker running, increase memory to 4GB+ |
-| Azure auth fails | Try `az login --use-device-code` |
-| Deployment fails | Check subscription has Owner role |
-| Need help | [Open an issue](https://github.com/jonathan-vella/azure-agentic-smb-lz/issues) |
+| Issue                 | Solution                                                                       |
+| --------------------- | ------------------------------------------------------------------------------ |
+| Container won't start | Check Docker running, increase memory to 4GB+                                  |
+| Azure auth fails      | Try `az login --use-device-code`                                               |
+| Deployment fails      | Check subscription has Owner role                                              |
+| Need help             | [Open an issue](https://github.com/jonathan-vella/azure-agentic-smb-lz/issues) |
 
 ---
 

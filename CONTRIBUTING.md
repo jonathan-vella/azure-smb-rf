@@ -43,12 +43,12 @@ project maintainers.
 
 Use descriptive branch names following this pattern:
 
-| Type | Pattern | Example |
-|------|---------|---------|
-| Feature | `feature/description` | `feature/add-cosmos-db-module` |
-| Bug fix | `fix/description` | `fix/vpn-gateway-timeout` |
-| Documentation | `docs/description` | `docs/update-readme` |
-| Refactor | `refactor/description` | `refactor/simplify-networking` |
+| Type          | Pattern                | Example                        |
+| ------------- | ---------------------- | ------------------------------ |
+| Feature       | `feature/description`  | `feature/add-cosmos-db-module` |
+| Bug fix       | `fix/description`      | `fix/vpn-gateway-timeout`      |
+| Documentation | `docs/description`     | `docs/update-readme`           |
+| Refactor      | `refactor/description` | `refactor/simplify-networking` |
 
 ## 📝 Commit Conventions
 
@@ -67,17 +67,17 @@ versioning and changelog generation.
 
 ### Types
 
-| Type | Description | Version Bump |
-|------|-------------|--------------|
-| `feat` | New feature | Minor (0.X.0) |
-| `fix` | Bug fix | Patch (0.0.X) |
-| `docs` | Documentation only | None |
-| `style` | Formatting, no code change | None |
-| `refactor` | Code change, no feature/fix | None |
-| `perf` | Performance improvement | Patch |
-| `test` | Adding tests | None |
-| `chore` | Build process, dependencies | None |
-| `feat!` or `BREAKING CHANGE:` | Breaking change | Major (X.0.0) |
+| Type                          | Description                 | Version Bump  |
+| ----------------------------- | --------------------------- | ------------- |
+| `feat`                        | New feature                 | Minor (0.X.0) |
+| `fix`                         | Bug fix                     | Patch (0.0.X) |
+| `docs`                        | Documentation only          | None          |
+| `style`                       | Formatting, no code change  | None          |
+| `refactor`                    | Code change, no feature/fix | None          |
+| `perf`                        | Performance improvement     | Patch         |
+| `test`                        | Adding tests                | None          |
+| `chore`                       | Build process, dependencies | None          |
+| `feat!` or `BREAKING CHANGE:` | Breaking change             | Major (X.0.0) |
 
 ### Examples
 
@@ -148,14 +148,14 @@ cd infra/bicep/smb-landing-zone
 
 When contributing, be aware of these key directories:
 
-| Directory | Purpose | Who Should Edit |
-|-----------|---------|-----------------|
-| `.github/agents/` | Copilot agent definitions | Agent behavior changes |
-| `.github/instructions/` | AI coding standards | Coding convention changes |
-| `.github/templates/` | Artifact output templates | Output format changes |
-| `agent-output/smb-landing-zone/` | Generated artifacts | Usually auto-generated |
-| `infra/bicep/smb-landing-zone/` | Bicep templates | Infrastructure changes |
-| `docs/` | Documentation | Documentation updates |
+| Directory                        | Purpose                   | Who Should Edit           |
+| -------------------------------- | ------------------------- | ------------------------- |
+| `.github/agents/`                | Copilot agent definitions | Agent behavior changes    |
+| `.github/instructions/`          | AI coding standards       | Coding convention changes |
+| `.github/templates/`             | Artifact output templates | Output format changes     |
+| `agent-output/smb-landing-zone/` | Generated artifacts       | Usually auto-generated    |
+| `infra/bicep/smb-landing-zone/`  | Bicep templates           | Infrastructure changes    |
+| `docs/`                          | Documentation             | Documentation updates     |
 
 ## 🏷️ Issue Guidelines
 

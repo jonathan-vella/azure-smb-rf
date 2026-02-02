@@ -121,7 +121,7 @@ Choose the scenario that fits your budget and connectivity requirements:
 | **`baseline`** |    ❌    | ❌  |   ✅   |   ❌    | ❌  |   ~4 min    |     **~$48** |
 | **`firewall`** |    ✅    | ❌  |   ❌   |   ✅    | ✅  |   ~15 min   |    **~$336** |
 |   **`vpn`**    |    ❌    | ✅  |   ❌   |   ✅    | ❌  |   ~25 min   |    **~$187** |
-|   **`full`**   |    ✅    | ✅  |   ❌   |   ✅    | ✅  |  ~40-55 min |    **~$476** |
+|   **`full`**   |    ✅    | ✅  |   ❌   |   ✅    | ✅  | ~40-55 min  |    **~$476** |
 
 </div>
 
