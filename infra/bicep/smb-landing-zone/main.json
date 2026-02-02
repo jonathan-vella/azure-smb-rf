@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.39.26.7824",
-      "templateHash": "12724179012741958273"
+      "templateHash": "13716167019865561572"
     }
   },
   "parameters": {
@@ -95,11 +95,11 @@
         "description": "Budget alert email address"
       }
     },
-    "deploymentTimestamp": {
+    "budgetStartDate": {
       "type": "string",
       "defaultValue": "[utcNow('yyyy-MM-01')]",
       "metadata": {
-        "description": "Deployment timestamp for budget start date"
+        "description": "Budget start date - uses current month. Azure Budgets cannot update start date after creation, so deploy.ps1 deletes existing budget before redeployment."
       }
     }
   },
@@ -641,7 +641,7 @@
             "value": "[parameters('budgetAlertEmail')]"
           },
           "startDate": {
-            "value": "[parameters('deploymentTimestamp')]"
+            "value": "[parameters('budgetStartDate')]"
           }
         },
         "template": {
@@ -651,7 +651,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "9983972408414509734"
+              "templateHash": "1324542249843604518"
             }
           },
           "parameters": {
@@ -673,7 +673,7 @@
             "startDate": {
               "type": "string",
               "metadata": {
-                "description": "Budget start date (first day of month, format: yyyy-MM-dd)"
+                "description": "Budget start date (first day of month, format: yyyy-MM-dd). MUST be fixed - cannot be updated after creation."
               }
             }
           },
@@ -27239,6 +27239,7 @@
         }
       },
       "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('firewall-{0}', variables('uniqueSuffix')))]",
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').hub), 'Microsoft.Resources/deployments', format('networking-hub-{0}', variables('uniqueSuffix')))]"
       ],
       "metadata": {

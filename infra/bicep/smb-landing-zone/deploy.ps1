@@ -16,6 +16,12 @@
     - vpn:        VPN Gateway + Gateway Transit (~$187/mo) - hybrid connectivity
     - full:       Firewall + VPN + UDR (~$476/mo) - complete security
 
+    RESILIENCE FEATURES:
+    - Automatically cleans up stale budgets (Azure API limitation)
+    - Detects and removes faulted firewall resources
+    - Retry logic with exponential backoff for transient failures
+    - Use -Force to clean up before deployment (for failed deployments)
+
 .PARAMETER Scenario
     Deployment scenario preset. Valid values:
     - baseline:   NAT Gateway only (default)
@@ -51,6 +57,14 @@
 .PARAMETER NonInteractive
     Skip interactive prompts and use defaults/provided parameters.
 
+.PARAMETER Force
+    Clean up stale resources before deployment. Use when recovering from
+    a failed deployment or redeploying to the same subscription.
+
+.PARAMETER MaxRetries
+    Maximum number of retry attempts for transient deployment failures.
+    Default: 3
+
 .EXAMPLE
     .\deploy.ps1
     # Interactive mode - prompts for configuration (defaults to baseline)
@@ -71,8 +85,12 @@
     .\deploy.ps1 -NonInteractive -Owner "partner-ops@contoso.com"
     # Non-interactive baseline deployment with explicit owner
 
+.EXAMPLE
+    .\deploy.ps1 -Force -Scenario full
+    # Force cleanup before deploying full scenario
+
 .NOTES
-    Version: 0.3
+    Version: 0.5
     Author: Agentic InfraOps
 #>
 
@@ -110,7 +128,14 @@ param(
     [int]$BudgetAmount = 500,
 
     [Parameter()]
-    [switch]$NonInteractive
+    [switch]$NonInteractive,
+
+    [Parameter()]
+    [switch]$Force,
+
+    [Parameter()]
+    [ValidateRange(1, 5)]
+    [int]$MaxRetries = 3
 )
 
 #region Helper Functions
@@ -126,7 +151,7 @@ function Write-Banner {
 ║  ____) | |  | | |_) | | |___| (_| | | | | (_| | | | | | (_| |  / /| (_) | | | |║
 ║ |_____/|_|  |_|____/  |______\__,_|_| |_|\__,_|_|_| |_|\__, | /_/  \___/|_| |_|║
 ║                                                         __/ |                  ║
-║   Azure Infrastructure Deployment                      |___/   v0.2           ║
+║   Azure Infrastructure Deployment                      |___/   v0.5           ║
 ╚═══════════════════════════════════════════════════════════════════════════════╝
 
 "@
@@ -257,6 +282,272 @@ function Test-ValidCidr {
         return $prefix -ge 16 -and $prefix -le 29
     } catch {
         return $false
+    }
+}
+
+#endregion
+
+#region Pre-Deployment Cleanup Functions
+
+function Remove-StaleBudget {
+    <#
+    .SYNOPSIS
+        Removes existing budget to avoid start date conflicts.
+    .DESCRIPTION
+        Azure Budgets API does not allow updating the start date after creation.
+        This function deletes any existing budget so it can be recreated with
+        the current month's start date.
+    #>
+    param([string]$BudgetName = 'budget-smb-lz-monthly')
+
+    Write-Step "CLEANUP" "Checking for existing budget..."
+    $budget = az consumption budget show --budget-name $BudgetName 2>$null
+    if ($LASTEXITCODE -eq 0 -and $budget) {
+        Write-SubStep "Found existing budget - deleting..."
+        az consumption budget delete --budget-name $BudgetName 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            Write-SubStep "Budget deleted (will be recreated with current month)"
+        } else {
+            Write-Warning "Failed to delete budget - deployment may fail"
+        }
+    } else {
+        Write-SubStep "No existing budget found"
+    }
+}
+
+function Remove-FaultedFirewall {
+    <#
+    .SYNOPSIS
+        Removes firewall resources stuck in failed state.
+    .DESCRIPTION
+        If a previous deployment failed, the firewall may be in a faulted state
+        that prevents redeployment. This function detects and cleans up such resources.
+    #>
+    param(
+        [string]$ResourceGroupName,
+        [string]$FirewallName,
+        [string]$PolicyName
+    )
+
+    # Check if resource group exists
+    $rgExists = az group exists --name $ResourceGroupName 2>$null
+    if ($rgExists -ne 'true') {
+        return
+    }
+
+    Write-Step "CLEANUP" "Checking for faulted firewall resources..."
+
+    # Check firewall state
+    $fwState = az network firewall show -g $ResourceGroupName -n $FirewallName `
+        --query 'provisioningState' -o tsv 2>$null
+
+    if ($fwState -eq 'Failed') {
+        Write-SubStep "Faulted firewall detected - cleaning up..."
+
+        # Delete firewall first
+        az network firewall delete -g $ResourceGroupName -n $FirewallName 2>$null
+        Write-SubStep "Firewall deleted"
+
+        # Wait for firewall deletion to propagate
+        Start-Sleep -Seconds 15
+
+        # Delete firewall policy
+        az network firewall policy delete -g $ResourceGroupName -n $PolicyName 2>$null
+        Write-SubStep "Firewall policy deleted"
+
+        Write-SubStep "Faulted resources cleaned up"
+    } elseif ($fwState) {
+        Write-SubStep "Firewall state: $fwState (OK)"
+    } else {
+        Write-SubStep "No existing firewall found"
+    }
+}
+
+function Remove-FaultedVpnGateway {
+    <#
+    .SYNOPSIS
+        Removes VPN Gateway resources stuck in failed state.
+    .DESCRIPTION
+        If a previous deployment failed, the VPN Gateway may be in a failed state
+        that prevents redeployment. This function detects and cleans up such resources,
+        including orphaned public IP addresses.
+    #>
+    param(
+        [string]$ResourceGroupName,
+        [string]$GatewayName,
+        [string]$PublicIpName
+    )
+
+    # Check if resource group exists
+    $rgExists = az group exists --name $ResourceGroupName 2>$null
+    if ($rgExists -ne 'true') {
+        return
+    }
+
+    Write-Step "CLEANUP" "Checking for faulted VPN Gateway resources..."
+
+    # Check VPN Gateway state
+    $vpnState = az network vnet-gateway show -g $ResourceGroupName -n $GatewayName `
+        --query 'provisioningState' -o tsv 2>$null
+
+    if ($vpnState -eq 'Failed') {
+        Write-SubStep "Faulted VPN Gateway detected - cleaning up..."
+
+        # Delete VPN Gateway first (long operation)
+        az network vnet-gateway delete -g $ResourceGroupName -n $GatewayName --no-wait 2>$null
+        Write-SubStep "VPN Gateway deletion initiated"
+
+        # Wait for gateway deletion to start
+        Start-Sleep -Seconds 15
+
+        # Delete orphaned public IP if it exists
+        $pipExists = az network public-ip show -g $ResourceGroupName -n $PublicIpName 2>$null
+        if ($LASTEXITCODE -eq 0 -and $pipExists) {
+            az network public-ip delete -g $ResourceGroupName -n $PublicIpName 2>$null
+            Write-SubStep "Orphaned public IP deleted: $PublicIpName"
+        }
+
+        Write-SubStep "Faulted VPN Gateway resources cleaned up"
+    } elseif ($vpnState) {
+        Write-SubStep "VPN Gateway state: $vpnState (OK)"
+    } else {
+        Write-SubStep "No existing VPN Gateway found"
+    }
+}
+
+function Remove-OrphanedRoleAssignments {
+    <#
+    .SYNOPSIS
+        Removes role assignments for deleted service principals.
+    .DESCRIPTION
+        When policy assignments with managed identities are deleted, the role
+        assignments may remain orphaned. This causes deployment failures when
+        trying to recreate them with different principal IDs.
+
+        Searches for Backup and VM Contributor role assignments and checks
+        if their service principals still exist in Azure AD.
+    #>
+    param([string]$SubscriptionId)
+
+    Write-Step "CLEANUP" "Checking for orphaned role assignments..."
+
+    # Get backup-related role assignments (Backup Contributor + VM Contributor)
+    $roleAssignments = az role assignment list --scope "/subscriptions/$SubscriptionId" `
+        --query "[?contains(roleDefinitionName, 'Backup') || roleDefinitionName=='Virtual Machine Contributor'].{name:name, principal:principalId, role:roleDefinitionName}" `
+        -o json 2>$null | ConvertFrom-Json
+
+    $deletedCount = 0
+    foreach ($ra in $roleAssignments) {
+        if (-not $ra.principal) { continue }
+
+        # Check if principal still exists in Azure AD
+        $exists = az ad sp show --id $ra.principal 2>$null
+        if (-not $exists -and $LASTEXITCODE -ne 0) {
+            # Orphaned - delete it
+            Write-SubStep "Found orphaned: $($ra.role) for principal $($ra.principal.Substring(0,8))..."
+            $raId = "/subscriptions/$SubscriptionId/providers/Microsoft.Authorization/roleAssignments/$($ra.name)"
+            az role assignment delete --ids $raId 2>$null
+            if ($LASTEXITCODE -eq 0) {
+                $deletedCount++
+            }
+        }
+    }
+
+    if ($deletedCount -gt 0) {
+        Write-SubStep "Deleted $deletedCount orphaned role assignments"
+    } else {
+        Write-SubStep "No orphaned role assignments found"
+    }
+}
+
+function Invoke-DeploymentWithRetry {
+    <#
+    .SYNOPSIS
+        Executes deployment with exponential backoff retry.
+    .DESCRIPTION
+        Azure Firewall and VPN Gateway occasionally fail with transient errors,
+        especially VNet update conflicts when deploying both simultaneously.
+        This function retries the deployment with increasing delays.
+
+        Retryable error patterns:
+        - InternalServerError: Generic Azure RM backend failure
+        - ServiceUnavailable: Azure service temporarily unavailable
+        - TooManyRequests: Throttling
+        - GatewayTimeout: Request timeout
+        - AnotherOperationInProgress: VNet concurrent modification conflict
+        - Conflict: Resource state conflict
+    #>
+    param(
+        [array]$DeployParams,
+        [int]$MaxRetries = 3,
+        [int]$BaseDelaySeconds = 30
+    )
+
+    $attempt = 0
+    $lastError = $null
+
+    while ($attempt -lt $MaxRetries) {
+        $attempt++
+        $delay = $BaseDelaySeconds * [math]::Pow(2, $attempt - 1)  # 30s, 60s, 120s
+
+        if ($attempt -gt 1) {
+            Write-Warning "Retry attempt $attempt of $MaxRetries (waiting $delay seconds)..."
+            Start-Sleep -Seconds $delay
+        }
+
+        Write-Step "$attempt/$MaxRetries" "Deploying to Azure..."
+        Write-Host ""
+
+        # Run deployment
+        $deployOutput = az @DeployParams 2>&1
+        $deployText = $deployOutput -join "`n"
+
+        # Check for success
+        if ($deployText -match 'provisioningState.*Succeeded' -or $LASTEXITCODE -eq 0) {
+            return @{
+                Success = $true
+                Output  = $deployOutput
+                Text    = $deployText
+                Attempt = $attempt
+            }
+        }
+
+        # Check for retryable errors (including VNet conflict patterns)
+        $retryablePatterns = @(
+            'InternalServerError',
+            'ServiceUnavailable',
+            'TooManyRequests',
+            'GatewayTimeout',
+            'AnotherOperationInProgress',
+            'Conflict',
+            'OperationNotAllowed.*operation.*in progress',
+            'RetryableError',
+            'subnet.*being updated'
+        )
+        $patternRegex = $retryablePatterns -join '|'
+        $isTransient = $deployText -match $patternRegex
+
+        if (-not $isTransient) {
+            # Non-retryable error
+            return @{
+                Success = $false
+                Output  = $deployOutput
+                Text    = $deployText
+                Attempt = $attempt
+                Error   = "Deployment failed with non-retryable error"
+            }
+        }
+
+        $lastError = $deployText
+        Write-Warning "Transient error detected (VNet conflict or Azure backend issue)..."
+    }
+
+    return @{
+        Success = $false
+        Output  = $null
+        Text    = $lastError
+        Attempt = $attempt
+        Error   = "Deployment failed after $MaxRetries attempts"
     }
 }
 
@@ -562,6 +853,47 @@ try {
 
 Write-Success "All pre-flight checks passed"
 
+# Pre-deployment cleanup (always for budget, conditional for firewall/vpn)
+Write-Section "PRE-DEPLOYMENT CLEANUP"
+
+# Always clean up budget (Azure API limitation - cannot update start date)
+Remove-StaleBudget
+
+# Clean up faulted firewall resources if deploying firewall scenarios
+if ($Scenario -in @('firewall', 'full')) {
+    $hubRg = "rg-hub-slz-$regionAbbrev"
+    Remove-FaultedFirewall -ResourceGroupName $hubRg `
+        -FirewallName "fw-hub-slz-$regionAbbrev" `
+        -PolicyName "fwpol-hub-slz-$regionAbbrev"
+}
+
+# Clean up faulted VPN Gateway resources if deploying vpn scenarios
+if ($Scenario -in @('vpn', 'full')) {
+    $hubRg = "rg-hub-slz-$regionAbbrev"
+    Remove-FaultedVpnGateway -ResourceGroupName $hubRg `
+        -GatewayName "vpng-hub-slz-$regionAbbrev" `
+        -PublicIpName "pip-vpn-slz-$regionAbbrev"
+}
+
+# Clean up orphaned role assignments (from deleted policy managed identities)
+Remove-OrphanedRoleAssignments -SubscriptionId $subId
+
+# If -Force specified, do additional cleanup
+if ($Force) {
+    Write-Step "FORCE" "Force mode enabled - additional cleanup..."
+
+    # Delete backup policy assignment to avoid role assignment conflicts
+    $backupPolicy = az policy assignment show --name 'smb-lz-backup-02' `
+        --scope "/subscriptions/$subId" 2>$null
+    if ($LASTEXITCODE -eq 0 -and $backupPolicy) {
+        az policy assignment delete --name 'smb-lz-backup-02' `
+            --scope "/subscriptions/$subId" 2>$null
+        Write-SubStep "Deleted backup policy assignment (will be recreated)"
+    }
+}
+
+Write-Success "Pre-deployment cleanup complete"
+
 Write-Section "DEPLOYMENT PREVIEW (WHAT-IF)"
 
 $deploymentName = "smb-lz-$Environment-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
@@ -634,6 +966,20 @@ if ($WhatIfPreference) {
 
 Write-Step "2/2" "Awaiting confirmation..."
 Write-Host ""
+
+# Show estimated deployment time based on scenario
+$estimatedTime = switch ($Scenario) {
+    'baseline'   { "5-10 minutes" }
+    'firewall'   { "10-15 minutes (Firewall provisioning)" }
+    'vpn'        { "30-45 minutes (VPN Gateway provisioning)" }
+    'full'       { "40-55 minutes (Firewall + VPN Gateway sequentially)" }
+}
+Write-Host "  ⏱  Estimated deployment time: $estimatedTime" -ForegroundColor Cyan
+if ($Scenario -eq 'full') {
+    Write-Host "      Note: VPN Gateway waits for Firewall to complete (serialized)" -ForegroundColor Gray
+}
+Write-Host ""
+
 $confirmation = Read-Host "  Deploy $createCount resources to Azure? (y/yes to confirm)"
 
 if ($confirmation -notmatch '^[Yy](es)?$') {
@@ -659,20 +1005,26 @@ $deployParams = @(
     '--parameters', "budgetAmount=$BudgetAmount"
 )
 
-Write-Step "1/1" "Deploying to Azure..."
-Write-Host ""
 $startTime = Get-Date
 
-# Run deployment and capture output
-$deployOutput = az @deployParams 2>&1
-$deployText = $deployOutput -join "`n"
+# Run deployment with retry logic for transient failures
+$deployResult = Invoke-DeploymentWithRetry -DeployParams $deployParams `
+    -MaxRetries $MaxRetries -BaseDelaySeconds 30
 
-# Check for errors in text output
-if ($deployText -match 'ERROR:') {
-    Write-Error "Deployment failed"
-    Write-Host $deployText -ForegroundColor Red
+$duration = (Get-Date) - $startTime
+
+if (-not $deployResult.Success) {
+    Write-Error $deployResult.Error
+    if ($deployResult.Text) {
+        Write-Host $deployResult.Text -ForegroundColor Red
+    }
+    Write-Host ""
+    Write-Host "  To retry with cleanup: .\deploy.ps1 -Force -Scenario $Scenario" -ForegroundColor Yellow
     exit 1
 }
+
+$deployOutput = $deployResult.Output
+$deployText = $deployResult.Text
 
 # Try to parse JSON from output
 try {
@@ -680,27 +1032,28 @@ try {
     if ($jsonStart) {
         $jsonIndex = [array]::IndexOf($deployOutput, $jsonStart)
         $jsonContent = ($deployOutput[$jsonIndex..($deployOutput.Count - 1)]) -join "`n"
-        $deployResult = $jsonContent | ConvertFrom-Json
+        $parsedResult = $jsonContent | ConvertFrom-Json
     } else {
         # Deployment succeeded but no JSON output
-        $deployResult = $null
+        $parsedResult = $null
     }
 } catch {
-    $deployResult = $null
+    $parsedResult = $null
 }
 
-$duration = (Get-Date) - $startTime
-
-if ($deployResult -and $deployResult.properties.provisioningState -eq 'Succeeded') {
+if ($parsedResult -and $parsedResult.properties.provisioningState -eq 'Succeeded') {
     Write-Host ""
     Write-Success "DEPLOYMENT SUCCESSFUL"
     Write-Host ""
+    if ($deployResult.Attempt -gt 1) {
+        Write-Info "Retries" "$($deployResult.Attempt - 1) retry(s) needed"
+    }
     Write-Info "Duration" "$([math]::Round($duration.TotalMinutes, 1)) minutes"
     Write-Info "Deployment" $deploymentName
 
     Write-Section "DEPLOYED RESOURCES"
 
-    $outputs = $deployResult.properties.outputs
+    $outputs = $parsedResult.properties.outputs
 
     Write-Info "Hub VNet" $outputs.hubVnetId.value.Split('/')[-1]
     Write-Info "Spoke VNet" $outputs.spokeVnetId.value.Split('/')[-1]
@@ -725,16 +1078,19 @@ if ($deployResult -and $deployResult.properties.provisioningState -eq 'Succeeded
     Write-Host "  2. Set up Azure Migrate appliance for VMware discovery" -ForegroundColor White
     Write-Host "  3. Review budget alerts: Cost Management → Budgets" -ForegroundColor White
     Write-Host ""
-} elseif ($deployResult) {
-    Write-Error "Deployment failed: $($deployResult.properties.provisioningState)"
-    if ($deployResult.properties.error) {
-        Write-Host $deployResult.properties.error -ForegroundColor Red
+} elseif ($parsedResult) {
+    Write-Error "Deployment failed: $($parsedResult.properties.provisioningState)"
+    if ($parsedResult.properties.error) {
+        Write-Host $parsedResult.properties.error -ForegroundColor Red
     }
     exit 1
 } else {
     # Check if deployment succeeded without JSON output
     if ($deployText -match 'provisioningState.*Succeeded') {
         Write-Success "DEPLOYMENT SUCCESSFUL"
+        if ($deployResult.Attempt -gt 1) {
+            Write-Info "Retries" "$($deployResult.Attempt - 1) retry(s) needed"
+        }
         Write-Info "Duration" "$([math]::Round($duration.TotalMinutes, 1)) minutes"
         Write-Info "Deployment" $deploymentName
         Write-Host ""
