@@ -1,7 +1,7 @@
 {
-  "name": "azure-smb-landing-zone",
-  "version": "0.3.0",
-  "description": "Repeatable Azure landing zone for SMB customers - on-premises migration ready, policy-enforced, CAF-aligned.",
+  "name": "azure-agentic-infraops",
+  "version": "7.5.0",
+  "description": "Agentic InfraOps - Azure infrastructure engineered by agents. Verified. Well-Architected. Deployable.",
   "private": true,
   "scripts": {
     "prepare": "lefthook install",
@@ -20,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jonathan-vella/azure-smb-landing-zone.git"
+    "url": "https://github.com/jonathan-vella/azure-agentic-infraops.git"
   },
   "keywords": [
     "azure",

@@ -13,7 +13,6 @@ tools:
     "web",
     "azure-pricing/*",
     "azure-mcp/*",
-    "bicep/*",
     "todo",
     "ms-azuretools.vscode-azure-github-copilot/azure_recommend_custom_modes",
     "ms-azuretools.vscode-azure-github-copilot/azure_query_azure_resource_graph",
@@ -66,6 +65,46 @@ or any infrastructure code files—that is the responsibility of `bicep-code` ag
 - Track work to ensure all tasks are captured and addressed
 - Think hard
 
+## Research Requirements (MANDATORY)
+
+<research_mandate>
+**MANDATORY: Before creating implementation plans, run comprehensive research.**
+
+### Step 1: Validate Inputs
+
+- Confirm `02-architecture-assessment.md` exists in `agent-output/{project}/`
+- Read the architecture assessment for resource requirements and WAF scores
+- If missing, STOP and request architect handoff first
+
+### Step 2: Gather Context
+
+- Search workspace for similar implementation plans in `agent-output/`
+- Read template: `.github/templates/04-implementation-plan.template.md`
+- Query Azure documentation for each planned resource type
+
+### Step 3: AVM Discovery (GATE CHECK)
+
+- Run `mcp_bicep_list_avm_metadata` for EVERY resource type
+- Document AVM availability in Resource Inventory table
+- If no AVM exists, mark as "⚠️ Requires Approval"
+
+### Step 4: Governance Discovery
+
+- Use Azure MCP tools to discover subscription policies
+- Check for tag requirements, allowed resource types, network policies
+- Document constraints in `04-governance-constraints.md`
+
+### Step 5: Confidence Gate
+
+Only proceed when you have **80% confidence** in:
+
+- All resources identified with correct AVM modules
+- Dependencies mapped correctly
+- Governance constraints understood
+
+If below 80%, use `#tool:agent` for autonomous research or ASK user.
+</research_mandate>
+
 ## Focus areas
 
 - Provide a detailed list of Azure resources with configurations, dependencies, parameters, and outputs
@@ -87,11 +126,12 @@ Document region selection in Introduction section:
 
 - **MANDATORY: Use Azure Verified Modules (AVM) for all resources**
   - **GATE CHECK**: Run `mcp_bicep_list_avm_metadata` to verify AVM availability BEFORE planning
-  - Search AVM registry FIRST: https://aka.ms/avm
+  - Search AVM registry FIRST: https://aka.ms/avm/index
   - Use `br/public:avm/res/{service}/{resource}:{version}` format
   - Fetch latest version from GitHub changelog or AVM website
   - **Only use raw Bicep resources if no AVM exists** - document rationale in plan
-  - **If raw Bicep used**: Create GitHub issue to track future AVM migration
+  - **If raw Bicep required**: Mark resource as "⚠️ Requires Approval" in Resource Inventory table
+  - **Explicit Approval**: User must type "approve raw bicep" before bicep-code proceeds with native resources
   - Most AVM modules include `privateEndpoints` parameters - avoid duplicate modules
   - AVM modules enforce best practices, naming conventions, and tagging automatically
 - **Generate cost estimates** for all resources using Azure pricing patterns
@@ -156,61 +196,13 @@ For each resource, document WAF alignment:
 
 ---
 
-## Azure Policy Governance Strategy
+## Azure Policy Governance Discovery (MANDATORY)
 
-**Default: Greenfield** — Policies are defined in requirements and deployed by this project.
+**Before creating the implementation plan, discover Azure Policy constraints that affect deployment.**
 
-Use greenfield mode unless the user explicitly requests brownfield (existing subscription scan).
+This step prevents deployment failures by identifying policy-enforced requirements upfront.
 
-### Greenfield Mode (Default)
-
-**Assumption**: Policies are defined in `01-requirements.md` and will be deployed via Bicep.
-
-1. **Extract policies from `01-requirements.md`:**
-   - Read the `### Azure Policy` section
-   - Parse policy tables (Compute, Network, Storage, Identity, Monitoring guardrails)
-   - Extract Built-in IDs, effects, and parameters
-
-2. **Generate governance constraints from requirements:**
-   - No Azure Resource Graph query needed
-   - Constraints are derived from the project's own policy definitions
-   - Document that policies will be **deployed** as part of this project
-
-3. **Output format for greenfield:**
-
-   ```markdown
-   ## Azure Policy Compliance
-
-   **Governance Source**: Project-defined (policies deployed by this project)
-
-   These policies will be assigned at subscription scope as part of the Bicep deployment.
-   Policy cleanup script: `scripts/Remove-{project-name}Policies.ps1`
-
-   | #   | Policy          | Built-in ID  | Effect            | Bicep Assignment Name |
-   | --- | --------------- | ------------ | ----------------- | --------------------- |
-   | 1   | Allowed VM SKUs | cccc23c7-... | Deny              | {project}-compute-01  |
-   | ... | VM Backup Audit | 013e242c-... | AuditIfNotExists  | {project}-backup-01   |
-   | ... | VM Auto-Backup  | 345fa903-... | DeployIfNotExists | {project}-backup-02   |
-   ```
-
-   **Note**: Policy `{project}-backup-02` auto-enrolls VMs tagged `Backup: true` into Azure Backup.
-
-4. **Include in implementation plan:**
-   - Add `modules/policy-assignments.bicep` to module structure
-   - Document policy deployment as Phase 1 task (before resources)
-   - Reference policy parameters from requirements
-
-### Brownfield Mode (Override Only)
-
-**Trigger**: User explicitly says "scan existing policies", "brownfield", or "check subscription policies".
-
-**When to use brownfield:**
-
-- Deploying to an existing managed subscription with pre-defined governance
-- Enterprise landing zone with centralized policy management
-- User explicitly requests policy discovery
-
-**Brownfield process:**
+### Discovery Process
 
 1. **Get target subscription context:**
 
@@ -244,7 +236,7 @@ Use greenfield mode unless the user explicitly requests brownfield (existing sub
 4. **Generate governance constraints file:**
 
    Save discovered constraints to `agent-output/{project-name}/04-governance-constraints.md` AND
-   `agent-output/{project-name}/04-governance-constraints.json`.
+   `agent-output/{project-name}/04-governance-constraints.json` (dual format for human and machine readability).
 
 ### Governance Constraints Output Format
 

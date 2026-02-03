@@ -11,7 +11,6 @@ tools:
     "search",
     "web",
     "azure-mcp/*",
-    "bicep/*",
     "todo",
     "ms-azuretools.vscode-azure-github-copilot/azure_recommend_custom_modes",
     "ms-azuretools.vscode-azure-github-copilot/azure_query_azure_resource_graph",
@@ -64,6 +63,47 @@ Always work from an implementation plan when available.
 - Follow Bicep best practices and Azure Verified Modules standards
 - Double check Azure Verified Modules properties are correct
 - Focus on creating Azure Bicep (\*.bicep\) files only
+
+## Research Requirements (MANDATORY)
+
+<research_mandate>
+**MANDATORY: Before writing Bicep code, run comprehensive research.**
+
+### Step 1: Validate Implementation Plan
+
+- Confirm `04-implementation-plan.md` exists in `agent-output/{project}/`
+- Read the plan for resource specifications, dependencies, and AVM modules
+- If missing, STOP and request bicep-plan handoff first
+
+### Step 2: Gather Context
+
+- Search workspace for similar Bicep modules in `infra/bicep/`
+- Read existing patterns and naming conventions
+- Check for project-specific constraints in `04-governance-constraints.md`
+
+### Step 3: AVM Verification
+
+- For EACH resource in the plan, verify AVM module exists
+- Run `mcp_bicep_list_avm_metadata` if plan doesn't specify versions
+- Check AVM module parameters match planned configuration
+
+### Step 4: Module Structure Planning
+
+- Determine module organization (main.bicep + modules/)
+- Identify shared parameters (uniqueSuffix, tags, location)
+- Map resource dependencies for deployment order
+
+### Step 5: Confidence Gate
+
+Only proceed when you have **80% confidence** in:
+
+- All AVM modules identified and verified
+- Module structure planned
+- Dependencies mapped
+- Security defaults understood
+
+If below 80%, use `#tool:agent` for autonomous research or ASK user.
+</research_mandate>
 
 **Default Azure Regions (enforce in all implementations):**
 
@@ -194,7 +234,6 @@ az deployment group show `
 - AVM versions or API versions match the implementation plan
 - No secrets or environment-specific values hardcoded
 - The generated Bicep compiles cleanly and passes format checks
-- **VM Backup Tag**: Add `Backup: 'true'` tag to VMs requiring automatic backup protection
 
 ## CAF & WAF Validation Checklist
 
@@ -224,10 +263,12 @@ Before finalizing implementation, verify:
 
 **Azure Verified Modules (AVM) - MANDATORY:**
 
-- [ ] **GATE CHECK**: Verified AVM exists for each resource via `mcp_bicep_list_avm_metadata`
-- [ ] Used AVM modules for ALL resources where AVM exists
+- [ ] **GATE CHECK**: Verified AVM exists for each resource via `mcp_bicep_list_avm_metadata` or AVM index
+- [ ] Used AVM modules for ALL resources where AVM exists (see https://aka.ms/avm/index)
 - [ ] Latest AVM versions fetched from AVM registry (not hardcoded)
-- [ ] If raw Bicep used: documented justification + GitHub issue for future AVM migration
+- [ ] If raw Bicep required: **STOP and ask user**:
+      "No AVM module found for {resource}. Type **approve raw bicep** to proceed with native resource."
+- [ ] If raw Bicep approved: documented justification in implementation reference
 - [ ] AVM parameters properly configured (privateEndpoints, diagnostics, RBAC, tags)
 - [ ] Verified AVM module versions match implementation plan
 
@@ -648,7 +689,7 @@ graph LR
 - Module files in `modules/` subfolder
 - Reference file: `agent-output/{project}/05-implementation-reference.md`
 
-**Template**: Use [05-implementation-reference.template.md](../templates/05-implementation-reference.template.md)
+**Template**: Use [`../templates/05-implementation-reference.template.md`](../templates/05-implementation-reference.template.md)
 
 ### Approval Gate (MANDATORY)
 

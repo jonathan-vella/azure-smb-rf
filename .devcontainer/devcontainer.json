@@ -1,5 +1,5 @@
 {
-  "name": "Agentic SMB LZ",
+  "name": "Agentic InfraOps",
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
 
   "features": {
@@ -107,7 +107,7 @@
 
   // Mounts for credential/cache persistence across rebuilds
   // - Azure CLI: Host's ~/.azure (Linux/macOS) or %USERPROFILE%\.azure (Windows)
-  // - GitHub CLI: Docker volume (Windows uses keyring which can't be mounted; authenticate once in container)
+  // - GitHub CLI: Docker volume (Windows uses keyring, can't be mounted; Linux/macOS use files)
   // - UV cache: Docker volume for Python package cache
   "mounts": [
     {

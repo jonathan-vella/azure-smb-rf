@@ -1,6 +1,6 @@
 # Development Container for Agentic InfraOps
 
-> **Version 3.7.8**
+> **Version 7.5.0**
 
 This devcontainer provides a **complete, pre-configured development environment** for Agentic InfraOps.
 It includes all required tools, extensions, and configurations to build Azure infrastructure with AI agents.
@@ -27,6 +27,17 @@ It includes all required tools, extensions, and configurations to build Azure in
 - **Git** with common utilities
 - **GitHub CLI** (gh)
 - **graphviz**, **dos2unix**
+
+### MCP Servers (Auto-configured)
+
+- **Azure MCP Server** - RBAC-aware Azure context for agents
+- **Azure Pricing MCP** - Real-time SKU pricing for cost estimates
+
+### Python Libraries (Auto-installed)
+
+- **diagrams** - Infrastructure diagrams as code (mingrammer/diagrams)
+- **matplotlib**, **pillow** - Image processing
+- **checkov** - Infrastructure security scanner
 
 ### VS Code Extensions (27 Pre-installed)
 
@@ -74,8 +85,9 @@ az account set --subscription "<your-subscription-id>"
 # 3. Verify tools are installed (auto-displayed after setup)
 terraform version && az bicep version && pwsh --version
 
-# 4. Explore infrastructure templates
-cd infra/bicep/smb-landing-zone && ls -la
+# 4. Explore demos and infrastructure
+cd scenarios/ && ls -la
+cd ../infra/bicep/ && tree -L 2
 ```
 
 ## 📁 Environment Configuration
@@ -140,7 +152,7 @@ sudo npm update -g markdownlint-cli           # markdownlint
 | Azure auth fails      | Use `az login --use-device-code`                         |
 | Rebuild needed        | `F1` → `Dev Containers: Rebuild Container Without Cache` |
 
-📖 **Need help?** Check the [main README](../README.md) or open an issue.
+📖 **Full troubleshooting guide:** [docs/guides/troubleshooting.md](../docs/guides/troubleshooting.md)
 
 ## 📊 Resource Usage
 
@@ -160,8 +172,9 @@ sudo npm update -g markdownlint-cli           # markdownlint
 
 ## 📚 Related Documentation
 
+- [Workflow Guide](../docs/reference/workflow.md)
+- [Scenarios](../scenarios/)
 - [Copilot Instructions](../.github/copilot-instructions.md)
-- [Agent Artifacts](../agent-output/smb-landing-zone/)
 - [Repository README](../README.md)
 
 ---
