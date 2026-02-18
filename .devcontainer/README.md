@@ -1,9 +1,9 @@
-# Development Container for Agentic InfraOps
+# Development Container for Azure SMB Landing Zone
 
-> **Version 7.5.0**
+> **[Version](../VERSION.md)**
 
-This devcontainer provides a **complete, pre-configured development environment** for Agentic InfraOps.
-It includes all required tools, extensions, and configurations to build Azure infrastructure with AI agents.
+This devcontainer provides a **complete, pre-configured development environment** for the Azure SMB Landing Zone.
+It includes all required tools, extensions, and configurations to deploy and customise the landing zone.
 
 **Base Image:** `mcr.microsoft.com/devcontainers/base:ubuntu-24.04`
 
@@ -39,16 +39,14 @@ It includes all required tools, extensions, and configurations to build Azure in
 - **matplotlib**, **pillow** - Image processing
 - **checkov** - Infrastructure security scanner
 
-### VS Code Extensions (27 Pre-installed)
+### VS Code Extensions (24 Pre-installed)
 
 - ✅ **GitHub Copilot** + Copilot Chat + Mermaid Diagrams
-- ✅ **Azure Tools** (Bicep, Resource Groups, Container Apps, Static Web Apps, Terraform, CLI)
-- ✅ **HashiCorp Terraform** language support
+- ✅ **Azure Tools** (Bicep, Resource Groups, Container Apps, Static Web Apps, CLI)
 - ✅ **PowerShell** language support
 - ✅ **Markdown** (Mermaid diagrams, GitHub preview, linting, Prettier formatting)
-- ✅ **Kubernetes & Docker** tools (AKS, Docker)
+- ✅ **Kubernetes & Container** tools (AKS, Container Tools)
 - ✅ **GitHub** (Actions, Pull Requests, Azure Copilot)
-- ✅ **AI Foundry** + AI Toolkit extensions
 
 ## 🚀 Quick Start
 
@@ -83,21 +81,20 @@ az login
 az account set --subscription "<your-subscription-id>"
 
 # 3. Verify tools are installed (auto-displayed after setup)
-terraform version && az bicep version && pwsh --version
+az bicep version && pwsh --version
 
-# 4. Explore demos and infrastructure
-cd scenarios/ && ls -la
-cd ../infra/bicep/ && tree -L 2
+# 4. Navigate to the landing zone and deploy
+cd infra/bicep/smb-landing-zone/
+./deploy.ps1 -Scenario baseline -WhatIf
 ```
 
 ## 📁 Environment Configuration
 
 ### Pre-configured Environment Variables
 
-| Variable                  | Value                           | Purpose                                        |
-| ------------------------- | ------------------------------- | ---------------------------------------------- |
-| `TF_PLUGIN_CACHE_DIR`     | `/home/vscode/.terraform-cache` | Speeds up Terraform provider downloads         |
-| `AZURE_DEFAULTS_LOCATION` | `swedencentral`                 | Default Azure region (matches repo guidelines) |
+| Variable                  | Value           | Purpose                                        |
+| ------------------------- | --------------- | ---------------------------------------------- |
+| `AZURE_DEFAULTS_LOCATION` | `swedencentral` | Default Azure region (matches repo guidelines) |
 
 ### Azure Credentials Mount
 
@@ -113,7 +110,7 @@ so you only need to `az login` once on your host machine.
 
 ```bash
 # Test Bicep compilation
-bicep build infra/bicep/ecommerce/main.bicep
+bicep build infra/bicep/smb-landing-zone/main.bicep
 
 # Test security scanner
 checkov --version
@@ -152,7 +149,7 @@ sudo npm update -g markdownlint-cli           # markdownlint
 | Azure auth fails      | Use `az login --use-device-code`                         |
 | Rebuild needed        | `F1` → `Dev Containers: Rebuild Container Without Cache` |
 
-📖 **Full troubleshooting guide:** [docs/guides/troubleshooting.md](../docs/guides/troubleshooting.md)
+📖 **Full troubleshooting guide:** [docs/troubleshooting.md](../docs/troubleshooting.md)
 
 ## 📊 Resource Usage
 
@@ -172,9 +169,9 @@ sudo npm update -g markdownlint-cli           # markdownlint
 
 ## 📚 Related Documentation
 
-- [Workflow Guide](../docs/reference/workflow.md)
-- [Scenarios](../scenarios/)
-- [Copilot Instructions](../.github/copilot-instructions.md)
+- [Deployment Guide](../README.md#-quick-start)
+- [Partner Quick Reference](../docs/partner-quick-reference.md)
+- [Copilot Instructions](../.github/instructions/docs.instructions.md)
 - [Repository README](../README.md)
 
 ---

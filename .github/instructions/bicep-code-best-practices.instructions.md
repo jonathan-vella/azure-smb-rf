@@ -7,13 +7,12 @@ applyTo: "**/*.bicep"
 
 ## Quick Reference
 
-| Rule          | Standard                                                             |
-| ------------- | -------------------------------------------------------------------- |
-| Region        | `swedencentral` (alt: `germanywestcentral`)                          |
-| Unique suffix | `var uniqueSuffix = uniqueString(resourceGroup().id)` in main.bicep  |
-| AVM first     | Use Azure Verified Modules when available                            |
-| Tags          | Environment, ManagedBy, Project, Owner on ALL resources              |
-| VM Backup     | Add `Backup: 'true'` tag on VMs for auto-enrollment via Azure Policy |
+| Rule          | Standard                                                            |
+| ------------- | ------------------------------------------------------------------- |
+| Region        | `swedencentral` (alt: `germanywestcentral`)                         |
+| Unique suffix | `var uniqueSuffix = uniqueString(resourceGroup().id)` in main.bicep |
+| AVM first     | **MANDATORY** - Use Azure Verified Modules where available          |
+| Tags          | Environment, ManagedBy, Project, Owner on ALL resources             |
 
 ## Naming Conventions
 
@@ -100,8 +99,8 @@ output principalId string = resource.identity.principalId
 
 **MANDATORY: Use AVM modules for ALL resources where an AVM module exists.**
 
-Raw Bicep is only permitted when no AVM module exists. Document the rationale and create
-a tracking issue for future AVM migration.
+Raw Bicep is only permitted when no AVM module exists AND user explicitly approves.
+Document the rationale in implementation reference.
 
 ```bicep
 // ✅ Use AVM for Key Vault
@@ -109,31 +108,16 @@ module keyVault 'br/public:avm/res/key-vault/vault:0.11.0' = {
   params: { name: kvName, location: location, tags: tags }
 }
 
-// ✅ Use AVM for Azure Firewall (with pre-created PIPs for reliability)
-resource firewallPublicIp 'Microsoft.Network/publicIPAddresses@2024-01-01' = {
-  name: 'pip-fw-${environment}-${regionShort}'
-  zones: ['1', '2', '3']  // Zone-redundant
-  // ...
-}
-
-module firewall 'br/public:avm/res/network/azure-firewall:0.9.2' = {
-  params: {
-    name: firewallName
-    publicIPResourceID: firewallPublicIp.id  // Reference pre-created
-    // ...
-  }
-}
-
-// ❌ Only use raw resources if no AVM exists (document why)
+// ❌ Only use raw resources if no AVM exists
+// Requires explicit user approval: "approve raw bicep"
 ```
 
-### AVM Sequential Deployment Pattern
+### AVM Approval Workflow
 
-For Azure Firewall Basic, pre-create Public IPs before the firewall to avoid transient failures:
-
-1. **Phase 1**: Create zone-redundant Public IPs (explicit resources)
-2. **Phase 2**: Create Firewall Policy (AVM module)
-3. **Phase 3**: Create Firewall (AVM module, references pre-created PIPs)
+1. **Check AVM availability**: Use `mcp_bicep_list_avm_metadata` or https://aka.ms/avm/index
+2. **If AVM exists**: Use `br/public:avm/res/{service}/{resource}:{version}`
+3. **If no AVM**: STOP and ask user: "No AVM module found for {resource}. Type **approve raw bicep** to proceed."
+4. **If approved**: Document justification in implementation reference
 
 ## Patterns to Avoid
 
@@ -146,6 +130,7 @@ For Azure Firewall Basic, pre-create Public IPs before the firewall to avoid tra
 | S1 for zone redundancy | Policy blocks    | Use P1v3+                           |
 | `RequestHeaders`       | ARM error        | Use `RequestHeader` (singular)      |
 | WAF policy hyphens     | Validation fails | `wafpolicy{name}` alphanumeric only |
+| Raw Bicep (no AVM)     | Policy drift     | Use AVM modules or get approval     |
 
 ## Zone Redundancy SKUs
 

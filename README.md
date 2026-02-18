@@ -60,8 +60,8 @@
 
 ## 🚀 About The Project
 
-Single-subscription Azure environment designed for **Microsoft Partners** hosting 1000+ small
-business customers on on-premises infrastructure.
+Single-subscription Azure environment designed for **Microsoft Partners** migrating small
+business customers from on-premises infrastructure to Azure at scale.
 
 <div align="center">
 
@@ -71,8 +71,9 @@ business customers on on-premises infrastructure.
 
 </div>
 
-Built with the [Agentic InfraOps](https://github.com/jonathan-vella/azure-agentic-infraops) workflow
-using AI agents for requirements gathering, architecture assessment, and Bicep code generation.
+Built using the [Agentic InfraOps](https://github.com/jonathan-vella/azure-agentic-infraops) framework —
+an AI-agent workflow for requirements gathering, architecture assessment, and Bicep code generation.
+The SMB Landing Zone is a ready-to-deploy output of that framework, not the framework itself.
 
 ### 🛠️ Built With
 
@@ -333,9 +334,11 @@ Contributions are welcome! Here's how:
 
 1. 🍴 Fork the Project
 2. 🌿 Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. 💾 Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+3. 💾 Commit your Changes using [Conventional Commits](https://www.conventionalcommits.org/) (`git commit -m 'feat: add bastion subnet option'`)
 4. 📤 Push to the Branch (`git push origin feature/AmazingFeature`)
-5. 🔃 Open a Pull Request
+5. 🔃 Open a Pull Request (PR template will guide you)
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 Don't forget to give the project a ⭐ if you found it useful!
 

@@ -1,13 +1,13 @@
 {
-  "name": "azure-agentic-infraops",
-  "version": "7.5.0",
-  "description": "Agentic InfraOps - Azure infrastructure engineered by agents. Verified. Well-Architected. Deployable.",
+  "name": "azure-smb-landing-zone",
+  "version": "0.3.0",
+  "description": "Azure SMB Landing Zone - repeatable single-subscription Azure environment for Microsoft Partners migrating SMB customers from on-premises to Azure.",
   "private": true,
   "scripts": {
     "prepare": "lefthook install",
     "lint:md": "markdownlint-cli2 '**/*.md' '#node_modules'",
     "lint:md:fix": "markdownlint-cli2 --fix '**/*.md' '#node_modules'",
-    "lint:links": "find docs -name '*.md' ! -path 'docs/_superseded/*' | xargs -I {} markdown-link-check {} --config .markdown-link-check.json",
+    "lint:links": "find . -name '*.md' ! -path '*/node_modules/*' ! -path '*/.git/*' | xargs -I {} markdown-link-check {} --config .markdown-link-check.json",
     "lint:cost-estimate-templates": "node scripts/validate-cost-estimate-templates.mjs",
     "lint:artifact-templates": "node scripts/validate-artifact-templates.mjs"
   },
@@ -20,16 +20,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jonathan-vella/azure-agentic-infraops.git"
+    "url": "https://github.com/jonathan-vella/azure-agentic-smb-lz.git"
   },
   "keywords": [
     "azure",
     "bicep",
-    "github-copilot",
+    "smb",
+    "landing-zone",
+    "microsoft-partner",
     "infrastructure-as-code",
-    "agents",
-    "agentic",
-    "well-architected",
+    "azure-migrate",
     "azure-verified-modules"
   ],
   "author": "Jonathan Vella",

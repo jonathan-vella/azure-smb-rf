@@ -1,9 +1,6 @@
 {
   "ignorePatterns": [
     {
-      "pattern": "^https?://"
-    },
-    {
       "pattern": "^mailto:"
     },
     {
@@ -11,6 +8,9 @@
     },
     {
       "pattern": "aka\\.ms"
+    },
+    {
+      "pattern": "^https?://"
     }
   ],
   "replacementPatterns": [

@@ -1,5 +1,5 @@
-name: New Scenario Request
-description: Propose a new demo scenario for the Agentic InfraOps repository
+name: Deployment Feedback / Variant Request
+description: Propose changes or additions to the SMB Landing Zone deployment scenarios
 title: "[Scenario]: "
 labels: ["scenario", "enhancement"]
 assignees: []
@@ -7,11 +7,88 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## 📋 New Scenario Request
+        ## 📋 Deployment Feedback / Variant Request
 
-        Propose a new demo scenario that showcases Agentic InfraOps capabilities.
-        Good scenarios demonstrate real-world Azure infrastructure patterns that
-        benefit from AI-assisted development.
+        Use this template to suggest improvements, cost optimisations, or new variant
+        options for the SMB Landing Zone deployment scenarios (baseline, firewall, vpn, full).
+
+  - type: dropdown
+    id: target-scenario
+    attributes:
+      label: Target Scenario
+      description: Which deployment scenario does this relate to?
+      options:
+        - baseline
+        - firewall
+        - vpn
+        - full
+        - All scenarios
+        - New variant (describe below)
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Proposal Description
+      description: What change or addition are you proposing and why?
+      placeholder: |
+        The baseline scenario currently deploys Azure Bastion Developer tier.
+        I'd like an option to omit Bastion entirely for cost-sensitive customers
+        who will use VPN for access instead.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: motivation
+    attributes:
+      label: Primary Motivation
+      description: What is the main driver for this proposal?
+      options:
+        - Cost reduction
+        - Security improvement
+        - Connectivity requirement
+        - Compliance requirement
+        - Operational simplification
+        - Partner customer feedback
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Expected Impact
+      description: What resources would change? Estimate cost delta if applicable.
+      placeholder: |
+        - Removes `modules/bastion.bicep` module call from main.bicep
+        - Reduces baseline monthly cost by ~$5
+        - Requires VPN or direct access alternative
+    validations:
+      required: true
+
+  - type: textarea
+    id: waf-considerations
+    attributes:
+      label: Well-Architected Framework Considerations
+      description: How does this proposal affect WAF pillars?
+      placeholder: |
+        **Security:** Reduces secure access options; mitigated by VPN requirement
+        **Cost:** Saves ~$5/month per deployment
+        **Operations:** Simpler topology for partners managing many customers
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I've reviewed the existing scenarios to understand the current design
+          required: true
+        - label: This proposal is applicable to SMB customers managed by Microsoft Partners
+          required: true
+        - label: I've considered the impact on all four deployment scenarios
+          required: false
 
   - type: input
     id: scenario-name

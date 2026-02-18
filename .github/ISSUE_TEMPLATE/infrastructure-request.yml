@@ -9,10 +9,10 @@ body:
       value: |
         ## 🏗️ Infrastructure Request
 
-        Use this template to request new Azure infrastructure or changes to existing infrastructure.
-        This will be reviewed and implemented using the Agentic InfraOps workflow.
+        Use this template to request new Azure infrastructure or changes to existing infrastructure
+        in the SMB Landing Zone. Changes will be reviewed and implemented using the agentic workflow.
 
-        **Workflow:** `@plan` → `azure-principal-architect` → `bicep-plan` → `bicep-implement`
+        **Workflow:** `@requirements` → `@architect` → `@bicep-plan` → `@bicep-code`
 
   - type: dropdown
     id: request-type
@@ -34,10 +34,10 @@ body:
     id: business-context
     attributes:
       label: Business Context
-      description: What is the business need driving this request? Why is this infrastructure needed?
+      description: What is the business need driving this request?
       placeholder: |
-        Example: We need a patient portal to allow secure access to medical records.
-        The portal must comply with HIPAA regulations and support 10,000 concurrent users.
+        Example: A partner customer needs Azure File Sync configured to
+        extend on-premises file shares to Azure as part of a phased migration.
     validations:
       required: true
 

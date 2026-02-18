@@ -34,7 +34,7 @@ body:
     attributes:
       label: Affected File(s)
       description: Path to the affected file(s)
-      placeholder: "infra/bicep/contoso-patient-portal/main.bicep"
+      placeholder: "infra/bicep/smb-landing-zone/main.bicep"
     validations:
       required: false
 
@@ -61,8 +61,8 @@ body:
       description: How can we reproduce this issue?
       placeholder: |
         1. Open devcontainer
-        2. Navigate to `infra/bicep/scenario-name/`
-        3. Run `bicep build main.bicep`
+        2. Navigate to `infra/bicep/smb-landing-zone/`
+        3. Run `./deploy.ps1 -Scenario baseline -WhatIf`
         4. Observe error
     validations:
       required: true
