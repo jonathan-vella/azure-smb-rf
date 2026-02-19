@@ -1,9 +1,9 @@
-# Development Container for Azure SMB Landing Zone
+# Development Container for Azure SMB Ready Foundation
 
 > **[Version](../VERSION.md)**
 
-This devcontainer provides a **complete, pre-configured development environment** for the Azure SMB Landing Zone.
-It includes all required tools, extensions, and configurations to deploy and customise the landing zone.
+This devcontainer provides a **complete, pre-configured development environment** for the Azure SMB Ready Foundation.
+It includes all required tools, extensions, and configurations to deploy and customise the SMB Ready Foundation.
 
 **Base Image:** `mcr.microsoft.com/devcontainers/base:ubuntu-24.04`
 
@@ -83,8 +83,8 @@ az account set --subscription "<your-subscription-id>"
 # 3. Verify tools are installed (auto-displayed after setup)
 az bicep version && pwsh --version
 
-# 4. Navigate to the landing zone and deploy
-cd infra/bicep/smb-landing-zone/
+# 4. Navigate to the SMB Ready Foundation and deploy
+cd infra/bicep/smb-ready-foundation/
 ./deploy.ps1 -Scenario baseline -WhatIf
 ```
 
@@ -110,7 +110,7 @@ so you only need to `az login` once on your host machine.
 
 ```bash
 # Test Bicep compilation
-bicep build infra/bicep/smb-landing-zone/main.bicep
+bicep build infra/bicep/smb-ready-foundation/main.bicep
 
 # Test security scanner
 checkov --version

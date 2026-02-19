@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Comprehensive repository validation script for SMB Landing Zone.
+    Comprehensive repository validation script for SMB Ready Foundation.
 
 .DESCRIPTION
     Executes 7 validation phases to verify the integrity of all repository assets:
@@ -95,14 +95,14 @@ function Write-Summary {
 
 Write-Host ""
 Write-Host "╔═══════════════════════════════════════════════════════════════╗" -ForegroundColor Magenta
-Write-Host "║       SMB LANDING ZONE - REPOSITORY VALIDATION                ║" -ForegroundColor Magenta
+Write-Host "║       SMB READY FOUNDATION - REPOSITORY VALIDATION                ║" -ForegroundColor Magenta
 Write-Host "╚═══════════════════════════════════════════════════════════════╝" -ForegroundColor Magenta
 
 #region Phase 1: Bicep Validation
 
 Write-Phase 1 "BICEP VALIDATION"
 
-$bicepPath = Join-Path $scriptRoot "infra/bicep/smb-landing-zone"
+$bicepPath = Join-Path $scriptRoot "infra/bicep/smb-ready-foundation"
 $bicepErrors = 0
 $bicepFiles = @()
 
@@ -141,7 +141,7 @@ $results["Phase 1: Bicep"] = @{ Passed = ($bicepErrors -eq 0); Errors = $bicepEr
 
 Write-Phase 2 "DIAGRAM GENERATION"
 
-$diagramPath = Join-Path $scriptRoot "agent-output/smb-landing-zone"
+$diagramPath = Join-Path $scriptRoot "agent-output/smb-ready-foundation"
 $diagramErrors = 0
 
 $diagrams = @(
@@ -190,7 +190,7 @@ $stalePatterns = @(
 $auditErrors = 0
 $searchPaths = @(
     (Join-Path $scriptRoot "agent-output"),
-    (Join-Path $scriptRoot "infra/bicep/smb-landing-zone"),
+    (Join-Path $scriptRoot "infra/bicep/smb-ready-foundation"),
     (Join-Path $scriptRoot "README.md")
 )
 
@@ -338,7 +338,7 @@ if (-not $SkipWhatIf) {
     } else {
         Write-Check "Azure authentication" $true $account.name
         
-        $templateFile = Join-Path $scriptRoot "infra/bicep/smb-landing-zone/main.bicep"
+        $templateFile = Join-Path $scriptRoot "infra/bicep/smb-ready-foundation/main.bicep"
         
         foreach ($scenario in $scenarios) {
             Write-Host "  Testing scenario: $scenario..." -ForegroundColor Gray

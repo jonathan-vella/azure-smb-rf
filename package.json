@@ -1,7 +1,7 @@
 {
-  "name": "azure-smb-landing-zone",
+  "name": "azure-smb-ready-foundation",
   "version": "0.3.0",
-  "description": "Azure SMB Landing Zone - repeatable single-subscription Azure environment for Microsoft Partners migrating SMB customers from on-premises to Azure.",
+  "description": "Azure SMB Ready Foundation - repeatable single-subscription Azure environment for Microsoft Partners migrating SMB customers from on-premises to Azure.",
   "private": true,
   "scripts": {
     "prepare": "lefthook install",
@@ -20,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jonathan-vella/azure-agentic-smb-lz.git"
+    "url": "https://github.com/jonathan-vella/azure-smb-rf.git"
   },
   "keywords": [
     "azure",

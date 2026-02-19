@@ -1,6 +1,6 @@
 # Partner Quick Reference Card
 
-> **Azure SMB Landing Zone v0.3.0** | Single-page deployment guide for Microsoft Partners
+> **Azure SMB Ready Foundation v0.3.0** | Single-page deployment guide for Microsoft Partners
 
 ---
 
@@ -19,8 +19,8 @@
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/jonathan-vella/azure-agentic-smb-lz.git
-cd azure-agentic-smb-lz
+git clone https://github.com/jonathan-vella/azure-smb-rf.git
+cd azure-smb-rf
 
 # 2. Open in VS Code → F1 → "Dev Containers: Reopen in Container"
 
@@ -29,7 +29,7 @@ az login
 az account set --subscription "<your-subscription-id>"
 
 # 4. Deploy (choose one)
-cd infra/bicep/smb-landing-zone
+cd infra/bicep/smb-ready-foundation
 ./deploy.ps1 -Scenario baseline    # ~4 min, ~$48/mo
 ./deploy.ps1 -Scenario firewall    # ~15 min, ~$336/mo
 ./deploy.ps1 -Scenario vpn         # ~25 min, ~$187/mo
@@ -79,8 +79,8 @@ cd infra/bicep/smb-landing-zone
 Remove all resources when done testing:
 
 ```powershell
-cd infra/bicep/smb-landing-zone/scripts
-./Remove-SmbLandingZone.ps1 -Location swedencentral -Force
+cd infra/bicep/smb-ready-foundation/scripts
+./Remove-SmbReadyFoundation.ps1 -Location swedencentral -Force
 ```
 
 > ⏱️ Cleanup takes 10-15 minutes
@@ -94,7 +94,7 @@ cd infra/bicep/smb-landing-zone/scripts
 | Container won't start | Check Docker running, increase memory to 4GB+                                  |
 | Azure auth fails      | Try `az login --use-device-code`                                               |
 | Deployment fails      | Check subscription has Owner role                                              |
-| Need help             | [Open an issue](https://github.com/jonathan-vella/azure-agentic-smb-lz/issues) |
+| Need help             | [Open an issue](https://github.com/jonathan-vella/azure-smb-rf/issues) |
 
 ---
 
@@ -102,14 +102,14 @@ cd infra/bicep/smb-landing-zone/scripts
 
 - [Full Documentation](../README.md)
 - [Architecture Diagrams](images/)
-- [Deployment Artifacts](../agent-output/smb-landing-zone/)
-- [Bicep Templates](../infra/bicep/smb-landing-zone/)
+- [Deployment Artifacts](../agent-output/smb-ready-foundation/)
+- [Bicep Templates](../infra/bicep/smb-ready-foundation/)
 
 ---
 
 <div align="center">
 
-**Version 0.3.0** | [GitHub](https://github.com/jonathan-vella/azure-agentic-smb-lz) |
+**Version 0.3.0** | [GitHub](https://github.com/jonathan-vella/azure-smb-rf) |
 MIT License
 
 </div>

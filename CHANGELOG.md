@@ -20,18 +20,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **VPN Gateway cleanup**: `Remove-FaultedVpnGateway` function in deploy.ps1 for failed deployment recovery
 - **Progress indicators**: Estimated deployment times displayed before confirmation (e.g., "40-55 minutes" for full scenario)
 - **ADR-0004**: Architecture Decision Record documenting the deployment ordering fix
-- Orphaned VPN public IP cleanup in Remove-SmbLandingZone.ps1
+- Orphaned VPN public IP cleanup in Remove-SmbReadyFoundation.ps1
 
 ### Changed
 
 - **main.bicep** (v0.3): Added conditional `dependsOn: [firewall]` to VPN Gateway module
 - **deploy.ps1** (v0.5): Enhanced retry patterns, VPN cleanup, progress indicators
-- **Remove-SmbLandingZone.ps1** (v1.1): Added VPN Gateway and public IP cleanup
+- **Remove-SmbReadyFoundation.ps1** (v1.1): Added VPN Gateway and public IP cleanup
 
 ### Documentation
 
 - Updated deployment ordering notes in main.bicep header
-- See [ADR-0004](agent-output/smb-landing-zone/07-ab-adr-0004-firewall-vpn-deployment-ordering.md) for root cause analysis
+- See [ADR-0004](agent-output/smb-ready-foundation/07-ab-adr-0004-firewall-vpn-deployment-ordering.md) for root cause analysis
 
 ## [0.2.0] - 2026-01-30
 
@@ -64,7 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Initial SMB Landing Zone implementation
+- Initial SMB Ready Foundation implementation
 - Hub-spoke network topology with Azure Bastion
 - 4 deployment scenarios: baseline, firewall, vpn, full
 - 21 Azure Policy assignments for governance
@@ -89,5 +89,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[0.2.0]: https://github.com/jonathan-vella/azure-agentic-smb-lz/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/jonathan-vella/azure-agentic-smb-lz/releases/tag/v0.1.0
+[0.2.0]: https://github.com/jonathan-vella/azure-smb-rf/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/jonathan-vella/azure-smb-rf/releases/tag/v0.1.0

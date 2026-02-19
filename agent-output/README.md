@@ -88,7 +88,7 @@ This file is automatically updated by agents as they create new outputs.
 
 ## Related Resources
 
-- **Bicep Code**: [`infra/bicep/smb-landing-zone/`](../infra/bicep/smb-landing-zone/)
+- **Bicep Code**: [`infra/bicep/smb-ready-foundation/`](../infra/bicep/smb-ready-foundation/)
 - **Templates**: [`.github/templates/`](../.github/templates/)
 ```
 

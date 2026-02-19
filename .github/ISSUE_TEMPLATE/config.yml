@@ -1,11 +1,11 @@
 blank_issues_enabled: true
 contact_links:
   - name: 📚 Documentation
-    url: https://github.com/jonathan-vella/azure-agentic-smb-lz/tree/main/docs
+    url: https://github.com/jonathan-vella/azure-smb-rf/tree/main/docs
     about: Check the documentation before opening an issue
   - name: 💬 GitHub Discussions
-    url: https://github.com/jonathan-vella/azure-agentic-smb-lz/discussions
+    url: https://github.com/jonathan-vella/azure-smb-rf/discussions
     about: Ask questions and share ideas in Discussions
   - name: 🔧 Partner Quick Reference
-    url: https://github.com/jonathan-vella/azure-agentic-smb-lz/blob/main/docs/partner-quick-reference.md
+    url: https://github.com/jonathan-vella/azure-smb-rf/blob/main/docs/partner-quick-reference.md
     about: One-page deployment guide for Microsoft Partners

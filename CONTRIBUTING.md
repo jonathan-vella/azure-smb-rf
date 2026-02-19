@@ -1,6 +1,6 @@
-# Contributing to Azure SMB Landing Zone
+# Contributing to Azure SMB Ready Foundation
 
-Thank you for your interest in contributing to the Azure SMB Landing Zone! This document provides
+Thank you for your interest in contributing to the Azure SMB Ready Foundation! This document provides
 guidelines and instructions for contributing.
 
 ## 📜 Code of Conduct
@@ -17,8 +17,8 @@ project maintainers.
 2. **Clone your fork** locally:
 
    ```bash
-   git clone https://github.com/YOUR-USERNAME/azure-agentic-smb-lz.git
-   cd azure-agentic-smb-lz
+   git clone https://github.com/YOUR-USERNAME/azure-smb-rf.git
+   cd azure-smb-rf
    ```
 
 3. **Open in Dev Container** (recommended):
@@ -106,7 +106,7 @@ Before submitting a PR, ensure:
 npm run lint:md
 
 # Bicep linting
-bicep lint infra/bicep/smb-landing-zone/*.bicep
+bicep lint infra/bicep/smb-ready-foundation/*.bicep
 
 # Artifact template validation
 npm run lint:artifact-templates
@@ -115,13 +115,13 @@ npm run lint:artifact-templates
 ### 2. Bicep Builds Successfully
 
 ```bash
-bicep build infra/bicep/smb-landing-zone/main.bicep
+bicep build infra/bicep/smb-ready-foundation/main.bicep
 ```
 
 ### 3. What-If Passes (for infrastructure changes)
 
 ```bash
-cd infra/bicep/smb-landing-zone
+cd infra/bicep/smb-ready-foundation
 ./deploy.ps1 -Scenario baseline -WhatIf
 ./deploy.ps1 -Scenario full -WhatIf
 ```
@@ -153,8 +153,8 @@ When contributing, be aware of these key directories:
 | `.github/agents/`                | Copilot agent definitions | Agent behavior changes    |
 | `.github/instructions/`          | AI coding standards       | Coding convention changes |
 | `.github/templates/`             | Artifact output templates | Output format changes     |
-| `agent-output/smb-landing-zone/` | Generated artifacts       | Usually auto-generated    |
-| `infra/bicep/smb-landing-zone/`  | Bicep templates           | Infrastructure changes    |
+| `agent-output/smb-ready-foundation/` | Generated artifacts       | Usually auto-generated    |
+| `infra/bicep/smb-ready-foundation/`  | Bicep templates           | Infrastructure changes    |
 | `docs/`                          | Documentation             | Documentation updates     |
 
 ## 🏷️ Issue Guidelines
