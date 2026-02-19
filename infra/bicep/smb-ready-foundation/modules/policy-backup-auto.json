@@ -1,0 +1,120 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.40.2.10011",
+      "templateHash": "11099773773245736455"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Location for policy assignment metadata"
+      }
+    },
+    "defaultVmBackupPolicyId": {
+      "type": "string",
+      "metadata": {
+        "description": "Default VM Backup Policy ID (full resource ID)"
+      }
+    }
+  },
+  "variables": {
+    "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/345fa903-145c-4fe1-8bcd-93ec2adccde8",
+    "backupContributorRoleId": "5e467623-bb1f-42f4-a55d-6e525e11384b",
+    "vmContributorRoleId": "9980e02c-c2be-4d73-94e8-173b1dc7cf3c"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-backup-02",
+      "location": "[parameters('location')]",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "displayName": "SMB LZ: Auto-Backup VMs with Backup Tag",
+        "description": "Automatically configure backup on VMs tagged with Backup:true to the central Recovery Services Vault using DefaultVMPolicy (30d daily, 12w weekly, 12m monthly retention)",
+        "policyDefinitionId": "[variables('policyDefinitionId')]",
+        "enforcementMode": "Default",
+        "parameters": {
+          "vaultLocation": {
+            "value": "[parameters('location')]"
+          },
+          "inclusionTagName": {
+            "value": "Backup"
+          },
+          "inclusionTagValue": {
+            "value": [
+              "true",
+              "True",
+              "yes",
+              "Yes"
+            ]
+          },
+          "backupPolicyId": {
+            "value": "[parameters('defaultVmBackupPolicyId')]"
+          },
+          "effect": {
+            "value": "DeployIfNotExists"
+          }
+        }
+      },
+      "metadata": {
+        "description": "Auto-configure backup on VMs with Backup:true tag"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(subscription().id, 'smb-backup-02', 'Backup Contributor')]",
+      "properties": {
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('backupContributorRoleId'))]",
+        "principalId": "[reference(subscriptionResourceId('Microsoft.Authorization/policyAssignments', 'smb-backup-02'), '2024-04-01', 'full').identity.principalId]",
+        "principalType": "ServicePrincipal"
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', 'smb-backup-02')]"
+      ],
+      "metadata": {
+        "description": "Backup Contributor role for policy managed identity"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(subscription().id, 'smb-backup-02', 'VM Contributor')]",
+      "properties": {
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('vmContributorRoleId'))]",
+        "principalId": "[reference(subscriptionResourceId('Microsoft.Authorization/policyAssignments', 'smb-backup-02'), '2024-04-01', 'full').identity.principalId]",
+        "principalType": "ServicePrincipal"
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', 'smb-backup-02')]"
+      ],
+      "metadata": {
+        "description": "Virtual Machine Contributor role for policy managed identity"
+      }
+    }
+  ],
+  "outputs": {
+    "policyAssignmentName": {
+      "type": "string",
+      "metadata": {
+        "description": "Auto-backup policy assignment name"
+      },
+      "value": "smb-backup-02"
+    },
+    "managedIdentityPrincipalId": {
+      "type": "string",
+      "metadata": {
+        "description": "Auto-backup policy managed identity principal ID"
+      },
+      "value": "[reference(subscriptionResourceId('Microsoft.Authorization/policyAssignments', 'smb-backup-02'), '2024-04-01', 'full').identity.principalId]"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "name": "azure-smb-ready-foundation",
+  "version": "0.3.0",
+  "description": "Azure SMB Ready Foundation - repeatable single-subscription Azure environment for Microsoft Partners migrating SMB customers from on-premises to Azure.",
+  "private": true,
+  "scripts": {
+    "prepare": "lefthook install",
+    "lint:md": "markdownlint-cli2 '**/*.md' '#node_modules'",
+    "lint:md:fix": "markdownlint-cli2 --fix '**/*.md' '#node_modules'",
+    "lint:links": "find . -name '*.md' ! -path '*/node_modules/*' ! -path '*/.git/*' | xargs -I {} markdown-link-check {} --config .markdown-link-check.json",
+    "lint:cost-estimate-templates": "node scripts/validate-cost-estimate-templates.mjs",
+    "lint:artifact-templates": "node scripts/validate-artifact-templates.mjs"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.0.0",
+    "@commitlint/config-conventional": "^19.0.0",
+    "lefthook": "^1.6.0",
+    "markdown-link-check": "^3.12.0",
+    "markdownlint-cli2": "^0.20.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jonathan-vella/azure-smb-rf.git"
+  },
+  "keywords": [
+    "azure",
+    "bicep",
+    "smb",
+    "landing-zone",
+    "microsoft-partner",
+    "infrastructure-as-code",
+    "azure-migrate",
+    "azure-verified-modules"
+  ],
+  "author": "Jonathan Vella",
+  "license": "MIT"
+}

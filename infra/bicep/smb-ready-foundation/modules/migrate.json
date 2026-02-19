@@ -1,0 +1,75 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.40.2.10011",
+      "templateHash": "3247715516170757080"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure region for resource deployment"
+      }
+    },
+    "environment": {
+      "type": "string",
+      "allowedValues": [
+        "dev",
+        "staging",
+        "prod",
+        "smb",
+        "smb"
+      ],
+      "metadata": {
+        "description": "Environment name"
+      }
+    },
+    "regionShort": {
+      "type": "string",
+      "metadata": {
+        "description": "Region abbreviation for naming"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "metadata": {
+        "description": "Tags (not supported by Azure Migrate API, kept for interface consistency)"
+      }
+    }
+  },
+  "variables": {
+    "projectName": "[format('migrate-smbrf-{0}-{1}', parameters('environment'), parameters('regionShort'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Migrate/migrateProjects",
+      "apiVersion": "2020-05-01",
+      "name": "[variables('projectName')]",
+      "location": "[parameters('location')]",
+      "properties": {},
+      "metadata": {
+        "description": "Azure Migrate Project for VMware discovery and assessment"
+      }
+    }
+  ],
+  "outputs": {
+    "projectId": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure Migrate Project resource ID"
+      },
+      "value": "[resourceId('Microsoft.Migrate/migrateProjects', variables('projectName'))]"
+    },
+    "projectName": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure Migrate Project name"
+      },
+      "value": "[variables('projectName')]"
+    }
+  }
+}
