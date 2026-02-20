@@ -358,7 +358,7 @@ Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
   </p>
   <p>
     <a href="https://github.com/jonathan-vella/azure-smb-rf">
-      <img src="https://img.shields.io/badge/GitHub-azure--agentic--smb--lz-blue?style=for-the-badge&logo=github" alt="GitHub Repo">
+      <img src="https://img.shields.io/badge/GitHub-Azure--SMB--Ready--Foundations-blue?style=for-the-badge&logo=github" alt="GitHub Repo">
     </a>
   </p>
 </div>
