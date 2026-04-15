@@ -98,6 +98,23 @@ var policyDefinitions = {
   // Backup & Monitoring policies
   vmBackupRequired: '/providers/Microsoft.Authorization/policyDefinitions/013e242c-8828-4970-87b3-ab247555486d'
   diagnosticSettings: '/providers/Microsoft.Authorization/policyDefinitions/7f89b1eb-583c-429a-8828-af049802c1d9'
+
+  // Key Vault policies
+  kvSoftDelete: '/providers/Microsoft.Authorization/policyDefinitions/1e66c121-a66a-4b1f-9b83-0fd99bf0fc2d'
+  kvDeletionProtection: '/providers/Microsoft.Authorization/policyDefinitions/0b60c0b2-2dc2-4e1c-b5c9-abbed971de53'
+  kvRbacModel: '/providers/Microsoft.Authorization/policyDefinitions/12d4fa5e-1f9f-4c21-97a9-b99b3c6611b5'
+  kvNoPublicNetwork: '/providers/Microsoft.Authorization/policyDefinitions/405c5871-3e91-4644-8a63-58e19d68ff5b'
+  kvSecretsExpiration: '/providers/Microsoft.Authorization/policyDefinitions/98728c90-32c7-4049-8429-847dc0f4fe37'
+  kvKeysExpiration: '/providers/Microsoft.Authorization/policyDefinitions/152b15f7-8e1f-4c1f-ab71-8c010ba5dbc0'
+  kvResourceLogs: '/providers/Microsoft.Authorization/policyDefinitions/cf820ca0-f99e-4f3e-84fb-66e913812d21'
+
+  // Additional general policies
+  nsgFlowLogs: '/providers/Microsoft.Authorization/policyDefinitions/27960feb-a23c-4577-8d36-ef8b5f35e0be'
+  auditSystemUpdates: '/providers/Microsoft.Authorization/policyDefinitions/86b3d65f-7626-441e-b690-81a8b71cff60'
+  auditEndpointProtection: '/providers/Microsoft.Authorization/policyDefinitions/26a828e1-e88f-464e-bbb3-c134a282b9de'
+  auditMfaOwners: '/providers/Microsoft.Authorization/policyDefinitions/aa633080-8b72-40c4-a2d7-d00c03e80bed'
+  auditDeprecatedAccounts: '/providers/Microsoft.Authorization/policyDefinitions/ebb62a0c-3560-49e1-b3d6-2a54a51a46d5'
+  auditStorageGeoRedundancy: '/providers/Microsoft.Authorization/policyDefinitions/bf045164-79ba-4215-8f95-f8048dc1780b'
 }
 
 // ============================================================================
@@ -399,6 +416,200 @@ resource policyMonitoring01 'Microsoft.Authorization/policyAssignments@2024-04-0
 }
 
 // ============================================================================
+// Policy Assignments - Key Vault Guardrails (Audit Mode)
+// ============================================================================
+
+@description('Audit Key Vaults without soft delete enabled')
+resource policyKv01 'Microsoft.Authorization/policyAssignments@2024-04-01' = {
+  name: 'smb-kv-01'
+  location: location
+  properties: {
+    displayName: 'SMB LZ: Key Vault Soft Delete'
+    description: 'Audit Key Vaults that do not have soft delete enabled'
+    policyDefinitionId: policyDefinitions.kvSoftDelete
+    enforcementMode: 'Default'
+    parameters: {
+      effect: {
+        value: 'Audit'
+      }
+    }
+  }
+}
+
+@description('Audit Key Vaults without deletion protection (purge protection + soft delete)')
+resource policyKv02 'Microsoft.Authorization/policyAssignments@2024-04-01' = {
+  name: 'smb-kv-02'
+  location: location
+  properties: {
+    displayName: 'SMB LZ: Key Vault Deletion Protection'
+    description: 'Audit Key Vaults without purge protection and soft delete for data recovery'
+    policyDefinitionId: policyDefinitions.kvDeletionProtection
+    enforcementMode: 'Default'
+    parameters: {
+      effect: {
+        value: 'Audit'
+      }
+    }
+  }
+}
+
+@description('Audit Key Vaults not using RBAC permission model')
+resource policyKv03 'Microsoft.Authorization/policyAssignments@2024-04-01' = {
+  name: 'smb-kv-03'
+  location: location
+  properties: {
+    displayName: 'SMB LZ: Key Vault RBAC Model'
+    description: 'Audit Key Vaults that do not use RBAC permission model'
+    policyDefinitionId: policyDefinitions.kvRbacModel
+    enforcementMode: 'Default'
+    parameters: {
+      effect: {
+        value: 'Audit'
+      }
+    }
+  }
+}
+
+@description('Audit Key Vaults with public network access enabled')
+resource policyKv04 'Microsoft.Authorization/policyAssignments@2024-04-01' = {
+  name: 'smb-kv-04'
+  location: location
+  properties: {
+    displayName: 'SMB LZ: Key Vault No Public Network'
+    description: 'Audit Key Vaults that have public network access enabled'
+    policyDefinitionId: policyDefinitions.kvNoPublicNetwork
+    enforcementMode: 'Default'
+    parameters: {
+      effect: {
+        value: 'Audit'
+      }
+    }
+  }
+}
+
+@description('Audit Key Vault secrets without expiration date')
+resource policyKv05 'Microsoft.Authorization/policyAssignments@2024-04-01' = {
+  name: 'smb-kv-05'
+  location: location
+  properties: {
+    displayName: 'SMB LZ: Key Vault Secrets Expiration'
+    description: 'Audit secrets that do not have an expiration date set'
+    policyDefinitionId: policyDefinitions.kvSecretsExpiration
+    enforcementMode: 'Default'
+    parameters: {
+      effect: {
+        value: 'Audit'
+      }
+    }
+  }
+}
+
+@description('Audit Key Vault keys without expiration date')
+resource policyKv06 'Microsoft.Authorization/policyAssignments@2024-04-01' = {
+  name: 'smb-kv-06'
+  location: location
+  properties: {
+    displayName: 'SMB LZ: Key Vault Keys Expiration'
+    description: 'Audit keys that do not have an expiration date set'
+    policyDefinitionId: policyDefinitions.kvKeysExpiration
+    enforcementMode: 'Default'
+    parameters: {
+      effect: {
+        value: 'Audit'
+      }
+    }
+  }
+}
+
+@description('Audit Key Vaults without resource logs enabled')
+resource policyKv07 'Microsoft.Authorization/policyAssignments@2024-04-01' = {
+  name: 'smb-kv-07'
+  location: location
+  properties: {
+    displayName: 'SMB LZ: Key Vault Resource Logs'
+    description: 'Audit Key Vaults that do not have resource logs enabled'
+    policyDefinitionId: policyDefinitions.kvResourceLogs
+    enforcementMode: 'Default'
+  }
+}
+
+// ============================================================================
+// Policy Assignments - Additional General Policies
+// ============================================================================
+
+@description('Audit NSGs without flow logs configured')
+resource policyNetwork05 'Microsoft.Authorization/policyAssignments@2024-04-01' = {
+  name: 'smb-network-05'
+  location: location
+  properties: {
+    displayName: 'SMB LZ: Audit NSG Flow Logs'
+    description: 'Audit Network Security Groups that do not have flow logs configured'
+    policyDefinitionId: policyDefinitions.nsgFlowLogs
+    enforcementMode: 'Default'
+  }
+}
+
+@description('Audit VMs missing system updates')
+resource policyCompute05 'Microsoft.Authorization/policyAssignments@2024-04-01' = {
+  name: 'smb-compute-05'
+  location: location
+  properties: {
+    displayName: 'SMB LZ: Audit System Updates on VMs'
+    description: 'Audit VMs that are missing system updates'
+    policyDefinitionId: policyDefinitions.auditSystemUpdates
+    enforcementMode: 'Default'
+  }
+}
+
+@description('Audit VMs without endpoint protection installed')
+resource policyCompute06 'Microsoft.Authorization/policyAssignments@2024-04-01' = {
+  name: 'smb-compute-06'
+  location: location
+  properties: {
+    displayName: 'SMB LZ: Audit Endpoint Protection'
+    description: 'Audit VMs that do not have endpoint protection installed'
+    policyDefinitionId: policyDefinitions.auditEndpointProtection
+    enforcementMode: 'Default'
+  }
+}
+
+@description('Audit subscription accounts with owner permissions without MFA enabled')
+resource policyIdentity03 'Microsoft.Authorization/policyAssignments@2024-04-01' = {
+  name: 'smb-identity-03'
+  location: location
+  properties: {
+    displayName: 'SMB LZ: Audit MFA for Owners'
+    description: 'Audit accounts with owner permissions that do not have MFA enabled'
+    policyDefinitionId: policyDefinitions.auditMfaOwners
+    enforcementMode: 'Default'
+  }
+}
+
+@description('Audit deprecated accounts with owner permissions on the subscription')
+resource policyIdentity04 'Microsoft.Authorization/policyAssignments@2024-04-01' = {
+  name: 'smb-identity-04'
+  location: location
+  properties: {
+    displayName: 'SMB LZ: Audit Deprecated Accounts'
+    description: 'Audit deprecated accounts with owner permissions on the subscription'
+    policyDefinitionId: policyDefinitions.auditDeprecatedAccounts
+    enforcementMode: 'Default'
+  }
+}
+
+@description('Audit storage accounts without geo-redundant storage')
+resource policyBackup03 'Microsoft.Authorization/policyAssignments@2024-04-01' = {
+  name: 'smb-backup-03'
+  location: location
+  properties: {
+    displayName: 'SMB LZ: Audit Storage Geo-Redundancy'
+    description: 'Audit storage accounts that do not use geo-redundant storage'
+    policyDefinitionId: policyDefinitions.auditStorageGeoRedundancy
+    enforcementMode: 'Default'
+  }
+}
+
+// ============================================================================
 // Outputs
 // ============================================================================
 
@@ -408,10 +619,13 @@ output policyAssignmentNames array = [
   policyCompute02.name
   policyCompute03.name
   policyCompute04.name
+  policyCompute05.name
+  policyCompute06.name
   policyNetwork01.name
   policyNetwork02.name
   policyNetwork03.name
   policyNetwork04.name
+  policyNetwork05.name
   policyStorage01.name
   policyStorage02.name
   policyStorage03.name
@@ -419,12 +633,22 @@ output policyAssignmentNames array = [
   policyStorage05.name
   policyIdentity01.name
   policyIdentity02.name
+  policyIdentity03.name
+  policyIdentity04.name
   policyTagging01.name
   policyTagging02.name
   policyGovernance01.name
   policyBackup01.name
+  policyBackup03.name
   policyMonitoring01.name
+  policyKv01.name
+  policyKv02.name
+  policyKv03.name
+  policyKv04.name
+  policyKv05.name
+  policyKv06.name
+  policyKv07.name
 ]
 
 @description('Total number of policy assignments (excludes auto-backup policy deployed separately)')
-output policyCount int = 20
+output policyCount int = 33

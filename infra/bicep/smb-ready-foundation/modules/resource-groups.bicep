@@ -63,6 +63,13 @@ resource rgMigrate 'Microsoft.Resources/resourceGroups@2024-03-01' = {
   tags: sharedServicesTags
 }
 
+@description('Security resource group - Key Vault')
+resource rgSecurity 'Microsoft.Resources/resourceGroups@2024-03-01' = {
+  name: 'rg-security-smb-${regionShort}'
+  location: location
+  tags: sharedServicesTags
+}
+
 // ============================================================================
 // Resource Groups - Spoke (environment-specific)
 // ============================================================================
@@ -107,3 +114,9 @@ output migrateResourceGroupName string = rgMigrate.name
 
 @description('Migrate resource group ID')
 output migrateResourceGroupId string = rgMigrate.id
+
+@description('Security resource group name')
+output securityResourceGroupName string = rgSecurity.name
+
+@description('Security resource group ID')
+output securityResourceGroupId string = rgSecurity.id

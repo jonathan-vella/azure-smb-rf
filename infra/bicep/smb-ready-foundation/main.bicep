@@ -116,6 +116,7 @@ var rgNames = {
   monitor: 'rg-monitor-smb-${regionShort}'
   backup: 'rg-backup-smb-${regionShort}'
   migrate: 'rg-migrate-smb-${regionShort}'
+  security: 'rg-security-smb-${regionShort}'
 }
 
 // ============================================================================
@@ -126,7 +127,7 @@ var rgNames = {
 // Phase 1: Subscription-Scope Resources (Policies + Budget)
 // ----------------------------------------------------------------------------
 
-@description('Deploy 20 Azure Policy assignments at subscription scope')
+@description('Deploy Azure Policy assignments at subscription scope')
 module policyAssignments 'modules/policy-assignments.bicep' = {
   name: 'policy-assignments-${uniqueSuffix}'
   params: {
@@ -148,7 +149,7 @@ module budget 'modules/budget.bicep' = {
 // Phase 2: Resource Groups
 // ----------------------------------------------------------------------------
 
-@description('Create 5 resource groups for SMB Ready Foundation workloads')
+@description('Create resource groups for SMB Ready Foundation workloads')
 module resourceGroups 'modules/resource-groups.bicep' = {
   name: 'resource-groups-${uniqueSuffix}'
   params: {
@@ -254,6 +255,47 @@ module migrate 'modules/migrate.bicep' = {
     location: location
     environment: 'smb'
     regionShort: regionShort
+    tags: sharedServicesTags
+  }
+  dependsOn: [
+    resourceGroups
+  ]
+}
+
+@description('Deploy Azure Key Vault with private endpoint in spoke PE subnet')
+module keyVault 'modules/keyvault.bicep' = {
+  name: 'keyvault-${uniqueSuffix}'
+  scope: resourceGroup(rgNames.security)
+  params: {
+    location: location
+    regionShort: regionShort
+    uniqueSuffix: uniqueSuffix
+    pepSubnetId: networkingSpoke.outputs.pepSubnetId
+    logAnalyticsWorkspaceId: monitoring.outputs.workspaceId
+    tags: sharedServicesTags
+  }
+  dependsOn: [
+    resourceGroups
+  ]
+}
+
+@description('Enable Microsoft Defender for Cloud Free tier')
+module defender 'modules/defender.bicep' = {
+  name: 'defender-${uniqueSuffix}'
+  params: {
+    location: location
+  }
+}
+
+@description('Deploy Azure Automation Account linked to Log Analytics')
+module automation 'modules/automation.bicep' = {
+  name: 'automation-${uniqueSuffix}'
+  scope: resourceGroup(rgNames.monitor)
+  params: {
+    location: location
+    environment: 'smb'
+    regionShort: regionShort
+    logAnalyticsWorkspaceId: monitoring.outputs.workspaceId
     tags: sharedServicesTags
   }
   dependsOn: [
@@ -386,3 +428,12 @@ output firewallPrivateIp string = deployFirewall && firewall != null ? firewall.
 @description('VPN Gateway public IP (if deployed)')
 #disable-next-line BCP318
 output vpnGatewayPublicIp string = deployVpnGateway && vpnGateway != null ? vpnGateway.outputs.gatewayPublicIp : ''
+
+@description('Key Vault name')
+output keyVaultName string = keyVault.outputs.keyVaultName
+
+@description('Key Vault URI')
+output keyVaultUri string = keyVault.outputs.keyVaultUri
+
+@description('Automation Account name')
+output automationAccountName string = automation.outputs.automationAccountName

@@ -126,7 +126,8 @@ $resourceGroups = @(
     "rg-spoke-$Environment-$regionAbbrev",
     "rg-monitor-smb-$regionAbbrev",
     "rg-backup-smb-$regionAbbrev",
-    "rg-migrate-smb-$regionAbbrev"
+    "rg-migrate-smb-$regionAbbrev",
+    "rg-security-smb-$regionAbbrev"
 )
 
 # Check authentication
@@ -284,6 +285,57 @@ if ($hubExists -eq 'true') {
     }
 } else {
     Write-Step "Hub resource group not found" 'SKIP'
+}
+
+# Phase 4b: Delete route tables (prevent hub RG deletion failure)
+Write-Host ""
+Write-Host "  Phase 4b: Route Table Cleanup" -ForegroundColor Cyan
+
+if ($hubExists -eq 'true') {
+    $routeTables = az network route-table list -g $hubRg --query "[].name" -o tsv 2>$null
+    if ($routeTables) {
+        $rtList = $routeTables -split "`n" | Where-Object { $_ }
+        foreach ($rt in $rtList) {
+            az network route-table delete -g $hubRg -n $rt 2>$null
+            if ($LASTEXITCODE -eq 0) {
+                Write-Step "Route table '$rt' deleted" 'OK'
+            } else {
+                Write-Step "Route table '$rt' deletion failed" 'ERROR'
+            }
+        }
+    } else {
+        Write-Step "No route tables found in hub RG" 'SKIP'
+    }
+} else {
+    Write-Step "Hub resource group not found" 'SKIP'
+}
+
+# Phase 4c: Purge soft-deleted Key Vault (if any)
+Write-Host ""
+Write-Host "  Phase 4c: Key Vault Purge" -ForegroundColor Cyan
+
+$securityRg = "rg-security-smb-$regionAbbrev"
+$securityExists = az group exists --name $securityRg 2>$null
+if ($securityExists -eq 'true') {
+    $kvList = az keyvault list -g $securityRg --query "[].name" -o tsv 2>$null
+    if ($kvList) {
+        $kvNames = $kvList -split "`n" | Where-Object { $_ }
+        foreach ($kvName in $kvNames) {
+            az keyvault delete -n $kvName -g $securityRg 2>$null
+            Write-Step "Key Vault '$kvName' deleted" 'OK'
+            # Attempt purge (will fail if purge protection is enabled - expected)
+            az keyvault purge -n $kvName --location $Location 2>$null
+            if ($LASTEXITCODE -eq 0) {
+                Write-Step "Key Vault '$kvName' purged (soft-delete cleared)" 'OK'
+            } else {
+                Write-Step "Key Vault '$kvName' purge skipped (purge protection enabled - 90 day retention)" 'WARN'
+            }
+        }
+    } else {
+        Write-Step "No Key Vaults found in security RG" 'SKIP'
+    }
+} else {
+    Write-Step "Security resource group not found" 'SKIP'
 }
 
 # Phase 5: Delete resource groups

@@ -1,0 +1,77 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.41.2.15936",
+      "templateHash": "7562961123033155014"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "swedencentral",
+      "metadata": {
+        "description": "Azure region for Defender configuration (unused - Defender resources are global)"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Security/pricings",
+      "apiVersion": "2024-01-01",
+      "name": "VirtualMachines",
+      "properties": {
+        "pricingTier": "Free"
+      },
+      "metadata": {
+        "description": "Defender for Servers - Free tier (security recommendations only)"
+      }
+    },
+    {
+      "type": "Microsoft.Security/pricings",
+      "apiVersion": "2024-01-01",
+      "name": "StorageAccounts",
+      "properties": {
+        "pricingTier": "Free"
+      },
+      "metadata": {
+        "description": "Defender for Storage - Free tier"
+      }
+    },
+    {
+      "type": "Microsoft.Security/pricings",
+      "apiVersion": "2024-01-01",
+      "name": "KeyVaults",
+      "properties": {
+        "pricingTier": "Free"
+      },
+      "metadata": {
+        "description": "Defender for Key Vaults - Free tier"
+      }
+    },
+    {
+      "type": "Microsoft.Security/pricings",
+      "apiVersion": "2024-01-01",
+      "name": "Arm",
+      "properties": {
+        "pricingTier": "Free"
+      },
+      "metadata": {
+        "description": "Defender for ARM - Free tier"
+      }
+    },
+    {
+      "type": "Microsoft.Security/autoProvisioningSettings",
+      "apiVersion": "2017-08-01-preview",
+      "name": "default",
+      "properties": {
+        "autoProvision": "Off"
+      },
+      "metadata": {
+        "description": "Auto-provisioning of Log Analytics agent - disabled (use Azure Monitor Agent instead)"
+      }
+    }
+  ]
+}

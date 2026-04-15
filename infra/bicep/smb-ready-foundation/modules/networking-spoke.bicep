@@ -63,6 +63,7 @@ var natGatewayName = 'nat-spoke-${environment}-${regionShort}'
 var workloadSubnetPrefix = cidrSubnet(vnetAddressSpace, 25, 0)
 var dataSubnetPrefix = cidrSubnet(vnetAddressSpace, 25, 1)
 var appSubnetPrefix = cidrSubnet(vnetAddressSpace, 25, 2)
+var pepSubnetPrefix = cidrSubnet(vnetAddressSpace, 26, 6)
 
 // Determine if UDR should be applied
 var hasRouteTable = !empty(routeTableId)
@@ -186,6 +187,12 @@ module spokeVnet 'br/public:avm/res/network/virtual-network:0.7.2' = {
         natGatewayResourceId: natGateway.?outputs.?resourceId
         routeTableResourceId: hasRouteTable ? routeTableId : null
       }
+      {
+        name: 'snet-pep'
+        addressPrefix: pepSubnetPrefix
+        networkSecurityGroupResourceId: spokeNsg.outputs.resourceId
+        privateEndpointNetworkPolicies: 'Disabled'
+      }
     ]
   }
 }
@@ -208,6 +215,9 @@ output dataSubnetId string = spokeVnet.outputs.subnetResourceIds[1]
 
 @description('App Subnet resource ID')
 output appSubnetId string = spokeVnet.outputs.subnetResourceIds[2]
+
+@description('Private Endpoint Subnet resource ID')
+output pepSubnetId string = spokeVnet.outputs.subnetResourceIds[3]
 
 @description('Spoke NSG resource ID')
 output nsgId string = spokeNsg.outputs.resourceId

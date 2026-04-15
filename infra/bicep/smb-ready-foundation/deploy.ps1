@@ -806,7 +806,8 @@ $targetRgs = @(
     "rg-spoke-$Environment-$regionAbbrev",
     "rg-monitor-smb-$regionAbbrev",
     "rg-backup-smb-$regionAbbrev",
-    "rg-migrate-smb-$regionAbbrev"
+    "rg-migrate-smb-$regionAbbrev",
+    "rg-security-smb-$regionAbbrev"
 )
 $existingRgs = az group list --query "[].name" -o tsv 2>$null
 $conflictingRgs = $targetRgs | Where-Object { $_ -in $existingRgs }
