@@ -5,14 +5,14 @@
 
 ## Deployment Details
 
-| Field               | Value                            |
-| ------------------- | -------------------------------- |
-| **Management Group** | `smb-rf` (SMB Ready Foundation) |
-| **Deployment Name** | `smb-prod-20260202-143501`       |
-| **Resource Group**  | Multiple (see below)             |
-| **Location**        | swedencentral                    |
-| **Duration**        | 30 min 10 sec (greenfield, full) |
-| **Status**          | ✅ Succeeded                     |
+| Field                | Value                            |
+| -------------------- | -------------------------------- |
+| **Management Group** | `smb-rf` (SMB Ready Foundation)  |
+| **Deployment Name**  | `smb-prod-20260202-143501`       |
+| **Resource Group**   | Multiple (see below)             |
+| **Location**         | swedencentral                    |
+| **Duration**         | 30 min 10 sec (greenfield, full) |
+| **Status**           | ✅ Succeeded                     |
 
 ### Validated Deployment Scenarios
 
@@ -73,19 +73,19 @@
 
 ### Management & Governance
 
-| Resource              | Name                  | Resource Group / Scope | Status    |
-| --------------------- | --------------------- | ---------------------- | --------- |
-| Management Group      | smb-rf                | Tenant Root Group      | Succeeded |
-| MG Policy Assignments | 30 `smb-*` policies   | Management Group scope | Succeeded |
-| Log Analytics         | log-smbrf-smb-swc     | rg-monitor-smb-swc     | Succeeded |
-| Recovery Vault        | rsv-smbrf-smb-swc     | rg-backup-smb-swc      | Succeeded |
-| VM Backup Policy      | DefaultVMPolicy       | rg-backup-smb-swc      | Succeeded |
-| Azure Migrate         | migrate-smbrf-smb-swc | rg-migrate-smb-swc     | Succeeded |
-| Key Vault             | kv-smbrf-smb-swc      | rg-security-smb-swc    | Succeeded |
-| Automation Account    | aa-smbrf-smb-swc      | rg-security-smb-swc    | Succeeded |
-| Defender for Cloud    | Free tier             | Subscription scope     | Succeeded |
-| Budget                | budget-smb-monthly    | Subscription scope     | Succeeded |
-| Sub Policy Assignments| 3+1 `smb-*` policies  | Subscription scope     | Succeeded |
+| Resource               | Name                  | Resource Group / Scope | Status    |
+| ---------------------- | --------------------- | ---------------------- | --------- |
+| Management Group       | smb-rf                | Tenant Root Group      | Succeeded |
+| MG Policy Assignments  | 30 `smb-*` policies   | Management Group scope | Succeeded |
+| Log Analytics          | log-smbrf-smb-swc     | rg-monitor-smb-swc     | Succeeded |
+| Recovery Vault         | rsv-smbrf-smb-swc     | rg-backup-smb-swc      | Succeeded |
+| VM Backup Policy       | DefaultVMPolicy       | rg-backup-smb-swc      | Succeeded |
+| Azure Migrate          | migrate-smbrf-smb-swc | rg-migrate-smb-swc     | Succeeded |
+| Key Vault              | kv-smbrf-smb-swc      | rg-security-smb-swc    | Succeeded |
+| Automation Account     | aa-smbrf-smb-swc      | rg-security-smb-swc    | Succeeded |
+| Defender for Cloud     | Free tier             | Subscription scope     | Succeeded |
+| Budget                 | budget-smb-monthly    | Subscription scope     | Succeeded |
+| Sub Policy Assignments | 3+1 `smb-*` policies  | Subscription scope     | Succeeded |
 
 ### VM Backup Configuration
 

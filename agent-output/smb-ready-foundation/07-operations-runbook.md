@@ -8,15 +8,15 @@
 
 ## Quick Reference
 
-| Item                    | Value                                                            |
-| ----------------------- | ---------------------------------------------------------------- |
-| **Management Group**    | smb-rf (SMB Ready Foundation)                                    |
-| **Primary Region**      | swedencentral                                                    |
-| **Resource Groups**     | rg-hub, rg-spoke, rg-monitor, rg-backup, rg-migrate, rg-security |
-| **MG Policy Count**     | 30 policies at management group scope                            |
-| **Sub Policy Count**    | 3+1 policies at subscription scope                               |
-| **Support Contact**     | Partner operations team                                          |
-| **Escalation Path**     | L1 → L2 → Microsoft Support                                      |
+| Item                 | Value                                                            |
+| -------------------- | ---------------------------------------------------------------- |
+| **Management Group** | smb-rf (SMB Ready Foundation)                                    |
+| **Primary Region**   | swedencentral                                                    |
+| **Resource Groups**  | rg-hub, rg-spoke, rg-monitor, rg-backup, rg-migrate, rg-security |
+| **MG Policy Count**  | 30 policies at management group scope                            |
+| **Sub Policy Count** | 3+1 policies at subscription scope                               |
+| **Support Contact**  | Partner operations team                                          |
+| **Escalation Path**  | L1 → L2 → Microsoft Support                                      |
 
 ### Critical Resources
 
@@ -299,18 +299,19 @@ cd scripts
 ```
 
 This grants the deploying identity:
+
 - **Management Group Contributor** on tenant root
 - **Resource Policy Contributor** on tenant root
 
 ### 7.2 Management Group Policy Troubleshooting
 
-| Symptom                           | Cause                              | Resolution                                                     |
-| --------------------------------- | ---------------------------------- | -------------------------------------------------------------- |
-| Policy not inheriting to sub      | Subscription not under smb-rf MG   | Verify MG membership: `az account management-group show -n smb-rf` |
-| Cannot assign policies at MG      | Missing MG Contributor role        | Run `Setup-ManagementGroupPermissions.ps1`                     |
-| 403 on MG operations              | Insufficient tenant-level access   | Requires Global Admin for initial setup                        |
-| Policy shows non-compliant        | New resource predates policy       | Run compliance scan: `az policy state trigger-scan`            |
-| Cannot delete MG policies         | Active policy assignments          | Remove assignments first via `Remove-SmbReadyFoundation.ps1`   |
+| Symptom                      | Cause                            | Resolution                                                         |
+| ---------------------------- | -------------------------------- | ------------------------------------------------------------------ |
+| Policy not inheriting to sub | Subscription not under smb-rf MG | Verify MG membership: `az account management-group show -n smb-rf` |
+| Cannot assign policies at MG | Missing MG Contributor role      | Run `Setup-ManagementGroupPermissions.ps1`                         |
+| 403 on MG operations         | Insufficient tenant-level access | Requires Global Admin for initial setup                            |
+| Policy shows non-compliant   | New resource predates policy     | Run compliance scan: `az policy state trigger-scan`                |
+| Cannot delete MG policies    | Active policy assignments        | Remove assignments first via `Remove-SmbReadyFoundation.ps1`       |
 
 ### 7.3 Verify MG Hierarchy
 

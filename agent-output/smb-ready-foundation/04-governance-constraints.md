@@ -10,6 +10,7 @@ that are deployed as part of the Bicep implementation.
 **Governance Source**: Project-defined (policies deployed by this project)
 
 These policies are assigned at two scopes:
+
 - **Management group** (`smb-rf`): 30 policies for guardrails that inherit to all subscriptions
 - **Subscription**: 3+1 policies that require subscription-level resources (backup auto-enroll, budget, Defender)
 
@@ -41,8 +42,8 @@ tags: {
 
 | Tag         | Policy Assignment | Effect |
 | ----------- | ----------------- | ------ |
-| Environment | smb-tagging-01 | Deny   |
-| Owner       | smb-tagging-02 | Deny   |
+| Environment | smb-tagging-01    | Deny   |
+| Owner       | smb-tagging-02    | Deny   |
 
 ## Security Policies
 
@@ -96,51 +97,51 @@ tags: {
 
 ### Compute Guardrails (4 policies — Management Group scope)
 
-| #   | Assignment Name   | Policy                | Effect | Scope            |
-| --- | ----------------- | --------------------- | ------ | ---------------- |
-| 1   | smb-compute-01 | Allowed VM SKUs       | Deny   | Management Group |
-| 2   | smb-compute-02 | No public IPs on NICs | Deny   | Management Group |
-| 3   | smb-compute-03 | Audit managed disks   | Audit  | Management Group |
-| 4   | smb-compute-04 | Audit ARM VMs         | Audit  | Management Group |
+| #   | Assignment Name | Policy                | Effect | Scope            |
+| --- | --------------- | --------------------- | ------ | ---------------- |
+| 1   | smb-compute-01  | Allowed VM SKUs       | Deny   | Management Group |
+| 2   | smb-compute-02  | No public IPs on NICs | Deny   | Management Group |
+| 3   | smb-compute-03  | Audit managed disks   | Audit  | Management Group |
+| 4   | smb-compute-04  | Audit ARM VMs         | Audit  | Management Group |
 
 ### Network Guardrails (4 policies — Management Group scope)
 
-| #   | Assignment Name   | Policy                 | Effect           | Scope            |
-| --- | ----------------- | ---------------------- | ---------------- | ---------------- |
-| 5   | smb-network-01 | NSG on subnets         | AuditIfNotExists | Management Group |
-| 6   | smb-network-02 | Close management ports | AuditIfNotExists | Management Group |
-| 7   | smb-network-03 | Restrict NSG ports     | AuditIfNotExists | Management Group |
-| 8   | smb-network-04 | Disable IP forwarding  | Deny             | Management Group |
+| #   | Assignment Name | Policy                 | Effect           | Scope            |
+| --- | --------------- | ---------------------- | ---------------- | ---------------- |
+| 5   | smb-network-01  | NSG on subnets         | AuditIfNotExists | Management Group |
+| 6   | smb-network-02  | Close management ports | AuditIfNotExists | Management Group |
+| 7   | smb-network-03  | Restrict NSG ports     | AuditIfNotExists | Management Group |
+| 8   | smb-network-04  | Disable IP forwarding  | Deny             | Management Group |
 
 ### Storage Guardrails (5 policies — Management Group scope)
 
-| #   | Assignment Name   | Policy                  | Effect | Scope            |
-| --- | ----------------- | ----------------------- | ------ | ---------------- |
-| 9   | smb-storage-01 | HTTPS only              | Deny   | Management Group |
-| 10  | smb-storage-02 | No public blob access   | Deny   | Management Group |
-| 11  | smb-storage-03 | TLS 1.2 minimum         | Deny   | Management Group |
-| 12  | smb-storage-04 | Restrict network access | Audit  | Management Group |
-| 13  | smb-storage-05 | ARM migration           | Audit  | Management Group |
+| #   | Assignment Name | Policy                  | Effect | Scope            |
+| --- | --------------- | ----------------------- | ------ | ---------------- |
+| 9   | smb-storage-01  | HTTPS only              | Deny   | Management Group |
+| 10  | smb-storage-02  | No public blob access   | Deny   | Management Group |
+| 11  | smb-storage-03  | TLS 1.2 minimum         | Deny   | Management Group |
+| 12  | smb-storage-04  | Restrict network access | Audit  | Management Group |
+| 13  | smb-storage-05  | ARM migration           | Audit  | Management Group |
 
 ### Identity & Access (2 policies — Management Group scope)
 
-| #   | Assignment Name    | Policy               | Effect | Scope            |
-| --- | ------------------ | -------------------- | ------ | ---------------- |
+| #   | Assignment Name | Policy               | Effect | Scope            |
+| --- | --------------- | -------------------- | ------ | ---------------- |
 | 14  | smb-identity-01 | SQL Azure AD-only    | Audit  | Management Group |
 | 15  | smb-identity-02 | SQL no public access | Audit  | Management Group |
 
 ### Tagging & Governance (3 policies — Management Group scope)
 
-| #   | Assignment Name      | Policy                  | Effect | Scope            |
-| --- | -------------------- | ----------------------- | ------ | ---------------- |
+| #   | Assignment Name   | Policy                  | Effect | Scope            |
+| --- | ----------------- | ----------------------- | ------ | ---------------- |
 | 16  | smb-tagging-01    | Require Environment tag | Deny   | Management Group |
 | 17  | smb-tagging-02    | Require Owner tag       | Deny   | Management Group |
 | 18  | smb-governance-01 | Allowed locations       | Deny   | Management Group |
 
 ### Monitoring & Backup (2 policies — mixed scope)
 
-| #   | Assignment Name      | Policy              | Effect           | Scope            |
-| --- | -------------------- | ------------------- | ---------------- | ---------------- |
+| #   | Assignment Name   | Policy              | Effect           | Scope            |
+| --- | ----------------- | ------------------- | ---------------- | ---------------- |
 | 19  | smb-backup-01     | VM backup required  | AuditIfNotExists | Management Group |
 | 20  | smb-monitoring-01 | Diagnostic settings | AuditIfNotExists | Management Group |
 

@@ -55,10 +55,10 @@ infra/bicep/smb-ready-foundation/
 
 ### Subscription-Scope Resources
 
-| Resource                | Bicep Type                                | Module                      |
-| ----------------------- | ----------------------------------------- | --------------------------- |
+| Resource                | Bicep Type                                | Module                                                           |
+| ----------------------- | ----------------------------------------- | ---------------------------------------------------------------- |
 | Policy Assignments (34) | Microsoft.Authorization/policyAssignments | policy-assignments-mg.bicep (30), policy-assignments.bicep (3+1) |
-| Cost Management Budget  | Microsoft.Consumption/budgets             | budget.bicep                |
+| Cost Management Budget  | Microsoft.Consumption/budgets             | budget.bicep                                                     |
 
 ### Resource Groups (6)
 

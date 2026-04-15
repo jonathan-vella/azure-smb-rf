@@ -12,7 +12,7 @@
 | Category             | Count |
 | -------------------- | ----- |
 | **Total Resources**  | 67    |
-| 🏢 Management Group   | 1     |
+| 🏢 Management Group  | 1     |
 | 🌐 Networking        | 17    |
 | 📊 Monitoring        | 3     |
 | 💾 Backup & Recovery | 2     |
@@ -26,9 +26,9 @@
 
 ### � Management Group
 
-| Name   | Type             | Display Name          | Parent            |
-| ------ | ---------------- | --------------------- | ----------------- |
-| smb-rf | Management Group | SMB Ready Foundation  | Tenant Root Group |
+| Name   | Type             | Display Name         | Parent            |
+| ------ | ---------------- | -------------------- | ----------------- |
+| smb-rf | Management Group | SMB Ready Foundation | Tenant Root Group |
 
 ### �🌐 Networking Resources
 
@@ -106,36 +106,36 @@
 
 ### 🔐 Security Resources (Policy Assignments)
 
-| Policy Name       | Effect            | Scope              | Purpose                       |
-| ----------------- | ----------------- | ------------------ | ----------------------------- |
-| smb-compute-01    | Deny              | Management Group   | Allowed VM SKUs (B/D/E only)  |
-| smb-compute-02    | Deny              | Management Group   | No public IPs on VMs          |
-| smb-compute-03    | Deny              | Management Group   | Managed disks only            |
-| smb-network-01    | Audit             | Management Group   | NSG required on subnets       |
-| smb-network-02    | Deny              | Management Group   | No IP forwarding              |
-| smb-network-03    | Deny              | Management Group   | Management ports closed       |
-| smb-storage-01    | Deny              | Management Group   | HTTPS only                    |
-| smb-storage-02    | Deny              | Management Group   | No public blob access         |
-| smb-storage-03    | Deny              | Management Group   | TLS 1.2+ required             |
-| smb-identity-01   | Deny              | Management Group   | Azure AD-only SQL auth        |
-| smb-identity-02   | Deny              | Management Group   | No classic resources          |
-| smb-compliance-01 | Audit             | Management Group   | Required tags                 |
-| smb-compliance-02 | Deny              | Management Group   | Allowed locations             |
-| smb-backup-01     | AuditIfNotExists  | Management Group   | Backup audit                  |
-| smb-backup-02     | DeployIfNotExists | Subscription       | Auto-backup enrollment        |
-| smb-backup-03     | Audit             | Management Group   | Storage geo-redundancy        |
-| smb-kv-01         | Audit             | Management Group   | Key Vault soft delete         |
-| smb-kv-02         | Audit             | Management Group   | Key Vault deletion protection |
-| smb-kv-03         | Audit             | Management Group   | Key Vault RBAC model          |
-| smb-kv-04         | Audit             | Management Group   | Key Vault no public network   |
-| smb-kv-05         | Audit             | Management Group   | KV secrets expiration         |
-| smb-kv-06         | Audit             | Management Group   | KV keys expiration            |
-| smb-kv-07         | AuditIfNotExists  | Management Group   | KV resource logs enabled      |
-| smb-network-05    | AuditIfNotExists  | Management Group   | NSG flow logs required        |
-| smb-compute-05    | AuditIfNotExists  | Management Group   | System updates on VMs         |
-| smb-compute-06    | AuditIfNotExists  | Management Group   | Endpoint protection on VMs    |
-| smb-identity-03   | AuditIfNotExists  | Management Group   | MFA for subscription owners   |
-| smb-identity-04   | AuditIfNotExists  | Management Group   | Deprecated accounts audit     |
+| Policy Name       | Effect            | Scope            | Purpose                       |
+| ----------------- | ----------------- | ---------------- | ----------------------------- |
+| smb-compute-01    | Deny              | Management Group | Allowed VM SKUs (B/D/E only)  |
+| smb-compute-02    | Deny              | Management Group | No public IPs on VMs          |
+| smb-compute-03    | Deny              | Management Group | Managed disks only            |
+| smb-network-01    | Audit             | Management Group | NSG required on subnets       |
+| smb-network-02    | Deny              | Management Group | No IP forwarding              |
+| smb-network-03    | Deny              | Management Group | Management ports closed       |
+| smb-storage-01    | Deny              | Management Group | HTTPS only                    |
+| smb-storage-02    | Deny              | Management Group | No public blob access         |
+| smb-storage-03    | Deny              | Management Group | TLS 1.2+ required             |
+| smb-identity-01   | Deny              | Management Group | Azure AD-only SQL auth        |
+| smb-identity-02   | Deny              | Management Group | No classic resources          |
+| smb-compliance-01 | Audit             | Management Group | Required tags                 |
+| smb-compliance-02 | Deny              | Management Group | Allowed locations             |
+| smb-backup-01     | AuditIfNotExists  | Management Group | Backup audit                  |
+| smb-backup-02     | DeployIfNotExists | Subscription     | Auto-backup enrollment        |
+| smb-backup-03     | Audit             | Management Group | Storage geo-redundancy        |
+| smb-kv-01         | Audit             | Management Group | Key Vault soft delete         |
+| smb-kv-02         | Audit             | Management Group | Key Vault deletion protection |
+| smb-kv-03         | Audit             | Management Group | Key Vault RBAC model          |
+| smb-kv-04         | Audit             | Management Group | Key Vault no public network   |
+| smb-kv-05         | Audit             | Management Group | KV secrets expiration         |
+| smb-kv-06         | Audit             | Management Group | KV keys expiration            |
+| smb-kv-07         | AuditIfNotExists  | Management Group | KV resource logs enabled      |
+| smb-network-05    | AuditIfNotExists  | Management Group | NSG flow logs required        |
+| smb-compute-05    | AuditIfNotExists  | Management Group | System updates on VMs         |
+| smb-compute-06    | AuditIfNotExists  | Management Group | Endpoint protection on VMs    |
+| smb-identity-03   | AuditIfNotExists  | Management Group | MFA for subscription owners   |
+| smb-identity-04   | AuditIfNotExists  | Management Group | Deprecated accounts audit     |
 
 ### 🔑 Security Services
 

@@ -108,14 +108,14 @@ Tenant Root Group
     └── Customer Subscription
 ```
 
-| Component              | Purpose                                                            |
-| ---------------------- | ------------------------------------------------------------------ |
-| **Management Group**   | `smb-rf` — 30 Azure Policies scoped at MG level                   |
-| **Hub VNet**           | Centralized services (Bastion, Firewall, VPN Gateway, Private DNS) |
-| **Spoke VNet**         | Workload hosting with NAT Gateway for outbound internet            |
-| **Azure Migrate**      | Server discovery and assessment                                    |
-| **Log Analytics**      | Centralized monitoring with 500 MB/day cap                         |
-| **Recovery Services**  | VM backup with default policy                                      |
+| Component             | Purpose                                                            |
+| --------------------- | ------------------------------------------------------------------ |
+| **Management Group**  | `smb-rf` — 30 Azure Policies scoped at MG level                    |
+| **Hub VNet**          | Centralized services (Bastion, Firewall, VPN Gateway, Private DNS) |
+| **Spoke VNet**        | Workload hosting with NAT Gateway for outbound internet            |
+| **Azure Migrate**     | Server discovery and assessment                                    |
+| **Log Analytics**     | Centralized monitoring with 500 MB/day cap                         |
+| **Recovery Services** | VM backup with default policy                                      |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -256,10 +256,10 @@ cd infra/bicep/smb-ready-foundation/scripts
 
 34 policies split across management group and subscription scopes:
 
-| Scope                  | Count | Examples                                                |
-| ---------------------- | ----- | ------------------------------------------------------- |
-| **Management Group**   | 30    | Allowed SKUs, no public IPs, HTTPS only, TLS 1.2+, tags |
-| **Subscription**       | 3+1   | Backup auto-enroll (DeployIfNotExists), budget, Defender |
+| Scope                | Count | Examples                                                 |
+| -------------------- | ----- | -------------------------------------------------------- |
+| **Management Group** | 30    | Allowed SKUs, no public IPs, HTTPS only, TLS 1.2+, tags  |
+| **Subscription**     | 3+1   | Backup auto-enroll (DeployIfNotExists), budget, Defender |
 
 | Category       | Policies                                                |
 | -------------- | ------------------------------------------------------- |
@@ -307,7 +307,7 @@ cd infra/bicep/smb-ready-foundation/scripts
 | Decision              | Choice                            | Rationale                               |
 | --------------------- | --------------------------------- | --------------------------------------- |
 | **Management Group**  | `smb-rf` under tenant root        | Policy inheritance across subscriptions |
-| **Policy Scope**      | 30 MG-scoped + 3+1 sub-scoped    | MG for guardrails, sub for DINE/budget  |
+| **Policy Scope**      | 30 MG-scoped + 3+1 sub-scoped     | MG for guardrails, sub for DINE/budget  |
 | **Resilience**        | Not required                      | Cost priority for SMB                   |
 | **SLA/RTO/RPO**       | N/A                               | Rebuild from Bicep if needed            |
 | **VM Access**         | Azure Bastion Developer           | No public IPs on VMs                    |

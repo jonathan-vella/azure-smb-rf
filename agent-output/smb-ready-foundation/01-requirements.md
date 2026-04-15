@@ -155,12 +155,12 @@ All Bicep implementations MUST use Azure Verified Modules where available.
 
 ### Prerequisite Roles
 
-| Phase   | Role Required                    | Scope              | Purpose                          |
-| ------- | -------------------------------- | ------------------ | -------------------------------- |
-| Phase 0 | Global Administrator             | Tenant             | Grant MG permissions (one-time)  |
-| Phase 1 | Management Group Contributor     | Tenant Root Group  | Create `smb-rf` management group |
-| Phase 1 | Resource Policy Contributor      | Tenant Root Group  | Assign policies at MG scope      |
-| Phase 2 | Owner                            | Subscription       | Deploy subscription resources    |
+| Phase   | Role Required                | Scope             | Purpose                          |
+| ------- | ---------------------------- | ----------------- | -------------------------------- |
+| Phase 0 | Global Administrator         | Tenant            | Grant MG permissions (one-time)  |
+| Phase 1 | Management Group Contributor | Tenant Root Group | Create `smb-rf` management group |
+| Phase 1 | Resource Policy Contributor  | Tenant Root Group | Assign policies at MG scope      |
+| Phase 2 | Owner                        | Subscription      | Deploy subscription resources    |
 
 ## Non-Functional Requirements (NFRs)
 
