@@ -2,16 +2,18 @@
 
 import asyncio
 import logging
+import random
 import ssl
 from typing import Any
 
 import aiohttp
 
-from .cache import PricingCache
 from .config import (
     AZURE_PRICING_BASE_URL,
     DEFAULT_API_VERSION,
-    MAX_PAGINATION_PAGES,
+    HTTP_POOL_PER_HOST,
+    HTTP_POOL_SIZE,
+    HTTP_REQUEST_TIMEOUT,
     MAX_RESULTS_PER_REQUEST,
     MAX_RETRIES,
     RATE_LIMIT_RETRY_BASE_WAIT,
@@ -28,18 +30,22 @@ class AzurePricingClient:
         self.session: aiohttp.ClientSession | None = None
         self._base_url = AZURE_PRICING_BASE_URL
         self._api_version = DEFAULT_API_VERSION
-        self._cache = PricingCache()
 
     async def __aenter__(self) -> "AzurePricingClient":
         """Async context manager entry."""
-        connector = None
+        ssl_context = None
         if not SSL_VERIFY:
-            # Create SSL context that doesn't verify certificates
             ssl_context = ssl.create_default_context()
             ssl_context.check_hostname = False
             ssl_context.verify_mode = ssl.CERT_NONE
-            connector = aiohttp.TCPConnector(ssl=ssl_context)
             logger.warning("SSL verification is disabled. This is insecure and should only be used for debugging.")
+        connector = aiohttp.TCPConnector(
+            limit=HTTP_POOL_SIZE,
+            limit_per_host=HTTP_POOL_PER_HOST,
+            ttl_dns_cache=300,
+            force_close=False,
+            ssl=ssl_context,
+        )
         self.session = aiohttp.ClientSession(connector=connector)
         return self
 
@@ -48,11 +54,6 @@ class AzurePricingClient:
         if self.session:
             await self.session.close()
             self.session = None
-
-    @property
-    def cache(self) -> PricingCache:
-        """Return the underlying cache instance."""
-        return self._cache
 
     async def make_request(
         self, url: str | None = None, params: dict[str, Any] | None = None, max_retries: int = MAX_RETRIES
@@ -79,12 +80,18 @@ class AzurePricingClient:
 
         for attempt in range(max_retries + 1):
             try:
-                async with self.session.get(request_url, params=params) as response:
+                async with self.session.get(
+                    request_url, params=params, timeout=aiohttp.ClientTimeout(total=HTTP_REQUEST_TIMEOUT)
+                ) as response:
                     if response.status == 429:  # Too Many Requests
                         if attempt < max_retries:
-                            wait_time = RATE_LIMIT_RETRY_BASE_WAIT * (attempt + 1)
+                            retry_after = response.headers.get("Retry-After")
+                            if retry_after:
+                                wait_time = float(retry_after)
+                            else:
+                                wait_time = RATE_LIMIT_RETRY_BASE_WAIT * (2 ** attempt) + random.uniform(0, 1)
                             logger.warning(
-                                f"Rate limited (429). Retrying in {wait_time} seconds... "
+                                f"Rate limited (429). Retrying in {wait_time:.1f}s "
                                 f"(attempt {attempt + 1}/{max_retries + 1})"
                             )
                             await asyncio.sleep(wait_time)
@@ -98,9 +105,9 @@ class AzurePricingClient:
 
             except aiohttp.ClientResponseError as e:
                 if e.status == 429 and attempt < max_retries:
-                    wait_time = RATE_LIMIT_RETRY_BASE_WAIT * (attempt + 1)
+                    wait_time = RATE_LIMIT_RETRY_BASE_WAIT * (2 ** attempt) + random.uniform(0, 1)
                     logger.warning(
-                        f"Rate limited (429). Retrying in {wait_time} seconds... "
+                        f"Rate limited (429). Retrying in {wait_time:.1f}s "
                         f"(attempt {attempt + 1}/{max_retries + 1})"
                     )
                     await asyncio.sleep(wait_time)
@@ -147,41 +154,7 @@ class AzurePricingClient:
         if limit and limit < MAX_RESULTS_PER_REQUEST:
             params["$top"] = str(limit)
 
-        cache_hit = self._cache.get(filter_conditions, currency_code)
-        if cache_hit is not None:
-            return cache_hit
-
-        result = await self.make_request(params=params)
-        self._cache.put(filter_conditions, currency_code, result)
-        return result
-
-    async def fetch_all_prices(
-        self,
-        filter_conditions: list[str] | None = None,
-        currency_code: str = "USD",
-        max_pages: int = MAX_PAGINATION_PAGES,
-    ) -> dict[str, Any]:
-        """Fetch all pages of results by following NextPageLink.
-
-        Returns a single merged response with all items.
-        """
-        first_page = await self.fetch_prices(filter_conditions, currency_code)
-        all_items: list[dict[str, Any]] = list(first_page.get("Items", []))
-        next_link: str | None = first_page.get("NextPageLink")
-        pages_fetched = 1
-
-        while next_link and pages_fetched < max_pages:
-            page = await self.make_request(url=next_link)
-            all_items.extend(page.get("Items", []))
-            next_link = page.get("NextPageLink")
-            pages_fetched += 1
-            logger.debug("Fetched page %d (%d items so far)", pages_fetched, len(all_items))
-
-        return {
-            "Items": all_items,
-            "Count": len(all_items),
-            "TotalPages": pages_fetched,
-        }
+        return await self.make_request(params=params)
 
     async def fetch_text(self, url: str, timeout: float = 10.0) -> str:
         """Fetch text content from a URL.

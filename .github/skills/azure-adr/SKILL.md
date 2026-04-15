@@ -1,6 +1,6 @@
 ---
 name: azure-adr
-description: Creates Azure Architecture Decision Records (ADRs) with WAF mapping, alternatives, consequences, and implementation guidance; use for architecture decision documentation requests.
+description: "Creates Azure Architecture Decision Records with WAF mapping, alternatives, and consequences. USE FOR: ADR creation, architecture decisions, trade-off analysis, WAF pillar justification. DO NOT USE FOR: Bicep/Terraform code generation, diagram creation, cost estimates."
 compatibility: Works with Claude Code, GitHub Copilot, VS Code, and any Agent Skills compatible tool; no external dependencies required.
 license: MIT
 metadata:
@@ -41,60 +41,9 @@ agent-output/{project}/
 
 ## ADR Template Structure
 
-```markdown
-# ADR-{NNNN}: {Decision Title}
-
-> Status: Proposed | Accepted | Deprecated | Superseded
-> Date: {YYYY-MM-DD}
-> Deciders: {team/person}
-
-## Context
-
-What is the issue that we're seeing that is motivating this decision or change?
-
-## Decision
-
-What is the change that we're proposing and/or doing?
-
-## Alternatives Considered
-
-| Option   | Pros | Cons | WAF Impact                     |
-| -------- | ---- | ---- | ------------------------------ |
-| Option A | ...  | ...  | Security: +, Cost: -           |
-| Option B | ...  | ...  | Reliability: +, Performance: + |
-
-## Consequences
-
-### Positive
-
-- List of positive outcomes
-
-### Negative
-
-- List of trade-offs or risks
-
-### Neutral
-
-- List of neutral observations
-
-## WAF Pillar Analysis
-
-| Pillar      | Impact | Notes |
-| ----------- | ------ | ----- |
-| Security    | ↑/↓/→  | ...   |
-| Reliability | ↑/↓/→  | ...   |
-| Performance | ↑/↓/→  | ...   |
-| Cost        | ↑/↓/→  | ...   |
-| Operations  | ↑/↓/→  | ...   |
-
-## Compliance Considerations
-
-- List any regulatory or compliance implications
-
-## Implementation Notes
-
-- Key implementation details or constraints
-```
+📋 **Reference**: Read `references/adr-template.md` for the full ADR template
+with all sections (Context, Decision, Alternatives, Consequences,
+WAF Pillar Analysis, Compliance, Implementation Notes).
 
 ## Example Prompts
 
@@ -150,9 +99,9 @@ the architecture assessment above as a formal ADR.
 ## What This Skill Does NOT Do
 
 - ❌ Generate Bicep or Terraform code
-- ❌ Create architecture diagrams (use `azure-diagrams` skill)
+- ❌ Create architecture diagrams (use `drawio` skill)
 - ❌ Deploy resources (use `deploy` agent)
-- ❌ Create implementation plans (use `bicep-plan` agent)
+- ❌ Create implementation plans (use `iac-planner` agent)
 
 ## Workflow Integration
 
@@ -203,34 +152,16 @@ Before finalizing the ADR, verify:
 
 ## Guardrails
 
-### DO
+📋 **Reference**: Read `references/guardrails.md` for detailed DO/DON'T rules and anti-pattern table.
 
-- ✅ Create ADR files in `agent-output/{project}/`
-- ✅ Use step-prefixed filenames (`03-des-adr-*` or `07-ab-adr-*`)
-- ✅ Use 4-digit sequential numbering (0001, 0002, etc.)
-- ✅ Include WAF pillar analysis for every ADR
-- ✅ Document at least 2-3 alternatives considered
-- ✅ Be honest about both benefits and drawbacks
-- ✅ Keep ADRs focused on a single decision
-- ✅ Use specific, measurable consequences
+**Key rules**: Always include WAF analysis, document 2-3 alternatives,
+include both positive and negative consequences, use specific decision statements.
 
-### DO NOT
+## Reference Index
 
-- ❌ Use vague decision statements ("We decided to use a database")
-- ❌ Skip alternatives section or use "none considered"
-- ❌ List only positive consequences
-- ❌ Skip WAF pillar analysis
-- ❌ Use placeholder text like "TBD" or "Insert here"
-- ❌ Create ADRs that cover multiple unrelated decisions
-- ❌ Use generic implementation notes ("Deploy to Azure")
+Load these on demand — do NOT read all at once:
 
-## Patterns to Avoid
-
-| Anti-Pattern                 | Problem                                          | Solution                                                              |
-| ---------------------------- | ------------------------------------------------ | --------------------------------------------------------------------- |
-| Vague decision statements    | "We decided to use a database" lacks specificity | State exact technology: "Use Azure SQL Database with geo-replication" |
-| Missing alternatives         | No record of other options considered            | Document at least 2-3 alternatives with rejection rationale           |
-| One-sided consequences       | Only listing positives                           | Include both positive AND negative consequences                       |
-| Incomplete context           | Decision without background                      | Explain the problem, constraints, and forces at play                  |
-| Generic implementation notes | "Deploy to Azure"                                | Provide specific, actionable steps with commands/configs              |
-| Missing WAF alignment        | No framework reference                           | Document which WAF pillars are affected and how                       |
+| Reference                    | When to Load                              |
+| ---------------------------- | ----------------------------------------- |
+| `references/adr-template.md` | Full ADR template with all sections       |
+| `references/guardrails.md`   | Guardrails, DO/DON'T rules, anti-patterns |

@@ -21,7 +21,7 @@ body:
         - Bicep templates (infra/bicep/)
         - PowerShell scripts
         - Agent definitions (.github/agents/)
-        - Documentation (docs/, README files)
+        - Documentation (site/src/content/docs/, README files)
         - GitHub Actions workflows
         - MCP Server (mcp/azure-pricing-mcp/)
         - Devcontainer configuration
@@ -34,7 +34,7 @@ body:
     attributes:
       label: Affected File(s)
       description: Path to the affected file(s)
-      placeholder: "infra/bicep/smb-landing-zone/main.bicep"
+      placeholder: "infra/bicep/contoso-patient-portal/main.bicep"
     validations:
       required: false
 
@@ -61,8 +61,8 @@ body:
       description: How can we reproduce this issue?
       placeholder: |
         1. Open devcontainer
-        2. Navigate to `infra/bicep/smb-landing-zone/`
-        3. Run `./deploy.ps1 -Scenario baseline -WhatIf`
+        2. Navigate to `infra/bicep/scenario-name/`
+        3. Run `bicep build main.bicep`
         4. Observe error
     validations:
       required: true
@@ -90,7 +90,7 @@ body:
       placeholder: |
         - Bicep CLI: 0.24.x
         - Azure CLI: 2.55.x
-        - Node.js: 20.x
+        - Node.js: 24.x
         - PowerShell: 7.4.x
       render: markdown
     validations:

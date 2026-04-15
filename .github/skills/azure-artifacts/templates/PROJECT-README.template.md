@@ -99,7 +99,7 @@ When generating a project README, agents MUST:
 
 ![Architecture Diagram](./{diagram-filename})
 
-_Generated with [azure-diagrams](../../.github/skills/azure-diagrams/SKILL.md) skill_
+_Generated with [drawio](../../.github/skills/drawio/SKILL.md) skill_
 
 </div>
 <!-- End diagram block -->
@@ -125,24 +125,21 @@ _Generated with [azure-diagrams](../../.github/skills/azure-diagrams/SKILL.md) s
 | [01-requirements.md](./01-requirements.md)                       | Project requirements with NFRs    | ![Done](https://img.shields.io/badge/-Done-success?style=flat-square) | {created-date} |
 | [02-architecture-assessment.md](./02-architecture-assessment.md) | WAF assessment with pillar scores | ![Done](https://img.shields.io/badge/-Done-success?style=flat-square) | {created-date} |
 | [03-des-cost-estimate.md](./03-des-cost-estimate.md)             | Azure pricing estimate            | ![Done](https://img.shields.io/badge/-Done-success?style=flat-square) | {created-date} |
-| [03-des-diagram.py](./03-des-diagram.py)                         | Architecture diagram source       | ![Done](https://img.shields.io/badge/-Done-success?style=flat-square) | {created-date} |
-| [03-des-diagram.png](./03-des-diagram.png)                       | Architecture diagram image        | ![Done](https://img.shields.io/badge/-Done-success?style=flat-square) | {created-date} |
+| [03-des-diagram.drawio](./03-des-diagram.drawio)                 | Architecture diagram (Draw.io)    | ![Done](https://img.shields.io/badge/-Done-success?style=flat-square) | {created-date} |
 
 </details>
 
 <details>
 <summary><strong>📁 Step 4-6: Planning, Implementation & Deployment</strong></summary>
 
-| File                                                               | Description                      |                                Status                                 | Created        |
-| ------------------------------------------------------------------ | -------------------------------- | :-------------------------------------------------------------------: | -------------- |
-| [04-governance-constraints.md](./04-governance-constraints.md)     | Azure Policy constraints         | ![Done](https://img.shields.io/badge/-Done-success?style=flat-square) | {created-date} |
-| [04-implementation-plan.md](./04-implementation-plan.md)           | Bicep implementation plan        | ![Done](https://img.shields.io/badge/-Done-success?style=flat-square) | {created-date} |
-| [04-dependency-diagram.py](./04-dependency-diagram.py)             | Step 4 dependency diagram source | ![Done](https://img.shields.io/badge/-Done-success?style=flat-square) | {created-date} |
-| [04-dependency-diagram.png](./04-dependency-diagram.png)           | Step 4 dependency diagram image  | ![Done](https://img.shields.io/badge/-Done-success?style=flat-square) | {created-date} |
-| [04-runtime-diagram.py](./04-runtime-diagram.py)                   | Step 4 runtime diagram source    | ![Done](https://img.shields.io/badge/-Done-success?style=flat-square) | {created-date} |
-| [04-runtime-diagram.png](./04-runtime-diagram.png)                 | Step 4 runtime diagram image     | ![Done](https://img.shields.io/badge/-Done-success?style=flat-square) | {created-date} |
-| [05-implementation-reference.md](./05-implementation-reference.md) | Link to Bicep code               | ![Done](https://img.shields.io/badge/-Done-success?style=flat-square) | {created-date} |
-| [06-deployment-summary.md](./06-deployment-summary.md)             | Deployment results               | ![Done](https://img.shields.io/badge/-Done-success?style=flat-square) | {created-date} |
+| File                                                               | Description               |                                Status                                 | Created        |
+| ------------------------------------------------------------------ | ------------------------- | :-------------------------------------------------------------------: | -------------- |
+| [04-governance-constraints.md](./04-governance-constraints.md)     | Azure Policy constraints  | ![Done](https://img.shields.io/badge/-Done-success?style=flat-square) | {created-date} |
+| [04-implementation-plan.md](./04-implementation-plan.md)           | Bicep implementation plan | ![Done](https://img.shields.io/badge/-Done-success?style=flat-square) | {created-date} |
+| [04-dependency-diagram.drawio](./04-dependency-diagram.drawio)     | Step 4 dependency diagram | ![Done](https://img.shields.io/badge/-Done-success?style=flat-square) | {created-date} |
+| [04-runtime-diagram.drawio](./04-runtime-diagram.drawio)           | Step 4 runtime diagram    | ![Done](https://img.shields.io/badge/-Done-success?style=flat-square) | {created-date} |
+| [05-implementation-reference.md](./05-implementation-reference.md) | Link to Bicep code        | ![Done](https://img.shields.io/badge/-Done-success?style=flat-square) | {created-date} |
+| [06-deployment-summary.md](./06-deployment-summary.md)             | Deployment results        | ![Done](https://img.shields.io/badge/-Done-success?style=flat-square) | {created-date} |
 
 </details>
 
@@ -164,17 +161,17 @@ _Generated with [azure-diagrams](../../.github/skills/azure-diagrams/SKILL.md) s
 
 ## 🔗 Related Resources
 
-| Resource            | Path                                                               |
-| ------------------- | ------------------------------------------------------------------ |
-| **Bicep Templates** | [`infra/bicep/{project-slug}/`](../../infra/bicep/{project-slug}/) |
-| **Workflow Docs**   | [`docs/workflow.md`](../../docs/workflow.md)                       |
-| **Troubleshooting** | [`docs/troubleshooting.md`](../../docs/troubleshooting.md)         |
+| Resource            | Path                                                                                                               |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **Bicep Templates** | [`infra/bicep/{project-slug}/`](../../infra/bicep/{project-slug}/)                                                 |
+| **Workflow Docs**   | [Published workflow guide](https://jonathan-vella.github.io/azure-agentic-infraops/concepts/workflow/)             |
+| **Troubleshooting** | [Published troubleshooting guide](https://jonathan-vella.github.io/azure-agentic-infraops/guides/troubleshooting/) |
 
 ---
 
 <div align="center">
 
-**Generated by [Agentic InfraOps](../../README.md)** · [Report Issue](https://github.com/jonathan-vella/azure-agentic-infraops/issues/new)
+**Generated by [APEX](../../README.md)** · [Report Issue](https://github.com/jonathan-vella/azure-agentic-infraops/issues/new)
 
 <a href="#readme-top">⬆️ Back to Top</a>
 

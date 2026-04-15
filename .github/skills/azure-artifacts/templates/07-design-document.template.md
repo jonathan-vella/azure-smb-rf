@@ -1,22 +1,22 @@
-# Azure Design Document: {project-name}
+# 📐 Azure Design Document: {project-name}
 
-![Step](https://img.shields.io/badge/Step-7b-blue)
-![Status](https://img.shields.io/badge/Status-Draft-orange)
-![Agent](https://img.shields.io/badge/Agent-Docs-purple)
+![Step](https://img.shields.io/badge/Step-7b-blue?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Draft-orange?style=for-the-badge)
+![Agent](https://img.shields.io/badge/Agent-Docs-purple?style=for-the-badge)
 
-<details>
-<summary><strong>📑 Table of Contents</strong></summary>
+<details open>
+<summary><strong>📑 Design Contents</strong></summary>
 
-- [1. Introduction](#1-introduction)
-- [2. Azure Architecture Overview](#2-azure-architecture-overview)
-- [3. Networking](#3-networking)
-- [4. Storage](#4-storage)
-- [5. Compute](#5-compute)
-- [6. Identity & Access](#6-identity--access)
-- [7. Security & Compliance](#7-security--compliance)
-- [8. Backup & Disaster Recovery](#8-backup--disaster-recovery)
-- [9. Management & Monitoring](#9-management--monitoring)
-- [10. Appendix](#10-appendix)
+- [📝 1. Introduction](#-1-introduction)
+- [🏛️ 2. Azure Architecture Overview](#-2-azure-architecture-overview)
+- [🌐 3. Networking](#-3-networking)
+- [💾 4. Storage](#-4-storage)
+- [💻 5. Compute](#-5-compute)
+- [👤 6. Identity & Access](#-6-identity--access)
+- [🔐 7. Security & Compliance](#-7-security--compliance)
+- [🔄 8. Backup & Disaster Recovery](#-8-backup--disaster-recovery)
+- [📊 9. Management & Monitoring](#-9-management--monitoring)
+- [📎 10. Appendix](#-10-appendix)
 - [References](#references)
 
 </details>
@@ -34,7 +34,7 @@
 
 ---
 
-## 1. Introduction
+## 📝 1. Introduction
 
 ### 1.1 Document Purpose
 
@@ -88,15 +88,15 @@ development efforts.
 
 ---
 
-## 2. Azure Architecture Overview
+## 🏛️ 2. Azure Architecture Overview
 
 ### 2.1 Architecture Diagram
 
-![System Context Diagram - {project-name}](./03-des-diagram.png)
+![System Context Diagram - {project-name}](./03-des-diagram.drawio.svg)
 
-Source: [03-des-diagram.py](./03-des-diagram.py)
+Source: [03-des-diagram.drawio](./03-des-diagram.drawio)
 
-> Replace with actual generated non-Mermaid architecture diagram for the project.
+> Replace with actual generated Draw.io architecture diagram for the project.
 
 ### 2.2 Resource Summary
 
@@ -109,7 +109,7 @@ Source: [03-des-diagram.py](./03-des-diagram.py)
 
 ---
 
-## 3. Networking
+## 🌐 3. Networking
 
 ![Network Topology - {project-name}](./03-des-network-diagram.png)
 
@@ -117,29 +117,83 @@ Source: [03-des-network-diagram.py](./03-des-network-diagram.py)
 
 > Replace with actual network topology.
 
-{networking-details}
+### 3.1 Virtual Network Summary
+
+| VNet Name   | Address Space | Region     | Purpose   |
+| ----------- | ------------- | ---------- | --------- |
+| {vnet-name} | {CIDR}        | {location} | {purpose} |
+
+### 3.2 Subnet Allocation
+
+| Subnet   | Address Range | Delegated To | NSG      |
+| -------- | ------------- | ------------ | -------- |
+| {subnet} | {CIDR}        | {service}    | {nsg-id} |
+
+### 3.3 DNS & Private Endpoints
+
+| Service   | Private Endpoint | Private DNS Zone |
+| --------- | ---------------- | ---------------- |
+| {service} | {pe-name}        | {zone}           |
+
+> 📎 Full resource details: [07-resource-inventory.md](07-resource-inventory.md)
 
 ---
 
-## 4. Storage
+## 💾 4. Storage
 
-{storage-details}
+### 4.1 Storage Account Summary
+
+| Account   | Kind   | Replication | Access Tier | Public Access |
+| --------- | ------ | ----------- | ----------- | ------------- |
+| {account} | {kind} | {LRS/GRS}   | {Hot/Cool}  | {Disabled}    |
+
+### 4.2 Data Retention
+
+| Data Category | Retention Period | Lifecycle Policy |
+| ------------- | ---------------- | ---------------- |
+| {category}    | {period}         | {policy}         |
+
+> 📎 Full resource details: [07-resource-inventory.md](07-resource-inventory.md)
 
 ---
 
-## 5. Compute
+## 💻 5. Compute
 
-{compute-details}
+### 5.1 Compute Resource Summary
+
+| Resource   | Type   | SKU   | Instances | Scaling   |
+| ---------- | ------ | ----- | --------- | --------- |
+| {resource} | {type} | {sku} | {count}   | {scaling} |
+
+### 5.2 Scaling Configuration
+
+| Resource   | Min | Max | Scale Trigger           |
+| ---------- | --- | --- | ----------------------- |
+| {resource} | {n} | {n} | {CPU / request / event} |
+
+> 📎 Full resource details: [07-resource-inventory.md](07-resource-inventory.md)
 
 ---
 
-## 6. Identity & Access
+## 👤 6. Identity & Access
 
-{identity-details}
+### 6.1 Managed Identities
+
+| Identity   | Type                     | Assigned To | Key Permissions |
+| ---------- | ------------------------ | ----------- | --------------- |
+| {identity} | {System / User-assigned} | {resource}  | {roles}         |
+
+### 6.2 RBAC Role Assignments
+
+| Principal   | Role   | Scope   |
+| ----------- | ------ | ------- |
+| {principal} | {role} | {scope} |
+
+> 📎 Full compliance mapping: [07-compliance-matrix.md](07-compliance-matrix.md)
 
 ---
 
-## 7. Security & Compliance
+## 🔐 7. Security & Compliance
 
 <details>
 <summary><strong>🔒 Security Controls</strong></summary>
@@ -164,21 +218,49 @@ Source: [03-des-network-diagram.py](./03-des-network-diagram.py)
 
 {security-details}
 
----
-
-## 8. Backup & Disaster Recovery
-
-{backup-dr-details}
+> 📎 Full compliance mapping: [07-compliance-matrix.md](07-compliance-matrix.md)
 
 ---
 
-## 9. Management & Monitoring
+## 🔄 8. Backup & Disaster Recovery
 
-{monitoring-details}
+### 8.1 Recovery Objectives
+
+| Tier         | RTO Target | RPO Target | Services   |
+| ------------ | ---------- | ---------- | ---------- |
+| 🔴 Critical  | {time}     | {time}     | {services} |
+| 🟠 Important | {time}     | {time}     | {services} |
+| 🟢 Standard  | {time}     | {time}     | {services} |
+
+### 8.2 Backup Summary
+
+| Service   | Backup Type | Retention | Geo-Redundant |
+| --------- | ----------- | --------- | ------------- |
+| {service} | {type}      | {period}  | {Yes / No}    |
+
+> 📎 Full procedures: [07-backup-dr-plan.md](07-backup-dr-plan.md)
 
 ---
 
-## 10. Appendix
+## 📊 9. Management & Monitoring
+
+### 9.1 Monitoring Configuration
+
+| Service   | Monitoring Tool      | Key Metrics            |
+| --------- | -------------------- | ---------------------- |
+| {service} | {App Insights / etc} | {CPU, latency, errors} |
+
+### 9.2 Alert Rules
+
+| Alert        | Severity  | Threshold   | Action         |
+| ------------ | --------- | ----------- | -------------- |
+| {alert-name} | {Sev 0-4} | {condition} | {action-group} |
+
+> 📎 Full operational procedures: [07-operations-runbook.md](07-operations-runbook.md)
+
+---
+
+## 📎 10. Appendix
 
 <details>
 <summary>📋 Detailed Resource Configuration</summary>
@@ -218,5 +300,9 @@ _Design document generated from infrastructure artifacts._
 
 ---
 
+<div align="center">
+
 | ⬅️ [07-documentation-index.md](07-documentation-index.md) | 🏠 [Project Index](README.md) | ➡️ [07-operations-runbook.md](07-operations-runbook.md) |
 | --------------------------------------------------------- | ----------------------------- | ------------------------------------------------------- |
+
+</div>

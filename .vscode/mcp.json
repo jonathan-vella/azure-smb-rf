@@ -12,6 +12,17 @@
     "github": {
       "type": "http",
       "url": "https://api.githubcopilot.com/mcp/"
+    },
+    "drawio": {
+      "type": "stdio",
+      "command": "deno",
+      "args": [
+        "run",
+        "-P",
+        "--no-check",
+        "--cached-only",
+        "${workspaceFolder}/mcp/drawio-mcp-server/src/index.ts"
+      ]
     }
   }
 }

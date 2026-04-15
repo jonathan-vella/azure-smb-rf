@@ -1,11 +1,11 @@
 blank_issues_enabled: true
 contact_links:
   - name: 📚 Documentation
-    url: https://github.com/jonathan-vella/azure-smb-rf/tree/main/docs
+    url: https://jonathan-vella.github.io/azure-agentic-infraops/
     about: Check the documentation before opening an issue
   - name: 💬 GitHub Discussions
-    url: https://github.com/jonathan-vella/azure-smb-rf/discussions
+    url: https://github.com/jonathan-vella/azure-agentic-infraops/discussions
     about: Ask questions and share ideas in Discussions
-  - name: 🔧 Partner Quick Reference
-    url: https://github.com/jonathan-vella/azure-smb-rf/blob/main/docs/partner-quick-reference.md
-    about: One-page deployment guide for Microsoft Partners
+  - name: 🔧 APEX Workflow
+    url: https://jonathan-vella.github.io/azure-agentic-infraops/concepts/workflow/
+    about: Learn about the multi-step agentic workflow
