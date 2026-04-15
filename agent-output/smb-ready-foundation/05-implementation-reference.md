@@ -12,11 +12,14 @@
 infra/bicep/smb-ready-foundation/
 ├── main.bicep                          # Main orchestration template (subscription scope)
 ├── main.bicepparam                     # Parameter file with defaults
-├── deploy.ps1                          # PowerShell deployment script
+├── deploy.ps1                          # PowerShell deployment script (Phase 2)
+├── deploy-mg.bicep                     # Management group deployment template (Phase 1)
+├── deploy-mg.ps1                       # MG deployment orchestration script (Phase 1)
 ├── scripts/
 │   └── Remove-SmbReadyFoundationPolicies.ps1   # Policy cleanup script
 └── modules/
-    ├── policy-assignments.bicep        # 33 Azure Policy assignments
+    ├── policy-assignments-mg.bicep     # 30 MG-scoped policy assignments
+    ├── policy-assignments.bicep        # 3 subscription-scoped policy assignments
     ├── policy-backup-auto.bicep        # VM backup auto-enrollment (DeployIfNotExists)
     ├── resource-groups.bicep           # 6 resource groups
     ├── networking-hub.bicep            # Hub VNet, Bastion, NSG, DNS
@@ -52,10 +55,10 @@ infra/bicep/smb-ready-foundation/
 
 ### Subscription-Scope Resources
 
-| Resource                | Bicep Type                                | Module                   |
-| ----------------------- | ----------------------------------------- | ------------------------ |
-| Policy Assignments (34) | Microsoft.Authorization/policyAssignments | policy-assignments.bicep |
-| Cost Management Budget  | Microsoft.Consumption/budgets             | budget.bicep             |
+| Resource                | Bicep Type                                | Module                      |
+| ----------------------- | ----------------------------------------- | --------------------------- |
+| Policy Assignments (34) | Microsoft.Authorization/policyAssignments | policy-assignments-mg.bicep (30), policy-assignments.bicep (3+1) |
+| Cost Management Budget  | Microsoft.Consumption/budgets             | budget.bicep                |
 
 ### Resource Groups (6)
 
@@ -131,6 +134,26 @@ failures. See [ADR-0003](07-ab-adr-0003-avm-firewall-migration.md) for details.
 
 ## Deployment Instructions
 
+### Phase 0: Management Group Permissions (one-time)
+
+```powershell
+cd scripts
+./Setup-ManagementGroupPermissions.ps1
+```
+
+> Requires Global Administrator. Grants Management Group Contributor and Resource Policy Contributor.
+
+### Phase 1: Management Group + MG Policies
+
+```powershell
+cd infra/bicep/smb-ready-foundation
+./deploy-mg.ps1 -Scenario baseline
+```
+
+> Creates `smb-rf` management group, moves subscription under it, deploys 30 MG-scoped policies.
+
+### Phase 2: Subscription Infrastructure
+
 ### Quick Deploy
 
 ```powershell
@@ -203,14 +226,13 @@ var regionAbbreviations = {
 
 ### Policy Assignments
 
-34 Azure Policies deployed at subscription scope:
+34 Azure Policies deployed across management group and subscription scopes:
 
-- **4 Compute**: VM SKU restrictions, no public IPs, managed disks, ARM VMs
-- **4 Network**: NSG requirements, management ports, IP forwarding
-- **5 Storage**: HTTPS, TLS 1.2, no public access, network restrictions
-- **2 Identity**: SQL Azure AD-only auth, no public access
-- **3 Governance**: Required tags (Environment, Owner), allowed locations
-- **3 Operations**: VM backup auto-enrollment (DeployIfNotExists), diagnostic settings, backup
+- **30 MG-scoped** (via `policy-assignments-mg.bicep`):
+  - 4 Compute, 4 Network, 5 Storage, 2 Identity, 3 Governance, 7 Key Vault, 5 Operations
+- **3+1 subscription-scoped** (via `policy-assignments.bicep` + `policy-backup-auto.bicep`):
+  - `smb-backup-02` (DeployIfNotExists) — auto-backup enrollment
+  - Budget, Defender for Cloud
 
 **VM Backup Auto-Enrollment**: VMs tagged with `Backup: true` are automatically enrolled
 into DefaultVMPolicy via Azure Policy (smb-backup-02).

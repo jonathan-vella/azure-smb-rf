@@ -25,7 +25,7 @@ This architecture delivers a **cost-optimized, repeatable Azure SMB Ready Founda
 2. **Azure Bastion Developer** (free tier) for secure VM access
 3. **NAT Gateway** for deterministic outbound connectivity
 4. **Azure Migrate** for server assessment (no ASR complexity)
-5. **34 Azure Policies** enforcing security guardrails + VM backup auto-enrollment
+5. **34 Azure Policies** enforcing security guardrails (30 at MG scope + 3+1 at sub scope) + VM backup auto-enrollment
 
 ### Recommended Architecture
 
@@ -94,7 +94,7 @@ This architecture delivers a **cost-optimized, repeatable Azure SMB Ready Founda
 
 - ✅ **No public IPs on VMs** - Policy-enforced (Deny effect)
 - ✅ **Azure Bastion Developer** - Secure RDP/SSH without exposing management ports
-- ✅ **33 Azure Policies** with built-in IDs - Consistent, auditable guardrails
+- ✅ **33 Azure Policies** with built-in IDs - 30 at management group scope, 3 at subscription scope
 - ✅ **Storage hardening** - HTTPS-only, TLS 1.2, no public blob access (all Deny)
 - ✅ **NSG baseline** - Default deny inbound on all subnets
 - ✅ **Azure AD-only SQL auth** - Future-proofed for SQL deployments (Audit)

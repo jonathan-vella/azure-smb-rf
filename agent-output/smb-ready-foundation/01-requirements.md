@@ -153,6 +153,15 @@ All Bicep implementations MUST use Azure Verified Modules where available.
 | 4   | Scenario                 | choice | baseline/firewall/vpn/full          |
 | 5   | Owner email              | string | partner-ops@contoso.com             |
 
+### Prerequisite Roles
+
+| Phase   | Role Required                    | Scope              | Purpose                          |
+| ------- | -------------------------------- | ------------------ | -------------------------------- |
+| Phase 0 | Global Administrator             | Tenant             | Grant MG permissions (one-time)  |
+| Phase 1 | Management Group Contributor     | Tenant Root Group  | Create `smb-rf` management group |
+| Phase 1 | Resource Policy Contributor      | Tenant Root Group  | Assign policies at MG scope      |
+| Phase 2 | Owner                            | Subscription       | Deploy subscription resources    |
+
 ## Non-Functional Requirements (NFRs)
 
 ### Performance
@@ -190,7 +199,8 @@ All Bicep implementations MUST use Azure Verified Modules where available.
 | ----------------- | ------------------------------------------------------- |
 | Deployment method | **Bicep** - `Microsoft.Authorization/policyAssignments` |
 | Policy type       | Built-in definitions only (no custom policies)          |
-| Assignment scope  | Subscription level                                      |
+| Assignment scope  | Management group (30 policies) + Subscription (3+1)     |
+| Management group  | `smb-rf` (SMB Ready Foundation) under tenant root       |
 | Naming convention | `smb-{category}-{number}` (e.g., `smb-compute-01`)      |
 | Metadata tags     | `Project: smb-ready-foundation`, `ManagedBy: Bicep`     |
 | Cleanup script    | `scripts/Remove-SmbReadyFoundationPolicies.ps1`         |

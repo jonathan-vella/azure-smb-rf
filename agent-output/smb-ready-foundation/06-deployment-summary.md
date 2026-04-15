@@ -7,6 +7,7 @@
 
 | Field               | Value                            |
 | ------------------- | -------------------------------- |
+| **Management Group** | `smb-rf` (SMB Ready Foundation) |
 | **Deployment Name** | `smb-prod-20260202-143501`       |
 | **Resource Group**  | Multiple (see below)             |
 | **Location**        | swedencentral                    |
@@ -72,17 +73,19 @@
 
 ### Management & Governance
 
-| Resource           | Name                  | Resource Group      | Status    |
-| ------------------ | --------------------- | ------------------- | --------- |
-| Log Analytics      | log-smbrf-smb-swc     | rg-monitor-smb-swc  | Succeeded |
-| Recovery Vault     | rsv-smbrf-smb-swc     | rg-backup-smb-swc   | Succeeded |
-| VM Backup Policy   | DefaultVMPolicy       | rg-backup-smb-swc   | Succeeded |
-| Azure Migrate      | migrate-smbrf-smb-swc | rg-migrate-smb-swc  | Succeeded |
-| Key Vault          | kv-smbrf-smb-swc      | rg-security-smb-swc | Succeeded |
-| Automation Account | aa-smbrf-smb-swc      | rg-security-smb-swc | Succeeded |
-| Defender for Cloud | Free tier             | Subscription scope  | Succeeded |
-| Budget             | budget-smb-monthly    | Subscription scope  | Succeeded |
-| Policy Assignments | 34 `smb-*` policies   | Subscription scope  | Succeeded |
+| Resource              | Name                  | Resource Group / Scope | Status    |
+| --------------------- | --------------------- | ---------------------- | --------- |
+| Management Group      | smb-rf                | Tenant Root Group      | Succeeded |
+| MG Policy Assignments | 30 `smb-*` policies   | Management Group scope | Succeeded |
+| Log Analytics         | log-smbrf-smb-swc     | rg-monitor-smb-swc     | Succeeded |
+| Recovery Vault        | rsv-smbrf-smb-swc     | rg-backup-smb-swc      | Succeeded |
+| VM Backup Policy      | DefaultVMPolicy       | rg-backup-smb-swc      | Succeeded |
+| Azure Migrate         | migrate-smbrf-smb-swc | rg-migrate-smb-swc     | Succeeded |
+| Key Vault             | kv-smbrf-smb-swc      | rg-security-smb-swc    | Succeeded |
+| Automation Account    | aa-smbrf-smb-swc      | rg-security-smb-swc    | Succeeded |
+| Defender for Cloud    | Free tier             | Subscription scope     | Succeeded |
+| Budget                | budget-smb-monthly    | Subscription scope     | Succeeded |
+| Sub Policy Assignments| 3+1 `smb-*` policies  | Subscription scope     | Succeeded |
 
 ### VM Backup Configuration
 
@@ -136,6 +139,15 @@
 # Navigate to Bicep directory
 cd infra/bicep/smb-ready-foundation
 
+# Phase 0: Management Group Permissions (one-time)
+cd ../../scripts
+./Setup-ManagementGroupPermissions.ps1
+cd ../infra/bicep/smb-ready-foundation
+
+# Phase 1: Management Group + MG Policies
+./deploy-mg.ps1 -Scenario baseline
+
+# Phase 2: Subscription Infrastructure
 # Baseline: NAT Gateway only (~$48/mo)
 ./deploy.ps1 -Scenario baseline
 
@@ -160,6 +172,9 @@ cd infra/bicep/smb-ready-foundation
 
 ### Post-Deployment Verification
 
+- [x] Management group `smb-rf` created under tenant root
+- [x] Subscription moved under `smb-rf` management group
+- [x] MG policy assignments applied (30 policies at MG scope)
 - [x] Azure Firewall provisioned and running
 - [x] VNet peering connected and synchronized
 - [x] Route table applied to spoke subnets

@@ -12,6 +12,7 @@
 | ☐ VS Code            | With [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension |
 | ☐ GitHub Copilot     | Active subscription required                                                                                            |
 | ☐ Azure Subscription | Owner role required                                                                                                     |
+| ☐ Global Admin       | Required for Phase 0 (management group permissions, one-time)                                                           |
 
 ---
 
@@ -28,8 +29,15 @@ cd azure-smb-rf
 az login
 az account set --subscription "<your-subscription-id>"
 
-# 4. Deploy (choose one)
-cd infra/bicep/smb-ready-foundation
+# 4. Phase 0: Management Group Permissions (one-time, requires Global Admin)
+cd scripts
+./Setup-ManagementGroupPermissions.ps1
+
+# 5. Phase 1: Management Group + MG Policies
+cd ../infra/bicep/smb-ready-foundation
+./deploy-mg.ps1 -Scenario baseline
+
+# 6. Phase 2: Deploy subscription infrastructure (choose one)
 ./deploy.ps1 -Scenario baseline    # ~4 min, ~$48/mo
 ./deploy.ps1 -Scenario firewall    # ~15 min, ~$336/mo
 ./deploy.ps1 -Scenario vpn         # ~25 min, ~$187/mo
@@ -63,7 +71,7 @@ cd infra/bicep/smb-ready-foundation
 - Azure Key Vault (RBAC, private endpoint, purge protection)
 - Azure Automation Account (patch management)
 - Microsoft Defender for Cloud (Free tier)
-- 34 Azure Policy guardrails
+- 34 Azure Policy guardrails (30 at MG scope, 3+1 at subscription scope)
 - Monthly budget alert ($500)
 
 ### Scenario-Specific
@@ -84,6 +92,8 @@ Remove all resources when done testing:
 ```powershell
 cd infra/bicep/smb-ready-foundation/scripts
 ./Remove-SmbReadyFoundation.ps1 -Location swedencentral -Force
+# Optionally remove management group:
+./Remove-SmbReadyFoundation.ps1 -Location swedencentral -Force -RemoveManagementGroup
 ```
 
 > ⏱️ Cleanup takes 10-15 minutes

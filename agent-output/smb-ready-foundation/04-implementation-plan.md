@@ -13,13 +13,24 @@ This plan complies with governance constraints defined in `01-requirements.md` (
 
 **Key constraints applied:**
 
-- 34 Azure Policies deployed at subscription scope (Deny/Audit/DeployIfNotExists effects)
+- 34 Azure Policies: 30 deployed at management group scope, 3+1 at subscription scope
+- Intermediate management group `smb-rf` (SMB Ready Foundation) under tenant root
 - Mandatory tags: Environment, Owner (Policy-enforced)
 - Backup tag: `Backup: true` (Recommended for VMs - triggers auto-enrollment)
 - Allowed regions: swedencentral, germanywestcentral, global
 - Allowed VM SKUs: B-series, D/E v5/v6 series only
 
 **Policy cleanup script:** `scripts/Remove-SmbReadyFoundationPolicies.ps1`
+
+### Deployment Flow
+
+```text
+Phase 0: Setup-ManagementGroupPermissions.ps1 (one-time, requires Global Admin)
+    ↓
+Phase 1: deploy-mg.ps1 → deploy-mg.bicep (MG creation + 30 MG policies)
+    ↓
+Phase 2: deploy.ps1 → main.bicep (subscription infra + 3+1 sub policies)
+```
 
 ### Architecture Summary
 
@@ -106,10 +117,12 @@ permitted when no AVM module exists for the resource type.
 
 ```
 infra/bicep/smb-ready-foundation/
-├── main.bicep                      # Orchestration entry point
+├── main.bicep                      # Orchestration entry point (subscription scope)
 ├── main.bicepparam                 # Parameter file with defaults
+├── deploy-mg.bicep                 # Management group deployment (MG creation + policies)
 ├── modules/
-    │   ├── policy-assignments.bicep   # 33 Azure Policy assignments (subscription scope) [Raw - justified]
+    │   ├── policy-assignments-mg.bicep # 30 Azure Policy assignments (management group scope)
+    │   ├── policy-assignments.bicep   # 3 Azure Policy assignments (subscription scope) [Raw - justified]
 │   ├── policy-backup-auto.bicep   # Auto-backup policy smb-backup-02 [Raw - justified]
     │   ├── resource-groups.bicep      # 6 resource groups [Raw - justified: az-scope deployment]
 │   ├── networking-hub.bicep       # Hub VNet, NSG, DNS [✅ AVM v0.3: VNet 0.7.2, NSG 0.5.2, DNS 0.8.0]
@@ -128,7 +141,8 @@ infra/bicep/smb-ready-foundation/
     │   └── automation.bicep            # Automation Account [✅ AVM: automation/automation-account 0.11.0]
 ├── scripts/
 │   └── Remove-SmbReadyFoundationPolicies.ps1
-└── deploy.ps1                      # Deployment orchestration script
+├── deploy.ps1                      # Subscription deployment orchestration script
+└── deploy-mg.ps1                   # MG deployment orchestration script
 ```
 
 ### AVM Migration Status
@@ -159,12 +173,22 @@ infra/bicep/smb-ready-foundation/
 
 ## Implementation Tasks
 
-### Task 0: modules/policy-assignments.bicep
+### Task 0: modules/policy-assignments-mg.bicep
 
-**Purpose**: Deploy 33 Azure Policy assignments at subscription scope
+**Purpose**: Deploy 30 Azure Policy assignments at management group scope
 
-> **Note**: Policy #34 (smb-backup-02) is deployed via `policy-backup-auto.bicep` after
-> the Recovery Services Vault is created, as it requires the vault ID as a parameter.
+**Scope**: `targetScope = 'managementGroup'`
+
+Deployed via `deploy-mg.bicep` which also creates the `smb-rf` management group
+and moves the subscription under it.
+
+### Task 0a: modules/policy-assignments.bicep
+
+**Purpose**: Deploy 3 Azure Policy assignments at subscription scope
+
+> **Note**: Only policies that require subscription-level resources (e.g., smb-backup-02
+> which needs the vault ID) or subscription-level configuration (budget, Defender) remain
+> at subscription scope. The remaining 30 policies are deployed at MG scope.
 
 **Scope**: `targetScope = 'subscription'`
 
@@ -264,7 +288,7 @@ var deployPeering = deployFirewall || deployVpnGateway
 
 **Modules Called** (in order):
 
-1. policy-assignments.bicep (20 base policies)
+1. policy-assignments.bicep (3 subscription-scope policies)
 2. budget.bicep
 3. resource-groups.bicep
 4. networking-hub.bicep

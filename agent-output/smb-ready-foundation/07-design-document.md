@@ -75,8 +75,19 @@ a cost-optimized, policy-enforced, standards-aligned foundation for workload mig
 
 ```text
                     ┌──────────────────────────────────────────────────┐
+                    │              Tenant Root Group                │
+                    └──────────────────────────────────────────────────┘
+                                           │
+                    ┌──────────────────────────────────────────────────┐
+                    │   Management Group: smb-rf                   │
+                    │   (SMB Ready Foundation)                      │
+                    │   [30 Azure Policies at MG scope]              │
+                    └──────────────────────────────────────────────────┘
+                                           │
+                    ┌──────────────────────────────────────────────────┐
                     │                  Azure Subscription               │
                     │                    (per customer)                 │
+                    │     [3+1 subscription-scoped policies]           │
                     └──────────────────────────────────────────────────┘
                                            │
         ┌──────────────┬───────────────────┼───────────────┬──────────────────┐
@@ -214,6 +225,7 @@ No VMs are pre-deployed. Customer workloads are constrained by policy:
 - **Azure AD**: Primary identity provider
 - **No local accounts**: SQL Azure AD-only auth enforced
 - **RBAC**: Role-based access for partner management
+- **Management Group roles**: Management Group Contributor and Resource Policy Contributor required for Phase 0/1 deployment
 
 ### 6.2 Service Principals
 
@@ -245,18 +257,24 @@ No VMs are pre-deployed. Customer workloads are constrained by policy:
 
 ### 7.3 Policy Assignments
 
-34 Azure Policies enforcing:
+34 Azure Policies split across management group and subscription scopes:
 
-- Allowed VM SKUs (B/D/E series)
-- No public IPs on VMs
-- Managed disks required
-- NSG on all subnets, NSG flow logs
-- HTTPS-only storage, storage geo-redundancy
-- Azure AD-only SQL auth
-- Required tags (Environment, Owner)
-- Key Vault: soft delete, purge protection, RBAC, no public network, secret/key expiration, resource logs
-- System updates and endpoint protection on VMs
-- MFA for subscription owners, deprecated account detection
+- **30 MG-scoped policies** (assigned to `smb-rf` management group):
+  - Allowed VM SKUs (B/D/E series)
+  - No public IPs on VMs
+  - Managed disks required
+  - NSG on all subnets, NSG flow logs
+  - HTTPS-only storage, storage geo-redundancy
+  - Azure AD-only SQL auth
+  - Required tags (Environment, Owner)
+  - Key Vault: soft delete, purge protection, RBAC, no public network, secret/key expiration, resource logs
+  - System updates and endpoint protection on VMs
+  - MFA for subscription owners, deprecated account detection
+
+- **3+1 subscription-scoped policies**:
+  - `smb-backup-02` (DeployIfNotExists) — requires vault ID from subscription deployment
+  - Budget — subscription-level cost management
+  - Defender for Cloud — subscription-level security configuration
 
 ---
 

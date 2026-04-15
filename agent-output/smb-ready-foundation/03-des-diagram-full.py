@@ -60,13 +60,15 @@ with Diagram(
     # External entities
     onprem = Server("On-Premises\nVMware")
 
-    with Cluster("Azure Subscription - swedencentral"):
+    with Cluster("Management Group: smb-rf (SMB Ready Foundation)"):
 
-        # Subscription-level services
-        with Cluster("Subscription Services"):
-            defender = ApplicationInsights("Defender for Cloud\n(Free Tier)")
-            budget = CostManagement("Cost Management\nBudget $500/mo")
-            policies = Tags("34 Azure Policies\n(Deny/Audit)")
+        with Cluster("Azure Subscription - swedencentral"):
+
+            # Subscription-level services
+            with Cluster("Subscription Services"):
+                defender = ApplicationInsights("Defender for Cloud\n(Free Tier)")
+                budget = CostManagement("Cost Management\nBudget $500/mo")
+                policies = Tags("30 MG + 4 Sub Policies\n(Deny/Audit)")
 
         # Hub Resource Group
         with Cluster("rg-hub-smb-swc"):

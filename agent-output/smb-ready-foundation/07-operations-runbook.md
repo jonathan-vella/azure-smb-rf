@@ -8,12 +8,15 @@
 
 ## Quick Reference
 
-| Item                | Value                                                            |
-| ------------------- | ---------------------------------------------------------------- |
-| **Primary Region**  | swedencentral                                                    |
-| **Resource Groups** | rg-hub, rg-spoke, rg-monitor, rg-backup, rg-migrate, rg-security |
-| **Support Contact** | Partner operations team                                          |
-| **Escalation Path** | L1 → L2 → Microsoft Support                                      |
+| Item                    | Value                                                            |
+| ----------------------- | ---------------------------------------------------------------- |
+| **Management Group**    | smb-rf (SMB Ready Foundation)                                    |
+| **Primary Region**      | swedencentral                                                    |
+| **Resource Groups**     | rg-hub, rg-spoke, rg-monitor, rg-backup, rg-migrate, rg-security |
+| **MG Policy Count**     | 30 policies at management group scope                            |
+| **Sub Policy Count**    | 3+1 policies at subscription scope                               |
+| **Support Contact**     | Partner operations team                                          |
+| **Escalation Path**     | L1 → L2 → Microsoft Support                                      |
 
 ### Critical Resources
 
@@ -279,6 +282,45 @@ az keyvault secret list --vault-name kv-smbrf-swc-<suffix> -o table
 | ---------- | ------- | -------------------------------------------------- | ---------- |
 | 2026-02-02 | 0.1     | Initial runbook creation                           | docs agent |
 | 2026-04-15 | 0.2     | Added Key Vault, Automation, Defender, security RG | Copilot    |
+| 2026-04-15 | 0.3     | Added management group operations and Phase 0      | Copilot    |
+
+---
+
+## 7. Management Group Operations
+
+### 7.1 Phase 0: Permission Setup
+
+Run once per tenant before first deployment:
+
+```powershell
+# Requires Global Administrator role
+cd scripts
+./Setup-ManagementGroupPermissions.ps1
+```
+
+This grants the deploying identity:
+- **Management Group Contributor** on tenant root
+- **Resource Policy Contributor** on tenant root
+
+### 7.2 Management Group Policy Troubleshooting
+
+| Symptom                           | Cause                              | Resolution                                                     |
+| --------------------------------- | ---------------------------------- | -------------------------------------------------------------- |
+| Policy not inheriting to sub      | Subscription not under smb-rf MG   | Verify MG membership: `az account management-group show -n smb-rf` |
+| Cannot assign policies at MG      | Missing MG Contributor role        | Run `Setup-ManagementGroupPermissions.ps1`                     |
+| 403 on MG operations              | Insufficient tenant-level access   | Requires Global Admin for initial setup                        |
+| Policy shows non-compliant        | New resource predates policy       | Run compliance scan: `az policy state trigger-scan`            |
+| Cannot delete MG policies         | Active policy assignments          | Remove assignments first via `Remove-SmbReadyFoundation.ps1`   |
+
+### 7.3 Verify MG Hierarchy
+
+```bash
+# List management group hierarchy
+az account management-group show --name smb-rf --expand --recurse
+
+# List policy assignments at MG scope
+az policy assignment list --scope "/providers/Microsoft.Management/managementGroups/smb-rf" -o table
+```
 
 ---
 

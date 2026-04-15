@@ -9,7 +9,10 @@ that are deployed as part of the Bicep implementation.
 
 **Governance Source**: Project-defined (policies deployed by this project)
 
-These policies will be assigned at subscription scope as part of the Bicep deployment.
+These policies are assigned at two scopes:
+- **Management group** (`smb-rf`): 30 policies for guardrails that inherit to all subscriptions
+- **Subscription**: 3+1 policies that require subscription-level resources (backup auto-enroll, budget, Defender)
+
 Policy cleanup script: `scripts/Remove-SmbReadyFoundationPolicies.ps1`
 
 | Category       | Constraint                  | Implementation                         | Source          |
@@ -91,55 +94,58 @@ tags: {
 
 ## Policy Assignment Summary
 
-### Compute Guardrails (4 policies)
+### Compute Guardrails (4 policies — Management Group scope)
 
-| #   | Assignment Name   | Policy                | Effect |
-| --- | ----------------- | --------------------- | ------ |
-| 1   | smb-compute-01 | Allowed VM SKUs       | Deny   |
-| 2   | smb-compute-02 | No public IPs on NICs | Deny   |
-| 3   | smb-compute-03 | Audit managed disks   | Audit  |
-| 4   | smb-compute-04 | Audit ARM VMs         | Audit  |
+| #   | Assignment Name   | Policy                | Effect | Scope            |
+| --- | ----------------- | --------------------- | ------ | ---------------- |
+| 1   | smb-compute-01 | Allowed VM SKUs       | Deny   | Management Group |
+| 2   | smb-compute-02 | No public IPs on NICs | Deny   | Management Group |
+| 3   | smb-compute-03 | Audit managed disks   | Audit  | Management Group |
+| 4   | smb-compute-04 | Audit ARM VMs         | Audit  | Management Group |
 
-### Network Guardrails (4 policies)
+### Network Guardrails (4 policies — Management Group scope)
 
-| #   | Assignment Name   | Policy                 | Effect           |
-| --- | ----------------- | ---------------------- | ---------------- |
-| 5   | smb-network-01 | NSG on subnets         | AuditIfNotExists |
-| 6   | smb-network-02 | Close management ports | AuditIfNotExists |
-| 7   | smb-network-03 | Restrict NSG ports     | AuditIfNotExists |
-| 8   | smb-network-04 | Disable IP forwarding  | Deny             |
+| #   | Assignment Name   | Policy                 | Effect           | Scope            |
+| --- | ----------------- | ---------------------- | ---------------- | ---------------- |
+| 5   | smb-network-01 | NSG on subnets         | AuditIfNotExists | Management Group |
+| 6   | smb-network-02 | Close management ports | AuditIfNotExists | Management Group |
+| 7   | smb-network-03 | Restrict NSG ports     | AuditIfNotExists | Management Group |
+| 8   | smb-network-04 | Disable IP forwarding  | Deny             | Management Group |
 
-### Storage Guardrails (5 policies)
+### Storage Guardrails (5 policies — Management Group scope)
 
-| #   | Assignment Name   | Policy                  | Effect |
-| --- | ----------------- | ----------------------- | ------ |
-| 9   | smb-storage-01 | HTTPS only              | Deny   |
-| 10  | smb-storage-02 | No public blob access   | Deny   |
-| 11  | smb-storage-03 | TLS 1.2 minimum         | Deny   |
-| 12  | smb-storage-04 | Restrict network access | Audit  |
-| 13  | smb-storage-05 | ARM migration           | Audit  |
+| #   | Assignment Name   | Policy                  | Effect | Scope            |
+| --- | ----------------- | ----------------------- | ------ | ---------------- |
+| 9   | smb-storage-01 | HTTPS only              | Deny   | Management Group |
+| 10  | smb-storage-02 | No public blob access   | Deny   | Management Group |
+| 11  | smb-storage-03 | TLS 1.2 minimum         | Deny   | Management Group |
+| 12  | smb-storage-04 | Restrict network access | Audit  | Management Group |
+| 13  | smb-storage-05 | ARM migration           | Audit  | Management Group |
 
-### Identity & Access (2 policies)
+### Identity & Access (2 policies — Management Group scope)
 
-| #   | Assignment Name    | Policy               | Effect |
-| --- | ------------------ | -------------------- | ------ |
-| 14  | smb-identity-01 | SQL Azure AD-only    | Audit  |
-| 15  | smb-identity-02 | SQL no public access | Audit  |
+| #   | Assignment Name    | Policy               | Effect | Scope            |
+| --- | ------------------ | -------------------- | ------ | ---------------- |
+| 14  | smb-identity-01 | SQL Azure AD-only    | Audit  | Management Group |
+| 15  | smb-identity-02 | SQL no public access | Audit  | Management Group |
 
-### Tagging & Governance (3 policies)
+### Tagging & Governance (3 policies — Management Group scope)
 
-| #   | Assignment Name      | Policy                  | Effect |
-| --- | -------------------- | ----------------------- | ------ |
-| 16  | smb-tagging-01    | Require Environment tag | Deny   |
-| 17  | smb-tagging-02    | Require Owner tag       | Deny   |
-| 18  | smb-governance-01 | Allowed locations       | Deny   |
+| #   | Assignment Name      | Policy                  | Effect | Scope            |
+| --- | -------------------- | ----------------------- | ------ | ---------------- |
+| 16  | smb-tagging-01    | Require Environment tag | Deny   | Management Group |
+| 17  | smb-tagging-02    | Require Owner tag       | Deny   | Management Group |
+| 18  | smb-governance-01 | Allowed locations       | Deny   | Management Group |
 
-### Monitoring & Backup (2 policies)
+### Monitoring & Backup (2 policies — mixed scope)
 
-| #   | Assignment Name      | Policy              | Effect           |
-| --- | -------------------- | ------------------- | ---------------- |
-| 19  | smb-backup-01     | VM backup required  | AuditIfNotExists |
-| 20  | smb-monitoring-01 | Diagnostic settings | AuditIfNotExists |
+| #   | Assignment Name      | Policy              | Effect           | Scope            |
+| --- | -------------------- | ------------------- | ---------------- | ---------------- |
+| 19  | smb-backup-01     | VM backup required  | AuditIfNotExists | Management Group |
+| 20  | smb-monitoring-01 | Diagnostic settings | AuditIfNotExists | Management Group |
+
+> **Note**: `smb-backup-02` (DeployIfNotExists for auto-backup enrollment) remains at
+> subscription scope because it requires the Recovery Services Vault ID.
 
 ---
 

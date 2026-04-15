@@ -97,15 +97,25 @@ The SMB Ready Foundation is a ready-to-deploy output of that framework, not the 
 
 <br />
 
-The SMB Ready Foundation follows a **hub-and-spoke** topology within a single subscription:
+The SMB Ready Foundation follows a **hub-and-spoke** topology within a single subscription,
+governed by a dedicated **management group** for policy inheritance:
 
-| Component             | Purpose                                                            |
-| --------------------- | ------------------------------------------------------------------ |
-| **Hub VNet**          | Centralized services (Bastion, Firewall, VPN Gateway, Private DNS) |
-| **Spoke VNet**        | Workload hosting with NAT Gateway for outbound internet            |
-| **Azure Migrate**     | Server discovery and assessment                                    |
-| **Log Analytics**     | Centralized monitoring with 500 MB/day cap                         |
-| **Recovery Services** | VM backup with default policy                                      |
+### Management Group Hierarchy
+
+```text
+Tenant Root Group
+└── smb-rf (SMB Ready Foundation)
+    └── Customer Subscription
+```
+
+| Component              | Purpose                                                            |
+| ---------------------- | ------------------------------------------------------------------ |
+| **Management Group**   | `smb-rf` — 30 Azure Policies scoped at MG level                   |
+| **Hub VNet**           | Centralized services (Bastion, Firewall, VPN Gateway, Private DNS) |
+| **Spoke VNet**         | Workload hosting with NAT Gateway for outbound internet            |
+| **Azure Migrate**      | Server discovery and assessment                                    |
+| **Log Analytics**      | Centralized monitoring with 500 MB/day cap                         |
+| **Recovery Services**  | VM backup with default policy                                      |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -141,6 +151,7 @@ Choose the scenario that fits your budget and connectivity requirements:
 - 💻 VS Code with [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension
 - 🤖 GitHub Copilot subscription
 - ☁️ Azure subscription with Owner access
+- 🔑 Global Administrator or Tenant Root access (for Phase 0 — management group permissions)
 
 ### 1️⃣ Clone and Open
 
@@ -163,11 +174,29 @@ az login
 az account set --subscription "<your-subscription-id>"
 ```
 
-### 4️⃣ Deploy
+### 4️⃣ Phase 0: Management Group Permissions (one-time)
+
+```powershell
+cd scripts
+./Setup-ManagementGroupPermissions.ps1
+```
+
+> Grants the deploying identity **Management Group Contributor** and **Resource Policy Contributor**
+> on the tenant root. Requires Global Administrator. Only needed once per tenant.
+
+### 5️⃣ Phase 1: Management Group + MG Policies
 
 ```powershell
 cd infra/bicep/smb-ready-foundation
+./deploy-mg.ps1 -Scenario baseline
+```
 
+> Creates the `smb-rf` management group under tenant root, moves the subscription under it,
+> and deploys 30 policies at management group scope.
+
+### 6️⃣ Phase 2: Subscription Infrastructure
+
+```powershell
 # Preview changes (What-If)
 ./deploy.ps1 -Scenario baseline -WhatIf
 
@@ -181,18 +210,19 @@ cd infra/bicep/smb-ready-foundation
 ./deploy.ps1 -Scenario full
 ```
 
-### 5️⃣ Cleanup (Optional)
+### 7️⃣ Cleanup (Optional)
 
 When you're done testing, remove all deployed resources:
 
 ```powershell
 cd infra/bicep/smb-ready-foundation/scripts
 
-# Preview what will be deleted
+# Phase 0: Remove MG-scoped policies
 ./Remove-SmbReadyFoundation.ps1 -Location swedencentral -WhatIf
 
-# Delete all resources (no confirmation prompts)
+# Full cleanup (subscription resources + optionally remove management group)
 ./Remove-SmbReadyFoundation.ps1 -Location swedencentral -Force
+./Remove-SmbReadyFoundation.ps1 -Location swedencentral -Force -RemoveManagementGroup
 ```
 
 > ⏱️ Cleanup takes 10-15 minutes (Azure Firewall and VPN Gateway take longest to delete)
@@ -224,7 +254,12 @@ cd infra/bicep/smb-ready-foundation/scripts
 
 ## 🛡️ Azure Policy Guardrails
 
-20 policies enforcing security best practices:
+34 policies split across management group and subscription scopes:
+
+| Scope                  | Count | Examples                                                |
+| ---------------------- | ----- | ------------------------------------------------------- |
+| **Management Group**   | 30    | Allowed SKUs, no public IPs, HTTPS only, TLS 1.2+, tags |
+| **Subscription**       | 3+1   | Backup auto-enroll (DeployIfNotExists), budget, Defender |
 
 | Category       | Policies                                                |
 | -------------- | ------------------------------------------------------- |
@@ -254,6 +289,12 @@ cd infra/bicep/smb-ready-foundation/scripts
 │   └── 📁 images/             # Architecture diagrams
 ├── 📁 infra/bicep/
 │   └── 📁 smb-ready-foundation/   # Bicep templates (generated by agents)
+│       ├── 📄 deploy-mg.bicep     # Management group deployment template
+│       ├── 📄 deploy-mg.ps1       # MG deployment orchestration script
+│       └── 📁 modules/
+│           └── 📄 policy-assignments-mg.bicep  # 30 MG-scoped policy assignments
+├── 📁 scripts/
+│   └── 📄 Setup-ManagementGroupPermissions.ps1  # Phase 0: MG permission setup
 └── 📁 mcp/azure-pricing-mcp/  # Azure Pricing MCP server
 ```
 
@@ -263,15 +304,17 @@ cd infra/bicep/smb-ready-foundation/scripts
 
 ## 🎯 Key Design Decisions
 
-| Decision              | Choice                            | Rationale                    |
-| --------------------- | --------------------------------- | ---------------------------- |
-| **Resilience**        | Not required                      | Cost priority for SMB        |
-| **SLA/RTO/RPO**       | N/A                               | Rebuild from Bicep if needed |
-| **VM Access**         | Azure Bastion Developer           | No public IPs on VMs         |
-| **Outbound Internet** | NAT Gateway                       | Default outbound deprecated  |
-| **DNS**               | Azure Private DNS                 | Auto-registration for VMs    |
-| **Regions**           | swedencentral, germanywestcentral | EU GDPR compliant            |
-| **Tags**              | Environment, Owner (required)     | Consistent tagging standard  |
+| Decision              | Choice                            | Rationale                               |
+| --------------------- | --------------------------------- | --------------------------------------- |
+| **Management Group**  | `smb-rf` under tenant root        | Policy inheritance across subscriptions |
+| **Policy Scope**      | 30 MG-scoped + 3+1 sub-scoped    | MG for guardrails, sub for DINE/budget  |
+| **Resilience**        | Not required                      | Cost priority for SMB                   |
+| **SLA/RTO/RPO**       | N/A                               | Rebuild from Bicep if needed            |
+| **VM Access**         | Azure Bastion Developer           | No public IPs on VMs                    |
+| **Outbound Internet** | NAT Gateway                       | Default outbound deprecated             |
+| **DNS**               | Azure Private DNS                 | Auto-registration for VMs               |
+| **Regions**           | swedencentral, germanywestcentral | EU GDPR compliant                       |
+| **Tags**              | Environment, Owner (required)     | Consistent tagging standard             |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
