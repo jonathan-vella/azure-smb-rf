@@ -2,9 +2,10 @@
 // SMB Ready Foundation - Main Orchestration Template
 // ============================================================================
 // Purpose: Cost-optimized Azure SMB Ready Foundation for VMware-to-Azure migrations
-// Version: v0.3
-// Generated: 2026-02-02
-// Deployment Order: Firewall → VPN Gateway → Peering (serialized to avoid VNet conflicts)
+// Version: v0.4
+// Generated: 2026-04-15
+// Deployment Order: MG Policies (via deploy.ps1) → Sub Resources → Firewall → VPN → Peering
+// Management Group: smb-rf (policies deployed at MG scope, infra at subscription scope)
 // ============================================================================
 // Deployment Scenarios:
 // - baseline:   NAT Gateway only (~$48/mo) - cloud-native, no hybrid
@@ -124,16 +125,12 @@ var rgNames = {
 // ============================================================================
 
 // ----------------------------------------------------------------------------
-// Phase 1: Subscription-Scope Resources (Policies + Budget)
+// Phase 1: Subscription-Scope Resources (Budget + Defender)
+// Note: 30 MG-scoped policies are deployed via deploy.ps1 using
+//       az deployment mg create. See modules/policy-assignments-mg.bicep.
+//       The auto-backup policy (smb-backup-02) is deployed in Phase 4
+//       after the Recovery Services Vault is created.
 // ----------------------------------------------------------------------------
-
-@description('Deploy Azure Policy assignments at subscription scope')
-module policyAssignments 'modules/policy-assignments.bicep' = {
-  name: 'policy-assignments-${uniqueSuffix}'
-  params: {
-    location: location
-  }
-}
 
 @description('Deploy Cost Management budget with alerts')
 module budget 'modules/budget.bicep' = {
@@ -160,7 +157,7 @@ module resourceGroups 'modules/resource-groups.bicep' = {
     spokeTags: spokeTags
   }
   dependsOn: [
-    policyAssignments
+    budget
   ]
 }
 

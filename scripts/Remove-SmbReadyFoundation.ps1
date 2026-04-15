@@ -55,6 +55,12 @@ param(
     [switch]$WaitForCompletion,
 
     [Parameter()]
+    [string]$ManagementGroupId = 'smb-rf',
+
+    [Parameter()]
+    [switch]$RemoveManagementGroup,
+
+    [Parameter()]
     [switch]$Force
 )
 
@@ -158,9 +164,15 @@ foreach ($rg in $resourceGroups) {
 
 Write-Host ""
 Write-Host "  Subscription-Level Resources:" -ForegroundColor White
-Write-Host "    • Policy assignments: smb-*" -ForegroundColor Red
+Write-Host "    • Policy assignments: smb-* (subscription scope)" -ForegroundColor Red
 Write-Host "    • Budget: budget-smb-monthly" -ForegroundColor Red
 Write-Host "    • Role assignments for backup policy" -ForegroundColor Red
+Write-Host ""
+Write-Host "  Management Group Resources:" -ForegroundColor White
+Write-Host "    • Policy assignments: smb-* (MG scope: $ManagementGroupId)" -ForegroundColor Red
+if ($RemoveManagementGroup) {
+    Write-Host "    • Management group: $ManagementGroupId (will be DELETED)" -ForegroundColor Red
+}
 Write-Host ""
 
 # Confirmation
@@ -177,8 +189,28 @@ Write-Host ""
 Write-Host "  ─── Starting Removal ───" -ForegroundColor Yellow
 Write-Host ""
 
-# Phase 1: Delete policy assignments
-Write-Host "  Phase 1: Policy Assignments" -ForegroundColor Cyan
+# Phase 0: Delete MG-scoped policy assignments
+Write-Host "  Phase 0: Management Group Policies" -ForegroundColor Cyan
+
+$mgScope = "/providers/Microsoft.Management/managementGroups/$ManagementGroupId"
+$mgPolicies = az policy assignment list --scope $mgScope `
+    --query "[?starts_with(name, 'smb-')].name" -o tsv 2>$null
+
+if ($mgPolicies) {
+    $mgPolicyList = $mgPolicies -split "`n" | Where-Object { $_ }
+    foreach ($mgPolicy in $mgPolicyList) {
+        Remove-ResourceIfExists -ResourceType 'MG Policy' -ResourceName $mgPolicy -DeleteCommand {
+            az policy assignment delete --name $mgPolicy --scope $mgScope
+        }
+    }
+} else {
+    Write-Step "No MG-scoped smb-* policy assignments found" 'SKIP'
+}
+
+Write-Host ""
+
+# Phase 1: Delete subscription-scoped policy assignments
+Write-Host "  Phase 1: Subscription Policy Assignments" -ForegroundColor Cyan
 $policies = az policy assignment list --scope "/subscriptions/$subId" `
     --query "[?starts_with(name, 'smb-')].name" -o tsv 2>$null
 
@@ -361,6 +393,40 @@ foreach ($rg in $resourceGroups) {
         }
     } else {
         Write-Step "$rg not found" 'SKIP'
+    }
+}
+
+# Optional: Remove management group
+if ($RemoveManagementGroup) {
+    Write-Host ""
+    Write-Host "  Phase 6: Management Group Removal" -ForegroundColor Cyan
+
+    # Move subscription back to tenant root before deleting MG
+    $tenantRootMgId = az account management-group list `
+        --query "[?displayName=='Tenant Root Group'].name | [0]" -o tsv 2>$null
+    if (-not $tenantRootMgId) {
+        $tenantRootMgId = $account.tenantId
+    }
+
+    $mgExists = az account management-group show -n $ManagementGroupId 2>$null
+    if ($LASTEXITCODE -eq 0 -and $mgExists) {
+        # Move subscription to tenant root
+        az account management-group subscription add `
+            --management-group-name $tenantRootMgId `
+            --subscription $subId 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Step "Subscription moved to tenant root" 'OK'
+        }
+
+        # Delete the MG
+        az account management-group delete -n $ManagementGroupId 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Step "Management group '$ManagementGroupId' deleted" 'OK'
+        } else {
+            Write-Step "Management group deletion failed (may have child resources)" 'ERROR'
+        }
+    } else {
+        Write-Step "Management group '$ManagementGroupId' not found" 'SKIP'
     }
 }
 

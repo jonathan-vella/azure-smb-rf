@@ -134,6 +134,9 @@ param(
     [switch]$Force,
 
     [Parameter()]
+    [string]$ManagementGroupId = 'smb-rf',
+
+    [Parameter()]
     [ValidateRange(1, 5)]
     [int]$MaxRetries = 3
 )
@@ -799,7 +802,7 @@ if ($allProvidersRegistered) {
 }
 
 # Check for existing resource groups
-Write-Step "5/6" "Checking for existing resource groups..."
+Write-Step "5/7" "Checking for existing resource groups..."
 $regionAbbrev = @{ 'swedencentral' = 'swc'; 'germanywestcentral' = 'gwc' }[$Location]
 $targetRgs = @(
     "rg-hub-smb-$regionAbbrev",
@@ -830,8 +833,28 @@ if ($existingPolicies) {
     Write-SubStep "No conflicting policy assignments"
 }
 
+# Check management group exists
+Write-Step "7/7" "Checking management group '$ManagementGroupId'..."
+$mgCheck = az account management-group show -n $ManagementGroupId 2>$null
+if ($LASTEXITCODE -eq 0 -and $mgCheck) {
+    Write-SubStep "Management group '$ManagementGroupId' found"
+    # Verify subscription is under the MG
+    $mgSubCheck = az account management-group subscription show `
+        --management-group-name $ManagementGroupId `
+        --subscription $subId 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        Write-SubStep "Subscription associated with MG"
+    } else {
+        Write-Warning "Subscription not associated with MG '$ManagementGroupId'"
+        Write-SubStep "Run deploy-mg.ps1 to associate the subscription"
+    }
+} else {
+    Write-Error "Management group '$ManagementGroupId' not found. Run deploy-mg.ps1 first."
+    exit 1
+}
+
 # Validate template
-Write-Step "6/6" "Validating Bicep templates..."
+Write-Step "6/7" "Validating Bicep templates..."
 try {
     $buildOutput = bicep build $templateFile --stdout 2>&1
     if ($LASTEXITCODE -ne 0) {
@@ -987,6 +1010,32 @@ if ($confirmation -notmatch '^[Yy](es)?$') {
     Write-Warning "Deployment cancelled by user"
     exit 0
 }
+
+Write-Section "DEPLOYING MG-SCOPED POLICIES"
+
+$mgPolicyTemplate = Join-Path $scriptPath 'modules' 'policy-assignments-mg.bicep'
+$mgDeployName = "smb-mg-policies-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+
+Write-Step "1/2" "Deploying 30 policies to management group '$ManagementGroupId'..."
+
+$mgPolicyOutput = az deployment mg create `
+    --management-group-id $ManagementGroupId `
+    --location $Location `
+    --name $mgDeployName `
+    --template-file $mgPolicyTemplate `
+    --parameters "location=$Location" 2>&1
+
+$mgPolicyText = $mgPolicyOutput -join "`n"
+
+if ($mgPolicyText -match 'provisioningState.*Succeeded' -or $LASTEXITCODE -eq 0) {
+    Write-Success "MG policy deployment successful"
+} else {
+    Write-Error "MG policy deployment failed"
+    Write-Host $mgPolicyText -ForegroundColor Red
+    exit 1
+}
+
+Write-Step "2/2" "Deploying subscription infrastructure..."
 
 Write-Section "DEPLOYING INFRASTRUCTURE"
 
