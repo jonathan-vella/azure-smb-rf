@@ -212,8 +212,7 @@ function runH2Sync() {
     let cursor = -1;
     for (let i = 0; i < b.length; i++) {
       const nextIndex = aNormalized.findIndex(
-        (heading, index) =>
-          index > cursor && heading === normalizeH2(b[i]),
+        (heading, index) => index > cursor && heading === normalizeH2(b[i]),
       );
 
       if (nextIndex === -1) {
@@ -668,7 +667,9 @@ function validateTemplate(artifactName) {
   if (coreFound.length !== required.length) {
     const missing = required.filter(
       (requiredHeading) =>
-        !h2.some((actualHeading) => headingMatch(actualHeading, requiredHeading)),
+        !h2.some((actualHeading) =>
+          headingMatch(actualHeading, requiredHeading),
+        ),
     );
     error(
       `Template ${templatePath} is missing required H2 headings: ${missing.join(
@@ -693,7 +694,8 @@ function validateTemplate(artifactName) {
 
   const allowed = [...required, ...(OPTIONAL_ALLOWED[artifactName] || [])];
   const extraH2 = h2.filter(
-    (heading) => !allowed.some((allowedHeading) => headingMatch(heading, allowedHeading)),
+    (heading) =>
+      !allowed.some((allowedHeading) => headingMatch(heading, allowedHeading)),
   );
   const META_HEADINGS = ["## Template Instructions", "## Required Structure"];
   const trueExtras = extraH2.filter(
@@ -946,7 +948,10 @@ function validateArtifactCompliance(relPath) {
 
   const recognized = [...required, ...optionals];
   const extras = h2.filter(
-    (heading) => !recognized.some((recognizedHeading) => headingMatch(heading, recognizedHeading)),
+    (heading) =>
+      !recognized.some((recognizedHeading) =>
+        headingMatch(heading, recognizedHeading),
+      ),
   );
   if (extras.length > 0 && strictness === "standard") {
     warn(

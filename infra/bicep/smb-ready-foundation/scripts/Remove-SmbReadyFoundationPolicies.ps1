@@ -21,7 +21,7 @@
 
 .NOTES
     Version: 0.1
-    Author: Agentic InfraOps
+    Author: APEX
 #>
 
 [CmdletBinding(SupportsShouldProcess)]

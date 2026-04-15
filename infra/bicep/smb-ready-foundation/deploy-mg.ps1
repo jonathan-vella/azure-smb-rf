@@ -27,7 +27,7 @@
 
 .NOTES
     Version: 1.0
-    Author: Agentic InfraOps
+    Author: APEX
     Prerequisites: Setup-ManagementGroupPermissions.ps1 must be run first
 #>
 

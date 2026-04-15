@@ -18,10 +18,10 @@
     <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Rocket/3D/rocket_3d.png" alt="Logo" width="120" height="120">
   </a>
 
-  <h1 align="center">Azure SMB Ready Foundation</h1>
+  <h1 align="center">Azure SMB Ready Foundations</h1>
 
   <p align="center">
-    <strong>Repeatable Azure SMB Ready Foundation for SMB customers.</strong>
+    <strong>Repeatable Azure SMB Ready Foundations for SMB customers.</strong>
     <br />
     On-premises migration ready • Policy-enforced • Security-hardened
     <br />
@@ -71,9 +71,9 @@ business customers from on-premises infrastructure to Azure at scale.
 
 </div>
 
-Built using the [Agentic InfraOps](https://github.com/jonathan-vella/azure-agentic-infraops) framework —
+Built using the [APEX](https://github.com/jonathan-vella/azure-agentic-infraops) toolkit —
 an AI-agent workflow for requirements gathering, architecture assessment, and Bicep code generation.
-The SMB Ready Foundation is a ready-to-deploy output of that framework, not the framework itself.
+Azure SMB Ready Foundations is a ready-to-deploy output of that toolkit, not the toolkit itself.
 
 ### 🛠️ Built With
 
@@ -90,14 +90,14 @@ The SMB Ready Foundation is a ready-to-deploy output of that framework, not the 
 ## 🏗️ Architecture
 
 <div align="center">
-  <img src="docs/images/architecture.png" alt="SMB Ready Foundation Architecture" width="800">
+  <img src="docs/images/architecture.png" alt="Azure SMB Ready Foundations Architecture" width="800">
   <br />
   <em>Complete architecture with all optional components (Firewall, VPN Gateway)</em>
 </div>
 
 <br />
 
-The SMB Ready Foundation follows a **hub-and-spoke** topology within a single subscription,
+Azure SMB Ready Foundations follows a **hub-and-spoke** topology within a single subscription,
 governed by a dedicated **management group** for policy inheritance:
 
 ### Management Group Hierarchy
@@ -322,7 +322,7 @@ cd infra/bicep/smb-ready-foundation/scripts
 
 ## 🔧 Development
 
-### Generate SMB Ready Foundation with Agents
+### Generate Azure SMB Ready Foundations with Agents
 
 1. Press `Ctrl+Shift+A` → Select `@requirements`
 2. Paste content from `.github/prompts/plan-smb-ready-foundation.prompt.md`
@@ -347,7 +347,7 @@ bicep build infra/bicep/smb-ready-foundation/main.bicep
 
 ## 🎯 Target Audience
 
-This SMB Ready Foundation is designed for:
+Azure SMB Ready Foundations is designed for:
 
 - 🏢 **Microsoft Partners** hosting SMB customers on on-premises infrastructure
 - 🔧 **Managed Service Providers** standardizing Azure onboarding
@@ -362,7 +362,7 @@ This SMB Ready Foundation is designed for:
 | Resource                                                                               | Description                                   |
 | -------------------------------------------------------------------------------------- | --------------------------------------------- |
 | [Partner Quick Reference](docs/partner-quick-reference.md)                             | One-page deployment guide for partners        |
-| [Agentic InfraOps Framework](https://github.com/jonathan-vella/azure-agentic-infraops) | Parent framework for AI-driven infrastructure |
+| [APEX Toolkit](https://github.com/jonathan-vella/azure-agentic-infraops) | AI-agent toolkit for Azure platform engineering |
 | [Azure Verified Modules](https://aka.ms/avm)                                           | Bicep module registry                         |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

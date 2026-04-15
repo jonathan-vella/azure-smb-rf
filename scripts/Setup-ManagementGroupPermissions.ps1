@@ -36,7 +36,7 @@
 
 .NOTES
     Version: 1.0
-    Author: Agentic InfraOps
+    Author: APEX
 #>
 
 [CmdletBinding()]

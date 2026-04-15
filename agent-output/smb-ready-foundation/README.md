@@ -45,4 +45,4 @@ Infrastructure/Platform (not application)
 
 ---
 
-_Generated for Agentic InfraOps SMB pattern_
+_Generated for APEX SMB pattern_

@@ -175,5 +175,5 @@ scores in Reliability and Performance pillars.
 
 ---
 
-_ADR generated following Agentic InfraOps standards. Decision rationale derived from WAF assessment
+_ADR generated following APEX standards. Decision rationale derived from WAF assessment
 with explicit trade-off documentation for future architectural reviews._
