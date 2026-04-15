@@ -1,113 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-
-// Artifact H2 structure definitions
-// Core artifacts (01, 02, 04, 06) use "standard" strictness
-// Wave 2 artifacts (05, 07-*) use "relaxed" strictness
-const ARTIFACT_HEADINGS = {
-  // Core artifacts (standard strictness)
-  "01-requirements.md": [
-    "## Project Overview",
-    "## Functional Requirements",
-    "## Non-Functional Requirements (NFRs)",
-    "## Compliance & Security Requirements",
-    "## Budget",
-    "## Operational Requirements",
-    "## Regional Preferences",
-  ],
-  "02-architecture-assessment.md": [
-    "## Requirements Validation ✅",
-    "## Executive Summary",
-    "## WAF Pillar Assessment",
-    "## Resource SKU Recommendations",
-    "## Architecture Decision Summary",
-    "## Implementation Handoff",
-    "## Approval Gate",
-  ],
-  "04-implementation-plan.md": [
-    "## Overview",
-    "## Resource Inventory",
-    "## Module Structure",
-    "## Implementation Tasks",
-    "## Dependency Graph",
-    "## Naming Conventions",
-    "## Security Configuration",
-    "## Estimated Implementation Time",
-    "## Approval Gate",
-  ],
-  "04-governance-constraints.md": [
-    "## Azure Policy Compliance",
-    "## Required Tags",
-    "## Security Policies",
-    "## Cost Policies",
-    "## Network Policies",
-  ],
-  "06-deployment-summary.md": [
-    "## Deployment Details",
-    "## Deployed Resources",
-    "## Outputs (Expected)",
-    "## To Actually Deploy",
-    "## Post-Deployment Tasks",
-  ],
-  // Wave 2 artifacts (relaxed strictness)
-  "05-implementation-reference.md": [
-    "## Bicep Templates Location",
-    "## File Structure",
-    "## Validation Status",
-    "## Resources Created",
-    "## Deployment Instructions",
-  ],
-  "07-design-document.md": [
-    "## 1. Introduction",
-    "## 2. Azure Architecture Overview",
-    "## 3. Networking",
-    "## 4. Storage",
-    "## 5. Compute",
-    "## 6. Identity & Access",
-    "## 7. Security & Compliance",
-    "## 8. Backup & Disaster Recovery",
-    "## 9. Management & Monitoring",
-    "## 10. Appendix",
-  ],
-  "07-operations-runbook.md": [
-    "## Quick Reference",
-    "## 1. Daily Operations",
-    "## 2. Incident Response",
-    "## 3. Common Procedures",
-    "## 4. Maintenance Windows",
-    "## 5. Contacts & Escalation",
-    "## 6. Change Log",
-  ],
-  "07-resource-inventory.md": ["## Summary", "## Resource Listing"],
-  "07-backup-dr-plan.md": [
-    "## Executive Summary",
-    "## 1. Recovery Objectives",
-    "## 2. Backup Strategy",
-    "## 3. Disaster Recovery Procedures",
-    "## 4. Testing Schedule",
-    "## 5. Communication Plan",
-    "## 6. Roles and Responsibilities",
-    "## 7. Dependencies",
-    "## 8. Recovery Runbooks",
-    "## 9. Appendix",
-  ],
-  "07-compliance-matrix.md": [
-    "## Executive Summary",
-    "## 1. Control Mapping",
-    "## 2. Gap Analysis",
-    "## 3. Evidence Collection",
-    "## 4. Audit Trail",
-    "## 5. Remediation Tracker",
-    "## 6. Appendix",
-  ],
-  "07-documentation-index.md": [
-    "## 1. Document Package Contents",
-    "## 2. Source Artifacts",
-    "## 3. Project Summary",
-    "## 4. Related Resources",
-    "## 5. Quick Links",
-  ],
-};
+import { ARTIFACT_HEADINGS } from "./_lib/artifact-headings.mjs";
 
 // Per-artifact strictness configuration
 // "standard" = fail on issues, "relaxed" = warn on issues
@@ -117,6 +10,7 @@ const ARTIFACT_STRICTNESS = {
   "02-architecture-assessment.md": "standard",
   "04-implementation-plan.md": "standard",
   "04-governance-constraints.md": "standard",
+  "04-preflight-check.md": "standard",
   "05-implementation-reference.md": "standard",
   "06-deployment-summary.md": "standard",
   // Wave 2 artifacts - ratcheted to standard after v3.9.0 restructuring
@@ -126,21 +20,22 @@ const ARTIFACT_STRICTNESS = {
   "07-backup-dr-plan.md": "standard",
   "07-compliance-matrix.md": "standard",
   "07-documentation-index.md": "standard",
+  "03-des-cost-estimate.md": "standard",
+  "07-ab-cost-estimate.md": "standard",
+  "README.md": "relaxed",
 };
 
 // Optional sections that can appear after the anchor (last invariant H2)
 const OPTIONAL_ALLOWED = {
-  "01-requirements.md": ["## Summary for Architecture Assessment"],
-  "02-architecture-assessment.md": [],
-  "04-implementation-plan.md": [],
-  "04-governance-constraints.md": [],
-  "05-implementation-reference.md": [
-    "## Key Implementation Notes",
-    "## Next Steps",
-  ],
-  "06-deployment-summary.md": [],
-  "07-design-document.md": [],
-  "07-operations-runbook.md": [],
+  "01-requirements.md": ["## References"],
+  "02-architecture-assessment.md": ["## References"],
+  "04-implementation-plan.md": ["## References"],
+  "04-governance-constraints.md": ["## References"],
+  "04-preflight-check.md": ["## References"],
+  "05-implementation-reference.md": ["## Next Steps", "## References"],
+  "06-deployment-summary.md": ["## References"],
+  "07-design-document.md": ["## References"],
+  "07-operations-runbook.md": ["## References"],
   "07-resource-inventory.md": [
     "## Resource Configuration Details",
     "## Tags Applied",
@@ -151,10 +46,17 @@ const OPTIONAL_ALLOWED = {
     "## IP Address Allocation",
     "## Module Summary",
     "## Validation Commands",
+    "## References",
   ],
-  "07-backup-dr-plan.md": ["## 3. Disaster Recovery Architecture"],
-  "07-compliance-matrix.md": ["## Security Controls Summary"],
-  "07-documentation-index.md": ["## Architecture Overview"],
+  "07-backup-dr-plan.md": [
+    "## 3. Disaster Recovery Architecture",
+    "## References",
+  ],
+  "07-compliance-matrix.md": ["## Security Controls Summary", "## References"],
+  "07-documentation-index.md": ["## Architecture Overview", "## References"],
+  "03-des-cost-estimate.md": ["## References"],
+  "07-ab-cost-estimate.md": ["## References"],
+  "README.md": [],
 };
 
 const TITLE_DRIFT = "Artifact Template Drift";
@@ -163,47 +65,91 @@ const TITLE_MISSING = "Missing Template or Agent";
 // Global strictness override (env var) - if not set, use per-artifact config
 const GLOBAL_STRICTNESS = process.env.STRICTNESS;
 
-// Core artifacts validated by agents
+// Core artifacts validated by agents/skills
+// The azure-artifacts skill intentionally embeds template H2 structures
+// (consolidates all 16 templates for agent convenience). Skip it from
+// agent-link and embedded-skeleton checks.
+const CONSOLIDATED_SKILL = ".github/skills/azure-artifacts/SKILL.md";
+
+// Dual-agent situation for IaC artifacts:
+// Both Bicep (06b-bicep-codegen) and Terraform (06t-terraform-codegen)
+// produce 05-implementation-reference.md with identical H2 structure (IaC-neutral).
+// Both agents also produce 04-implementation-plan.md and 04-governance-constraints.md.
+// validateAgentLinks() passes for both because both reference the azure-artifacts skill.
+// The AGENTS map below uses the Bicep agent as the canonical reference; the Terraform
+// agent is checked separately via the governance validator (validate-governance-refs.mjs).
 const AGENTS = {
-  "01-requirements.md": ".github/agents/requirements.agent.md",
-  "02-architecture-assessment.md": ".github/agents/architect.agent.md",
-  "04-implementation-plan.md": ".github/agents/bicep-plan.agent.md",
-  "04-governance-constraints.md": ".github/agents/bicep-plan.agent.md",
-  "05-implementation-reference.md": ".github/agents/bicep-code.agent.md",
-  "06-deployment-summary.md": ".github/agents/deploy.agent.md",
-  "07-design-document.md": ".github/agents/docs.agent.md",
-  "07-operations-runbook.md": ".github/agents/docs.agent.md",
-  "07-resource-inventory.md": ".github/agents/docs.agent.md",
-  "07-backup-dr-plan.md": ".github/agents/docs.agent.md",
-  "07-compliance-matrix.md": ".github/agents/docs.agent.md",
-  "07-documentation-index.md": ".github/agents/docs.agent.md",
+  "01-requirements.md": ".github/agents/02-requirements.agent.md",
+  "02-architecture-assessment.md": ".github/agents/03-architect.agent.md",
+  // 05-iac-planner (unified) produces these:
+  "04-implementation-plan.md": ".github/agents/05-iac-planner.agent.md",
+  "04-governance-constraints.md": ".github/agents/05-iac-planner.agent.md",
+  "04-preflight-check.md": ".github/agents/06b-bicep-codegen.agent.md",
+  "06-deployment-summary.md": ".github/agents/07b-bicep-deploy.agent.md",
+  // Both 06b-bicep-codegen (Bicep) and 06t-terraform-codegen (Terraform)
+  // produce 05-implementation-reference.md. The H2 heading is IaC-neutral.
+  "05-implementation-reference.md": ".github/agents/06b-bicep-codegen.agent.md",
+  "07-design-document.md": ".github/skills/azure-artifacts/SKILL.md",
+  "07-operations-runbook.md": ".github/skills/azure-artifacts/SKILL.md",
+  "07-resource-inventory.md": ".github/skills/azure-artifacts/SKILL.md",
+  "07-backup-dr-plan.md": ".github/skills/azure-artifacts/SKILL.md",
+  "07-compliance-matrix.md": ".github/skills/azure-artifacts/SKILL.md",
+  "07-documentation-index.md": ".github/skills/azure-artifacts/SKILL.md",
+  "03-des-cost-estimate.md": ".github/agents/03-architect.agent.md",
+  "07-ab-cost-estimate.md": ".github/skills/azure-artifacts/SKILL.md",
+  "README.md": null,
 };
 
+const TEMPLATE_DIR = ".github/skills/azure-artifacts/templates";
+
 const TEMPLATES = {
-  "01-requirements.md": ".github/templates/01-requirements.template.md",
-  "02-architecture-assessment.md":
-    ".github/templates/02-architecture-assessment.template.md",
-  "04-implementation-plan.md":
-    ".github/templates/04-implementation-plan.template.md",
-  "04-governance-constraints.md":
-    ".github/templates/04-governance-constraints.template.md",
-  "06-deployment-summary.md":
-    ".github/templates/06-deployment-summary.template.md",
-  "05-implementation-reference.md":
-    ".github/templates/05-implementation-reference.template.md",
-  "07-design-document.md": ".github/templates/07-design-document.template.md",
-  "07-operations-runbook.md":
-    ".github/templates/07-operations-runbook.template.md",
-  "07-resource-inventory.md":
-    ".github/templates/07-resource-inventory.template.md",
-  "07-backup-dr-plan.md": ".github/templates/07-backup-dr-plan.template.md",
-  "07-compliance-matrix.md":
-    ".github/templates/07-compliance-matrix.template.md",
-  "07-documentation-index.md":
-    ".github/templates/07-documentation-index.template.md",
+  "01-requirements.md": `${TEMPLATE_DIR}/01-requirements.template.md`,
+  "02-architecture-assessment.md": `${TEMPLATE_DIR}/02-architecture-assessment.template.md`,
+  "04-implementation-plan.md": `${TEMPLATE_DIR}/04-implementation-plan.template.md`,
+  "04-governance-constraints.md": `${TEMPLATE_DIR}/04-governance-constraints.template.md`,
+  "04-preflight-check.md": `${TEMPLATE_DIR}/04-preflight-check.template.md`,
+  "06-deployment-summary.md": `${TEMPLATE_DIR}/06-deployment-summary.template.md`,
+  "05-implementation-reference.md": `${TEMPLATE_DIR}/05-implementation-reference.template.md`,
+  "07-design-document.md": `${TEMPLATE_DIR}/07-design-document.template.md`,
+  "07-operations-runbook.md": `${TEMPLATE_DIR}/07-operations-runbook.template.md`,
+  "07-resource-inventory.md": `${TEMPLATE_DIR}/07-resource-inventory.template.md`,
+  "07-backup-dr-plan.md": `${TEMPLATE_DIR}/07-backup-dr-plan.template.md`,
+  "07-compliance-matrix.md": `${TEMPLATE_DIR}/07-compliance-matrix.template.md`,
+  "07-documentation-index.md": `${TEMPLATE_DIR}/07-documentation-index.template.md`,
+  "03-des-cost-estimate.md": `${TEMPLATE_DIR}/03-des-cost-estimate.template.md`,
+  "07-ab-cost-estimate.md": `${TEMPLATE_DIR}/07-ab-cost-estimate.template.md`,
+  "README.md": `${TEMPLATE_DIR}/PROJECT-README.template.md`,
 };
 
 const STANDARD_DOC = ".github/instructions/markdown.instructions.md";
+
+const COST_ESTIMATE_ARTIFACTS = [
+  "03-des-cost-estimate.md",
+  "07-ab-cost-estimate.md",
+];
+
+const DIAGRAM_ARTIFACT_EXPECTATIONS = {
+  "04-implementation-plan.md": [
+    {
+      image: "./04-dependency-diagram.png",
+      source: "./04-dependency-diagram.py",
+    },
+    {
+      image: "./04-runtime-diagram.png",
+      source: "./04-runtime-diagram.py",
+    },
+  ],
+  "07-design-document.md": [
+    {
+      image: "./03-des-diagram.drawio.svg",
+      source: "./03-des-diagram.drawio",
+    },
+    {
+      image: "./03-des-network-diagram.png",
+      source: "./03-des-network-diagram.py",
+    },
+  ],
+};
 
 let hasHardFailure = false;
 let hasWarning = false;
@@ -285,6 +231,208 @@ function extractFencedBlocks(text) {
   return blocks;
 }
 
+function validateCostDistribution(filePath, text, reportFn = error) {
+  const costDistributionSection = text.match(
+    /### Cost Distribution[\s\S]*?(?=\n### |\n## |$)/,
+  );
+
+  const sectionText = costDistributionSection?.[0] ?? text;
+  const hasMarkdownTable = /\|[^\n]+\|\n\|[\s:-]+\|/.test(sectionText);
+  const hasChartImage = /!\[[^\]]*\]\((?:\.\/)?[^)]+\.(png|svg)\)/i.test(
+    sectionText,
+  );
+
+  if (!hasMarkdownTable && !hasChartImage) {
+    reportFn(
+      `${filePath} must include a cost distribution markdown table or a linked chart image (.png/.svg).`,
+      { filePath, line: 1 },
+    );
+  }
+}
+
+function validateDiagramArtifactReferences(
+  filePath,
+  artifactName,
+  text,
+  reportFn = error,
+) {
+  const expectedReferences = DIAGRAM_ARTIFACT_EXPECTATIONS[artifactName] ?? [];
+
+  // Accept both "./filename.ext" and "filename.ext" — cosmetic difference only
+  function refPresent(ref) {
+    return text.includes(ref) || text.includes(ref.replace(/^\.\//, ""));
+  }
+
+  for (const expected of expectedReferences) {
+    if (!refPresent(expected.image)) {
+      reportFn(
+        `${filePath} is missing required diagram image reference: ${expected.image}`,
+        { filePath, line: 1 },
+      );
+    }
+
+    if (!refPresent(expected.source)) {
+      reportFn(
+        `${filePath} is missing required diagram source reference: ${expected.source}`,
+        { filePath, line: 1 },
+      );
+    }
+  }
+}
+
+function validateDiagramArtifactFiles(filePath, artifactName, reportFn = warn) {
+  const expectedReferences = DIAGRAM_ARTIFACT_EXPECTATIONS[artifactName] ?? [];
+  const artifactDir = path.dirname(filePath);
+
+  for (const expected of expectedReferences) {
+    const imagePath = path.normalize(
+      path.join(artifactDir, expected.image.replace(/^\.\//, "")),
+    );
+    const sourcePath = path.normalize(
+      path.join(artifactDir, expected.source.replace(/^\.\//, "")),
+    );
+
+    if (!exists(imagePath)) {
+      reportFn(
+        `${filePath} requires diagram image artifact: ${expected.image}`,
+        { filePath, line: 1 },
+      );
+    }
+
+    if (!exists(sourcePath)) {
+      reportFn(
+        `${filePath} requires diagram source artifact: ${expected.source}`,
+        { filePath, line: 1 },
+      );
+    }
+  }
+}
+
+/**
+ * Validates standard visual components that all templates define:
+ * badge row, collapsible TOC, attribution header, and navigation table.
+ * PROJECT-README uses a different layout — skip component checks for it.
+ */
+function validateStandardComponents(filePath, text, reportFn = warn) {
+  const basename = path.basename(filePath);
+  if (basename === "README.md" || basename === "PROJECT-README.template.md") {
+    return;
+  }
+
+  if (!text.includes("![Step]")) {
+    reportFn(
+      `${filePath} is missing the badge row (![Step], ![Status], ![Agent]).`,
+      { filePath, line: 1 },
+    );
+  }
+
+  if (!text.includes("<details")) {
+    reportFn(`${filePath} is missing the collapsible Table of Contents.`, {
+      filePath,
+      line: 1,
+    });
+  }
+
+  if (!/> Generated by .* agent/.test(text)) {
+    reportFn(`${filePath} is missing the attribution header.`, {
+      filePath,
+      line: 1,
+    });
+  }
+
+  if (!text.includes("⬅️ Previous")) {
+    reportFn(`${filePath} is missing the cross-navigation table.`, {
+      filePath,
+      line: 1,
+    });
+  }
+}
+
+// Artifacts that should contain at least one Mermaid diagram (Phase 3)
+const MERMAID_REQUIRED_TEMPLATES = [
+  "01-requirements.md",
+  "02-architecture-assessment.md",
+  "04-governance-constraints.md",
+  "04-preflight-check.md",
+  "05-implementation-reference.md",
+  "07-backup-dr-plan.md",
+  "07-compliance-matrix.md",
+  "07-documentation-index.md",
+  "07-operations-runbook.md",
+  "07-resource-inventory.md",
+];
+
+/**
+ * Validates that templates requiring Mermaid diagrams contain at least one
+ * fenced mermaid block. Advisory for agent-output (warn), enforced for templates (error).
+ */
+function validateMermaidPresence(filePath, text, reportFn = warn) {
+  if (!/```mermaid/.test(text)) {
+    reportFn(`${filePath} should contain at least one Mermaid diagram block.`, {
+      filePath,
+      line: 1,
+    });
+  }
+}
+
+// Artifacts that should contain traffic-light status indicators (Phase 3)
+const TRAFFIC_LIGHT_TEMPLATES = [
+  "02-architecture-assessment.md",
+  "04-governance-constraints.md",
+  "05-implementation-reference.md",
+  "06-deployment-summary.md",
+  "07-ab-cost-estimate.md",
+  "07-compliance-matrix.md",
+  "07-design-document.md",
+];
+
+/**
+ * Validates that templates requiring traffic-light indicators contain
+ * the expected status emoji set (✅/⚠️/❌).
+ */
+function validateTrafficLight(filePath, text, reportFn = warn) {
+  const hasGreen = text.includes("✅");
+  const hasYellow = text.includes("⚠️");
+  const hasRed = text.includes("❌");
+  if (!hasGreen || !hasYellow || !hasRed) {
+    const missing = [];
+    if (!hasGreen) missing.push("✅");
+    if (!hasYellow) missing.push("⚠️");
+    if (!hasRed) missing.push("❌");
+    reportFn(
+      `${filePath} should contain traffic-light indicators (missing: ${missing.join(", ")}).`,
+      { filePath, line: 1 },
+    );
+  }
+}
+
+// Artifacts that should contain collapsible <details> blocks (Phase 3)
+const COLLAPSIBLE_TEMPLATES = [
+  "01-requirements.md",
+  "02-architecture-assessment.md",
+  "03-des-cost-estimate.md",
+  "04-preflight-check.md",
+  "05-implementation-reference.md",
+  "06-deployment-summary.md",
+  "07-ab-cost-estimate.md",
+  "07-backup-dr-plan.md",
+  "07-compliance-matrix.md",
+  "07-design-document.md",
+  "07-operations-runbook.md",
+];
+
+/**
+ * Validates that templates requiring collapsible sections contain <details> blocks.
+ */
+function validateCollapsibleBlocks(filePath, text, reportFn = warn) {
+  if (!text.includes("<details>")) {
+    reportFn(`${filePath} should contain collapsible <details> blocks.`, {
+      filePath,
+      line: 1,
+    });
+  }
+}
+
 function validateTemplate(artifactName) {
   const templatePath = TEMPLATES[artifactName];
 
@@ -307,7 +455,7 @@ function validateTemplate(artifactName) {
     error(
       `Template ${templatePath} is missing required H2 headings: ${missing.join(
         ", ",
-      )}`,
+      )}. Fix: Copy exact headings from the artifact template or run 'npm run fix:artifact-h2'.`,
       { filePath: templatePath, line: 1 },
     );
     return;
@@ -329,19 +477,45 @@ function validateTemplate(artifactName) {
   // Check for extra headings (warn only)
   const allowed = [...required, ...(OPTIONAL_ALLOWED[artifactName] || [])];
   const extraH2 = h2.filter((h) => !allowed.includes(h));
-  if (extraH2.length > 0) {
+  // PROJECT-README has meta-headings (Template Instructions, Required Structure)
+  // that are expected in the template but not in generated output
+  const META_HEADINGS = ["## Template Instructions", "## Required Structure"];
+  const trueExtras = extraH2.filter((h) => !META_HEADINGS.includes(h));
+  if (trueExtras.length > 0) {
     warn(
-      `Template ${templatePath} contains extra H2 headings: ${extraH2.join(
+      `Template ${templatePath} contains extra H2 headings: ${trueExtras.join(
         ", ",
       )}`,
       { filePath: templatePath, line: 1 },
     );
   }
+
+  // Cost-estimate templates require cost distribution table or chart image
+  if (COST_ESTIMATE_ARTIFACTS.includes(artifactName)) {
+    validateCostDistribution(templatePath, text);
+  }
+
+  validateDiagramArtifactReferences(templatePath, artifactName, text, error);
+
+  // Phase 3 visual element checks (error for templates)
+  if (MERMAID_REQUIRED_TEMPLATES.includes(artifactName)) {
+    validateMermaidPresence(templatePath, text, error);
+  }
+  if (TRAFFIC_LIGHT_TEMPLATES.includes(artifactName)) {
+    validateTrafficLight(templatePath, text, error);
+  }
+  if (COLLAPSIBLE_TEMPLATES.includes(artifactName)) {
+    validateCollapsibleBlocks(templatePath, text, error);
+  }
+
+  // Validate standard visual components (badges, TOC, attribution, nav)
+  validateStandardComponents(templatePath, text);
 }
 
 function validateAgentLinks() {
   for (const [artifactName, agentPath] of Object.entries(AGENTS)) {
-    if (!agentPath) continue; // Skip if no agent (e.g., Project Planner or manual)
+    if (!agentPath) continue; // Skip if no agent (e.g., Plan or manual)
+    if (agentPath === CONSOLIDATED_SKILL) continue; // H2s embedded by design
 
     if (!exists(agentPath)) {
       error(`Missing agent file: ${agentPath}`, {
@@ -355,15 +529,20 @@ function validateAgentLinks() {
     const agentText = readText(agentPath);
     const templatePath = TEMPLATES[artifactName];
 
-    // Check that agent links to template
+    // Check that agent links to template directly OR via azure-artifacts skill
     const relativeTemplatePath = path.relative(
       path.dirname(agentPath),
       templatePath,
     );
 
-    if (!agentText.includes(relativeTemplatePath)) {
+    const refsTemplate = agentText.includes(relativeTemplatePath);
+    const refsSkill =
+      agentText.includes("azure-artifacts") ||
+      agentText.includes("azure-defaults");
+
+    if (!refsTemplate && !refsSkill) {
       error(
-        `Agent ${agentPath} must reference template ${relativeTemplatePath}`,
+        `Agent ${agentPath} must reference template ${relativeTemplatePath} or azure-artifacts skill. Fix: Add 'Read .github/skills/azure-artifacts/SKILL.md' to the agent body.`,
         { filePath: agentPath, line: 1 },
       );
     }
@@ -373,6 +552,7 @@ function validateAgentLinks() {
 function validateNoEmbeddedSkeletons() {
   for (const [artifactName, agentPath] of Object.entries(AGENTS)) {
     if (!agentPath || !exists(agentPath)) continue;
+    if (agentPath === CONSOLIDATED_SKILL) continue; // H2s embedded by design
 
     const text = readText(agentPath);
     const required = ARTIFACT_HEADINGS[artifactName];
@@ -385,7 +565,7 @@ function validateNoEmbeddedSkeletons() {
       const foundInBlock = required.filter((h) => block.includes(h));
       if (foundInBlock.length >= 3) {
         error(
-          `Agent ${agentPath} appears to embed a ${artifactName} skeleton (found ${foundInBlock.length} headings in a fenced block).`,
+          `Agent ${agentPath} appears to embed a ${artifactName} skeleton (found ${foundInBlock.length} headings in a fenced block). Fix: Remove the embedded H2 skeleton; agents should reference the azure-artifacts skill instead.`,
           { filePath: agentPath, line: 1 },
         );
         break;
@@ -427,9 +607,10 @@ function validateArtifactCompliance(relPath) {
     return; // Not a recognized artifact, skip
   }
 
-  // Determine strictness for this artifact
+  // Agent-output artifacts use per-artifact strictness from ARTIFACT_STRICTNESS.
+  // Override with STRICTNESS=relaxed env var during migration periods.
   const strictness =
-    GLOBAL_STRICTNESS || ARTIFACT_STRICTNESS[artifactType] || "relaxed";
+    GLOBAL_STRICTNESS || ARTIFACT_STRICTNESS[artifactType] || "standard";
 
   if (!exists(relPath)) {
     return; // File doesn't exist, skip
@@ -445,14 +626,15 @@ function validateArtifactCompliance(relPath) {
   const corePositions = required.map((heading) => h2.indexOf(heading));
   const anchorPos = h2.indexOf(anchor);
 
+  const reportFn = strictness === "standard" ? error : warn;
+
   // Check all required headings are present
   const missing = required.filter((h) => !h2.includes(h));
   if (missing.length > 0) {
-    const reportFn = strictness === "standard" ? error : warn;
     reportFn(
       `Artifact ${relPath} is missing required H2 headings: ${missing.join(
         ", ",
-      )}`,
+      )}. Fix: Copy exact headings from the template or run 'npm run fix:artifact-h2 ${relPath} --apply'.`,
       { filePath: relPath, line: 1 },
     );
   }
@@ -463,10 +645,10 @@ function validateArtifactCompliance(relPath) {
     const currentPos = h2.indexOf(presentRequired[i]);
     const nextPos = h2.indexOf(presentRequired[i + 1]);
     if (currentPos > nextPos) {
-      error(
+      reportFn(
         `Artifact ${relPath} has required headings out of order: '${
           presentRequired[i]
-        }' should come before '${presentRequired[i + 1]}'.`,
+        }' should come before '${presentRequired[i + 1]}'. Fix: Reorder headings to match: ${required.join(" \u2192 ")}.`,
         { filePath: relPath, line: 1 },
       );
       break;
@@ -495,35 +677,115 @@ function validateArtifactCompliance(relPath) {
       { filePath: relPath, line: 1 },
     );
   }
+
+  // Special validation for governance constraints: check discovery source content
+  if (artifactType === "04-governance-constraints.md") {
+    validateGovernanceDiscovery(relPath, text, reportFn);
+  }
+
+  // Cost-estimate artifacts require cost distribution table or chart image
+  // (warn-only for existing agent-output artifacts during transition)
+  if (COST_ESTIMATE_ARTIFACTS.includes(artifactType)) {
+    validateCostDistribution(relPath, text, warn);
+  }
+
+  // Step 4 diagrams are mandatory outputs and enforced by artifact strictness.
+  if (artifactType === "04-implementation-plan.md") {
+    validateDiagramArtifactReferences(relPath, artifactType, text, reportFn);
+    validateDiagramArtifactFiles(relPath, artifactType, reportFn);
+  }
+
+  // Validate standard visual components (badges, TOC, attribution, nav)
+  // Warn-only for agent-output to avoid blocking pre-existing artifacts
+  validateStandardComponents(relPath, text, warn);
+
+  // Phase 3 visual element checks (warn for agent-output)
+  if (MERMAID_REQUIRED_TEMPLATES.includes(artifactType)) {
+    validateMermaidPresence(relPath, text, warn);
+  }
+  if (TRAFFIC_LIGHT_TEMPLATES.includes(artifactType)) {
+    validateTrafficLight(relPath, text, warn);
+  }
+  if (COLLAPSIBLE_TEMPLATES.includes(artifactType)) {
+    validateCollapsibleBlocks(relPath, text, warn);
+  }
+}
+
+/**
+ * Validates that governance constraints were discovered from Azure Resource Graph,
+ * not assumed from best practices. This prevents deployment failures due to
+ * undiscovered Azure Policy requirements.
+ */
+function validateGovernanceDiscovery(relPath, text, reportFn = error) {
+  // Check for Discovery Source section content (not just heading)
+  const discoverySourceMatch = text.match(
+    /## (?:🔍\s*)?Discovery Source[\s\S]*?(?=##|$)/,
+  );
+  if (!discoverySourceMatch) {
+    reportFn(
+      `Governance constraints ${relPath} missing Discovery Source section content`,
+      { filePath: relPath, line: 1, title: "Governance Discovery Missing" },
+    );
+    return;
+  }
+
+  const discoveryContent = discoverySourceMatch[0];
+
+  // Check for evidence of actual ARG query (not placeholders)
+  const hasQueryResults =
+    /\d+\s*(policies|tags|constraints)\s*discovered/i.test(discoveryContent);
+  const hasTimestamp = /\d{4}-\d{2}-\d{2}|T\d{2}:\d{2}/i.test(discoveryContent);
+  const hasSubscription =
+    /Subscription.*?[a-f0-9-]{36}|Subscription.*?[A-Za-z]/i.test(
+      discoveryContent,
+    );
+
+  // Check for placeholder values that indicate assumption-based constraints
+  const hasPlaceholders = /\{X\}|\{subscription|UNVERIFIED/i.test(
+    discoveryContent,
+  );
+
+  if (hasPlaceholders) {
+    reportFn(
+      `Governance constraints ${relPath} contains placeholder values - constraints may be assumed, not discovered`,
+      { filePath: relPath, line: 1, title: "Governance Discovery Incomplete" },
+    );
+  }
+
+  if (!hasQueryResults && !hasTimestamp) {
+    warn(
+      `Governance constraints ${relPath} may not have been discovered from Azure Resource Graph (no query results or timestamps found)`,
+      { filePath: relPath, line: 1, title: "Governance Discovery Unverified" },
+    );
+  }
 }
 
 function findArtifacts() {
   const baseDir = path.resolve(process.cwd(), "agent-output");
   if (!fs.existsSync(baseDir)) return [];
 
-  const matches = [];
   const artifactPatterns = Object.keys(ARTIFACT_HEADINGS);
-  const stack = [baseDir];
+  const entries = fs.readdirSync(baseDir, {
+    withFileTypes: true,
+    recursive: true,
+  });
 
-  while (stack.length > 0) {
-    const dir = stack.pop();
-    if (!dir) break;
-
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
-    for (const entry of entries) {
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) {
-        stack.push(full);
-      } else if (
-        entry.isFile() &&
-        artifactPatterns.some((pattern) => entry.name.endsWith(pattern))
-      ) {
-        matches.push(path.relative(process.cwd(), full));
-      }
-    }
-  }
-
-  return matches;
+  return entries
+    .filter((entry) => {
+      if (!entry.isFile()) return false;
+      if (!artifactPatterns.some((p) => entry.name.endsWith(p))) return false;
+      const dir = entry.parentPath ?? entry.path;
+      // Skip the top-level agent-output/README.md
+      if (entry.name === "README.md" && dir === baseDir) return false;
+      // Skip historical baseline snapshots
+      const rel = path.relative(baseDir, dir);
+      if (rel.startsWith("_baselines")) return false;
+      return true;
+    })
+    .map((entry) => {
+      const dir = entry.parentPath ?? entry.path;
+      return path.relative(process.cwd(), path.join(dir, entry.name));
+    });
 }
 
 function main() {
@@ -575,4 +837,8 @@ function main() {
   }
 }
 
-main();
+import { fileURLToPath } from "node:url";
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main();
+}

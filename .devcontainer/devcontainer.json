@@ -1,5 +1,5 @@
 {
-  "name": "SMB-Rf",
+  "name": "APEX",
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
 
   "features": {
@@ -146,7 +146,7 @@
         },
         "markdownlint.run": "onSave",
         "deno.enable": false,
-        "deno.enablePaths": ["${workspaceFolder}/mcp/drawio-mcp-server"],
+        "deno.enablePaths": ["mcp/drawio-mcp-server"],
         "deno.lint": true,
         "deno.unstable": []
       }

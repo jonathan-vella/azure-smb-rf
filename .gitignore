@@ -1,6 +1,7 @@
 # Azure
 *.azureauth
 *.publishsettings
+# Per-project azd environments (infra/{iac}/{project}/.azure/) and root .azure/
 .azure/
 local.settings.json
 
@@ -13,8 +14,15 @@ Copilot-Processing.md
 # PowerShell
 *.ps1xml
 
-# VS Code
-.vscode/
+# VS Code - ignore personal settings but keep shared config
+.vscode/*
+!.vscode/extensions.json
+!.vscode/mcp.json
+!.vscode/settings.json
+
+# Root .mcp.json is deprecated — Azure MCP is provided by the
+# ms-azuretools.vscode-azure-mcp-server extension. Use .vscode/mcp.json
+# for MCP server configuration.
 *.code-workspace
 
 # OS
@@ -51,6 +59,7 @@ build/
 
 # Node (if any demos use it)
 node_modules/
+.pnpm-store/
 
 # Python (if any scripts)
 __pycache__/
@@ -70,3 +79,23 @@ scratch/
 
 # Extracted sample apps (use .zip files instead to avoid Dependabot alerts)
 scenarios/S06-sbom-generator/sample-app/
+freshness-report.json
+
+# Baseline snapshots (local working data for context optimizer)
+agent-output/_baselines/
+
+# Astro Starlight (site/ is source code; only ignore build artifacts)
+site/dist/
+site/node_modules/
+site/.astro/
+
+# Terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
+*.tfvars
+!terraform.tfvars.example
+crash.log
+crash.*.log
+.infracost/
+# DO NOT ignore .terraform.lock.hcl — it must be committed for reproducible provider versions

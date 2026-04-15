@@ -1,5 +1,9 @@
 {
   "servers": {
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/"
+    },
     "azure-pricing": {
       "type": "stdio",
       "command": "${workspaceFolder}/mcp/azure-pricing-mcp/.venv/bin/python",
@@ -9,9 +13,23 @@
       ],
       "cwd": "${workspaceFolder}/mcp/azure-pricing-mcp/src"
     },
-    "github": {
+    "terraform": {
+      "type": "stdio",
+      "command": "/go/bin/terraform-mcp-server",
+      "args": [
+        "stdio",
+        "--toolsets",
+        "registry"
+      ],
+      "env": {}
+    },
+    "microsoft-learn": {
       "type": "http",
-      "url": "https://api.githubcopilot.com/mcp/"
+      "url": "https://learn.microsoft.com/api/mcp?maxTokenBudget=4000"
+    },
+    "astro-docs": {
+      "type": "http",
+      "url": "https://mcp.docs.astro.build/mcp"
     },
     "drawio": {
       "type": "stdio",
