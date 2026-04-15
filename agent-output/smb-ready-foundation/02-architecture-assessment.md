@@ -7,7 +7,7 @@
 | Category             | Status            | Details                                                           |
 | -------------------- | ----------------- | ----------------------------------------------------------------- |
 | NFRs (SLA, RTO, RPO) | ✅ Explicitly N/A | Cost priority over resilience; rebuild from Bicep if needed       |
-| Compliance           | ✅ Defined        | 20 Azure Policies with built-in IDs; EU GDPR via region selection |
+| Compliance           | ✅ Defined        | 33 Azure Policies with built-in IDs; EU GDPR via region selection |
 | Budget               | ✅ Defined        | $500/month hard cap with forecast + anomaly alerts                |
 | Scale Requirements   | ✅ Defined        | Single subscription per SMB customer; 1000+ deployments expected  |
 
@@ -25,7 +25,7 @@ This architecture delivers a **cost-optimized, repeatable Azure SMB Ready Founda
 2. **Azure Bastion Developer** (free tier) for secure VM access
 3. **NAT Gateway** for deterministic outbound connectivity
 4. **Azure Migrate** for server assessment (no ASR complexity)
-5. **21 Azure Policies** enforcing security guardrails + VM backup auto-enrollment
+5. **34 Azure Policies** enforcing security guardrails + VM backup auto-enrollment
 
 ### Recommended Architecture
 
@@ -59,8 +59,13 @@ This architecture delivers a **cost-optimized, repeatable Azure SMB Ready Founda
 │  │ (server assess)  │ │ (500MB/day cap)  │ │ (DefaultVMPolicy)│    │
 │  └──────────────────┘ └──────────────────┘ └──────────────────┘    │
 │                                                                     │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │ rg-security                                                       │    │
+│  │  Key Vault (private endpoint) | Automation Account               │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                                                                     │
 │  [Cost Management Budget: $500/mo] [Defender for Cloud: Free]      │
-│  [21 Azure Policies: Deny/Audit/DeployIfNotExists]                  │
+│  [34 Azure Policies: Deny/Audit/DeployIfNotExists]                  │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -89,17 +94,18 @@ This architecture delivers a **cost-optimized, repeatable Azure SMB Ready Founda
 
 - ✅ **No public IPs on VMs** - Policy-enforced (Deny effect)
 - ✅ **Azure Bastion Developer** - Secure RDP/SSH without exposing management ports
-- ✅ **20 Azure Policies** with built-in IDs - Consistent, auditable guardrails
+- ✅ **33 Azure Policies** with built-in IDs - Consistent, auditable guardrails
 - ✅ **Storage hardening** - HTTPS-only, TLS 1.2, no public blob access (all Deny)
 - ✅ **NSG baseline** - Default deny inbound on all subnets
 - ✅ **Azure AD-only SQL auth** - Future-proofed for SQL deployments (Audit)
 - ✅ **Defender for Cloud Free tier** - Basic CSPM without cost overhead
+- ✅ **Key Vault** - Centralized secrets management with private endpoint
+- ✅ **Automation Account** - Operational runbook platform for management tasks
 
 **Gaps:**
 
 - ⚠️ **No Azure Firewall by default** - Optional; lateral movement not inspected
-- ⚠️ **No private endpoints** - Not required in baseline; traffic uses NAT Gateway
-- ⚠️ **No Key Vault** - Secrets management left to post-deployment configuration
+- ⚠️ **No private endpoints for PaaS** - Key Vault private endpoint included; others left to post-deployment
 
 **Recommendations:**
 
@@ -259,6 +265,8 @@ resources:
     - Azure Migrate Project
     - Cost Management Budget ($500/mo)
     - Defender for Cloud (Free tier)
+    - Key Vault (private endpoint)
+    - Automation Account
     - NSGs (hub + spoke)
   per_scenario:
     firewall|full:
@@ -270,7 +278,7 @@ resources:
       - VNet Peering with Gateway Transit
 
 security:
-  - 20 Azure Policies with built-in IDs
+  - 33 Azure Policies with built-in IDs
   - Mandatory tags: Environment, Owner
   - No public IPs on VMs (Deny)
   - Storage: HTTPS-only, TLS 1.2, no public access

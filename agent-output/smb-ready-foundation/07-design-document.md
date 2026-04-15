@@ -39,7 +39,7 @@ a cost-optimized, policy-enforced, standards-aligned foundation for workload mig
 | ------------ | ----------------------- | ----------------------------------- |
 | Availability | Best-effort (no SLA)    | Single-region, no zone redundancy   |
 | Performance  | Standard workloads      | B/D/E-series VMs, Standard storage  |
-| Security     | Azure Security Baseline | 21 Azure Policies, NSG deny-all     |
+| Security     | Azure Security Baseline | 34 Azure Policies, NSG deny-all, Key Vault |
 | Scalability  | Per-customer isolation  | Hub-spoke per customer subscription |
 
 ### 1.4 Constraints & Assumptions
@@ -79,18 +79,18 @@ a cost-optimized, policy-enforced, standards-aligned foundation for workload mig
                     │                    (per customer)                 │
                     └──────────────────────────────────────────────────┘
                                            │
-        ┌──────────────────────────────────┼──────────────────────────────────┐
-        │                                  │                                  │
-        ▼                                  ▼                                  ▼
-┌───────────────┐                 ┌───────────────┐                  ┌───────────────┐
-│   rg-hub      │                 │  rg-spoke     │                  │  rg-monitor   │
-│               │                 │               │                  │               │
-│ • Hub VNet    │◄── Peering ────►│ • Spoke VNet  │                  │ • Log Analy.  │
-│ • Firewall*   │                 │ • NAT GW**    │                  │ • Defender    │
-│ • VPN GW*     │                 │ • NSG         │                  └───────────────┘
-│ • Bastion     │                 │ • Workloads   │
-│ • Private DNS │                 └───────────────┘
-└───────────────┘
+        ┌──────────────┬───────────────────┼───────────────┬──────────────────┐
+        │              │                   │               │                  │
+        ▼              ▼                   ▼               ▼                  ▼
+┌───────────────┐ ┌───────────────┐ ┌────────────┐ ┌─────────────┐ ┌─────────────┐
+│   rg-hub      │ │  rg-spoke     │ │ rg-monitor │ │ rg-security │ │  rg-backup  │
+│               │ │               │ │            │ │             │ │             │
+│ • Hub VNet    │◄── Peering ───►│ • Spoke VNet │ │• Log Analy. │ │• Key Vault  │ │• RSV        │
+│ • Firewall*   │ │ • NAT GW**    │ │• Automation │ │• Private EP │ │• Migrate    │
+│ • VPN GW*     │ │ • NSG         │ │• Defender   │ │• DNS Zone   │ └─────────────┘
+│ • Bastion     │ │ • snet-pep    │ └────────────┘ └─────────────┘
+│ • Private DNS │ │ • Workloads   │
+└───────────────┘ └───────────────┘
         │
         ▼ (if VPN deployed)
 ┌───────────────┐
@@ -104,14 +104,14 @@ a cost-optimized, policy-enforced, standards-aligned foundation for workload mig
 
 ### 2.2 Resource Summary
 
-| Category   | Count | Resources                                        |
-| ---------- | ----- | ------------------------------------------------ |
-| Compute    | 0     | None deployed (customer adds workloads)          |
-| Networking | 15    | VNets, Subnets, NSGs, Firewall, VPN, NAT, Routes |
-| Data       | 0     | None deployed (customer adds workloads)          |
-| Security   | 21    | Azure Policy assignments                         |
-| Monitoring | 2     | Log Analytics, Budget alerts                     |
-| Backup     | 2     | Recovery Services Vault, Azure Migrate           |
+| Category   | Count | Resources                                            |
+| ---------- | ----- | ---------------------------------------------------- |
+| Compute    | 0     | None deployed (customer adds workloads)              |
+| Networking | 17    | VNets, Subnets, NSGs, Firewall, VPN, NAT, Routes, PE|
+| Data       | 0     | None deployed (customer adds workloads)              |
+| Security   | 38    | 34 Policies, Key Vault, Automation, Defender, PE     |
+| Monitoring | 3     | Log Analytics, Budget alerts, Automation Account     |
+| Backup     | 2     | Recovery Services Vault, Azure Migrate               |
 
 ---
 
@@ -145,6 +145,7 @@ The SMB Ready Foundation uses a **hub-and-spoke** topology within a single subsc
 | snet-workload | 10.0.2.0/25   | General workloads  | ✅ (firewall scenarios) |
 | snet-data     | 10.0.2.128/25 | Databases, storage | ✅ (firewall scenarios) |
 | snet-app      | 10.0.3.0/25   | Application tier   | ✅ (firewall scenarios) |
+| snet-pep      | 10.0.3.128/26 | Private endpoints  | ➖ (no UDR needed)     |
 
 ### 3.3 Network Security
 
@@ -158,6 +159,7 @@ The SMB Ready Foundation uses a **hub-and-spoke** topology within a single subsc
 ### 3.4 DNS Configuration
 
 - Azure Private DNS Zone: `privatelink.azure.com`
+- Azure Private DNS Zone: `privatelink.vaultcore.azure.net` (Key Vault PE)
 - Auto-registration enabled for Hub VNet
 - Linked to Spoke VNet for resolution
 
@@ -243,15 +245,18 @@ No VMs are pre-deployed. Customer workloads are constrained by policy:
 
 ### 7.3 Policy Assignments
 
-21 Azure Policies enforcing:
+34 Azure Policies enforcing:
 
 - Allowed VM SKUs (B/D/E series)
 - No public IPs on VMs
 - Managed disks required
-- NSG on all subnets
-- HTTPS-only storage
+- NSG on all subnets, NSG flow logs
+- HTTPS-only storage, storage geo-redundancy
 - Azure AD-only SQL auth
 - Required tags (Environment, Owner)
+- Key Vault: soft delete, purge protection, RBAC, no public network, secret/key expiration, resource logs
+- System updates and endpoint protection on VMs
+- MFA for subscription owners, deprecated account detection
 
 ---
 
@@ -305,6 +310,8 @@ No VMs are pre-deployed. Customer workloads are constrained by policy:
 | Azure Migrate      | Server discovery    |
 | Log Analytics      | Centralized logging |
 | Defender for Cloud | Security posture    |
+| Key Vault          | Secrets management  |
+| Automation Account | Patch management    |
 
 ---
 

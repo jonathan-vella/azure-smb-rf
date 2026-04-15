@@ -13,7 +13,7 @@ This plan complies with governance constraints defined in `01-requirements.md` (
 
 **Key constraints applied:**
 
-- 21 Azure Policies deployed at subscription scope (Deny/Audit/DeployIfNotExists effects)
+- 34 Azure Policies deployed at subscription scope (Deny/Audit/DeployIfNotExists effects)
 - Mandatory tags: Environment, Owner (Policy-enforced)
 - Backup tag: `Backup: true` (Recommended for VMs - triggers auto-enrollment)
 - Allowed regions: swedencentral, germanywestcentral, global
@@ -41,7 +41,7 @@ permitted when no AVM module exists for the resource type.
 
 | Resource Type          | AVM Module                                | Version | Notes             |
 | ---------------------- | ----------------------------------------- | ------- | ----------------- |
-| Resource Group         | `avm/res/resources/resource-group`        | 0.4.3   | All 5 RGs         |
+| Resource Group         | `avm/res/resources/resource-group`        | 0.4.3   | All 6 RGs         |
 | Virtual Network        | `avm/res/network/virtual-network`         | 0.7.2   | Hub + Spoke       |
 | Network Security Group | `avm/res/network/network-security-group`  | 0.5.2   | Deny-by-default   |
 | Bastion Host           | `avm/res/network/bastion-host`            | 0.8.2   | Developer SKU     |
@@ -55,6 +55,8 @@ permitted when no AVM module exists for the resource type.
 | Log Analytics          | `avm/res/operational-insights/workspace`  | 0.15.0  | 500MB cap         |
 | Recovery Vault         | `avm/res/recovery-services/vault`         | 0.11.1  | LRS + policy      |
 | Budget                 | `avm/res/consumption/budget`              | 0.3.8   | $500/mo alerts    |
+| Key Vault              | `avm/res/key-vault/vault`                 | 0.11.0  | Private endpoint  |
+| Automation Account     | `avm/res/automation/automation-account`    | 0.11.0  | Runbook platform  |
 
 #### Justified Exceptions (No AVM Available)
 
@@ -69,12 +71,13 @@ permitted when no AVM module exists for the resource type.
 
 | #   | Resource                      | Type                                                     | SKU       | Resource Group   | Dependencies              |
 | --- | ----------------------------- | -------------------------------------------------------- | --------- | ---------------- | ------------------------- |
-| 1   | Policy Assignments (20)       | Microsoft.Authorization/policyAssignments                | N/A       | Subscription     | None                      |
+| 1   | Policy Assignments (33)       | Microsoft.Authorization/policyAssignments                | N/A       | Subscription     | None                      |
 | 2   | Hub Resource Group            | Microsoft.Resources/resourceGroups                       | N/A       | N/A              | Policy Assignments        |
 | 3   | Spoke Resource Group          | Microsoft.Resources/resourceGroups                       | N/A       | N/A              | Policy Assignments        |
 | 4   | Monitor Resource Group        | Microsoft.Resources/resourceGroups                       | N/A       | N/A              | Policy Assignments        |
 | 5   | Backup Resource Group         | Microsoft.Resources/resourceGroups                       | N/A       | N/A              | Policy Assignments        |
 | 6   | Migrate Resource Group        | Microsoft.Resources/resourceGroups                       | N/A       | N/A              | Policy Assignments        |
+| 6a  | Security Resource Group       | Microsoft.Resources/resourceGroups                       | N/A       | N/A              | Policy Assignments        |
 | 7   | Hub VNet                      | Microsoft.Network/virtualNetworks                        | N/A       | rg-hub           | Resource Group            |
 | 8   | Spoke VNet                    | Microsoft.Network/virtualNetworks                        | N/A       | rg-spoke         | Resource Group            |
 | 9   | Hub NSG                       | Microsoft.Network/networkSecurityGroups                  | N/A       | rg-hub           | Resource Group            |
@@ -89,6 +92,9 @@ permitted when no AVM module exists for the resource type.
 | 18  | Auto-Backup Policy Assignment | Microsoft.Authorization/policyAssignments                | N/A       | Subscription     | DefaultVMPolicy           |
 | 19  | Azure Migrate Project         | Microsoft.Migrate/migrateProjects                        | N/A       | rg-migrate       | Resource Group            |
 | 20  | Cost Management Budget        | Microsoft.Consumption/budgets                            | N/A       | Subscription     | None                      |
+| 20a | Key Vault                     | Microsoft.KeyVault/vaults                                | Standard  | rg-security      | Resource Group            |
+| 20b | Automation Account            | Microsoft.Automation/automationAccounts                  | Basic     | rg-security      | Resource Group            |
+| 20c | Defender for Cloud            | Microsoft.Security/pricings                              | Free      | Subscription     | None                      |
 | 21  | Route Table (conditional)     | Microsoft.Network/routeTables                            | N/A       | rg-hub           | Firewall deployed         |
 | 22  | Azure Firewall (optional)     | Microsoft.Network/azureFirewalls                         | Basic     | rg-hub           | Hub VNet, Firewall Subnet |
 | 23  | VPN Gateway (optional)        | Microsoft.Network/virtualNetworkGateways                 | VpnGw1AZ  | rg-hub           | Hub VNet, Gateway Subnet  |
@@ -103,9 +109,9 @@ infra/bicep/smb-ready-foundation/
 ├── main.bicep                      # Orchestration entry point
 ├── main.bicepparam                 # Parameter file with defaults
 ├── modules/
-│   ├── policy-assignments.bicep   # 20 Azure Policy assignments (subscription scope) [Raw - justified]
+    │   ├── policy-assignments.bicep   # 33 Azure Policy assignments (subscription scope) [Raw - justified]
 │   ├── policy-backup-auto.bicep   # Auto-backup policy smb-backup-02 [Raw - justified]
-│   ├── resource-groups.bicep      # 5 resource groups [Raw - justified: az-scope deployment]
+    │   ├── resource-groups.bicep      # 6 resource groups [Raw - justified: az-scope deployment]
 │   ├── networking-hub.bicep       # Hub VNet, NSG, DNS [✅ AVM v0.3: VNet 0.7.2, NSG 0.5.2, DNS 0.8.0]
 │   ├── networking-spoke.bicep     # Spoke VNet, NSG, NAT Gateway [✅ AVM v0.3: VNet 0.7.2, NSG 0.5.2, NAT 2.0.1]
 │   ├── networking-peering.bicep   # VNet peering hub→spoke [Raw - no AVM exists]
@@ -116,7 +122,10 @@ infra/bicep/smb-ready-foundation/
 │   ├── migrate.bicep              # Azure Migrate Project [Raw - no AVM exists]
 │   ├── budget.bicep               # Cost Management Budget [Raw - justified: simple resource]
 │   ├── firewall.bicep             # Azure Firewall Basic [✅ Full AVM v0.5: AFW 0.9.2, FWP 0.3.4, PIP 0.12.0]
-│   └── vpn-gateway.bicep          # VPN Gateway [✅ AVM v0.3: virtual-network-gateway 0.10.1]
+    │   ├── vpn-gateway.bicep          # VPN Gateway [✅ AVM v0.3: virtual-network-gateway 0.10.1]
+    │   ├── keyvault.bicep             # Key Vault with private endpoint [✅ AVM: key-vault/vault 0.11.0]
+    │   ├── defender.bicep             # Defender for Cloud configuration [Raw - subscription scope]
+    │   └── automation.bicep            # Automation Account [✅ AVM: automation/automation-account 0.11.0]
 ├── scripts/
 │   └── Remove-SmbReadyFoundationPolicies.ps1
 └── deploy.ps1                      # Deployment orchestration script
@@ -140,8 +149,11 @@ infra/bicep/smb-ready-foundation/
 | `budget.bicep`             | ❌ Raw (Exception) | Simple resource, AVM overkill                           | Justified |
 | `resource-groups.bicep`    | ❌ Raw (Exception) | Uses az-scope deployment pattern                        | Justified |
 | `policy-*.bicep`           | ❌ Raw (Exception) | Subscription-scope policy assignments                   | Justified |
+| `keyvault.bicep`           | ✅ AVM             | key-vault/vault 0.11.0                                  | Complete  |
+| `automation.bicep`         | ✅ AVM             | automation/automation-account 0.11.0                    | Complete  |
+| `defender.bicep`           | ❌ Raw (Exception) | Subscription-scope security pricing                     | Justified |
 
-**Total AVM References**: 13 modules across 7 Bicep files
+**Total AVM References**: 15 modules across 9 Bicep files
 
 ---
 
@@ -149,9 +161,9 @@ infra/bicep/smb-ready-foundation/
 
 ### Task 0: modules/policy-assignments.bicep
 
-**Purpose**: Deploy 20 Azure Policy assignments at subscription scope
+**Purpose**: Deploy 33 Azure Policy assignments at subscription scope
 
-> **Note**: Policy #21 (smb-backup-02) is deployed via `policy-backup-auto.bicep` after
+> **Note**: Policy #34 (smb-backup-02) is deployed via `policy-backup-auto.bicep` after
 > the Recovery Services Vault is created, as it requires the vault ID as a parameter.
 
 **Scope**: `targetScope = 'subscription'`
@@ -181,6 +193,10 @@ infra/bicep/smb-ready-foundation/
 | 19  | VM backup required       | 013e242c-8828-4970-87b3-ab247555486d | AuditIfNotExists  | smb-backup-01     |
 | 20  | Diagnostic settings      | 7f89b1eb-583c-429a-8828-af049802c1d9 | AuditIfNotExists  | smb-monitoring-01 |
 | 21  | Auto-backup VMs (tag)    | 345fa903-145c-4fe1-8bcd-93ec2adccde8 | DeployIfNotExists | smb-backup-02     |
+
+> **Note**: Policies 22–34 include 7 Key Vault policies (purge protection, soft delete, private endpoint,
+> RBAC authorization, TLS, network restrictions, diagnostics) and 6 general policies (Defender for Cloud,
+> Automation Account diagnostics, private endpoint DNS, and additional security hardening).
 
 > **Note**: Policy #21 (smb-backup-02) automatically configures backup for VMs tagged with `Backup: true`
 > to the central Recovery Services Vault using DefaultVMPolicy (30d daily, 12w weekly, 12m monthly retention).
@@ -267,7 +283,7 @@ var deployPeering = deployFirewall || deployVpnGateway
 
 ### Task 2: modules/resource-groups.bicep
 
-**Purpose**: Create 5 resource groups with mandatory tags
+**Purpose**: Create 6 resource groups with mandatory tags
 
 **Scope**: `targetScope = 'subscription'`
 
@@ -280,6 +296,7 @@ var deployPeering = deployFirewall || deployVpnGateway
 | Monitor        | rg-monitor-{env}-{region} | Log Analytics                    |
 | Backup         | rg-backup-{env}-{region}  | Recovery Services Vault          |
 | Migrate        | rg-migrate-{env}-{region} | Azure Migrate Project            |
+| Security       | rg-security-{env}-{region}| Key Vault, Automation Account    |
 
 **Key Configuration**:
 
@@ -638,7 +655,7 @@ graph TD
 **Deployment Order**:
 
 1. **Phase 1** (Subscription): Policy assignments, Budget
-2. **Phase 2** (Foundation): 5 Resource Groups
+2. **Phase 2** (Foundation): 6 Resource Groups
 3. **Phase 3** (Networking): Hub VNet, Spoke VNet (parallel)
 4. **Phase 4** (Services): Log Analytics, Recovery Vault, Azure Migrate (parallel)
 5. **Phase 5** (Optional): Azure Firewall, VPN Gateway (if enabled)
@@ -693,7 +710,7 @@ graph TD
 | Task                      | Estimated Duration | Notes                       |
 | ------------------------- | ------------------ | --------------------------- |
 | Policy Assignments        | 5 minutes          | 20 policy assignments       |
-| Resource Groups           | 2 minutes          | 5 resource groups           |
+| Resource Groups           | 2 minutes          | 6 resource groups           |
 | Hub Networking            | 10 minutes         | VNet, subnets, Bastion, DNS |
 | Spoke Networking          | 5 minutes          | VNet, subnets, NAT Gateway  |
 | Monitoring                | 3 minutes          | Log Analytics               |
@@ -714,7 +731,7 @@ graph TD
 >
 > - **21 Azure resources** planned (baseline) + 2 optional
 > - **12 Bicep modules** to create
-> - **20 Azure Policies** to deploy
+> - **33 Azure Policies** to deploy
 > - **$48-$363/month** estimated cost range
 > - Governance constraints addressed (greenfield)
 > - Azure naming conventions applied

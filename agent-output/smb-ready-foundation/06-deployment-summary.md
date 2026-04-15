@@ -36,6 +36,7 @@
 | `rg-monitor-smb-swc` | Monitoring      | smb             |
 | `rg-backup-smb-swc`  | Backup services | smb             |
 | `rg-migrate-smb-swc` | Migration tools | smb             |
+| `rg-security-smb-swc`| Security        | smb             |
 
 ### Networking Resources
 
@@ -49,6 +50,7 @@
 | Hub NSG          | nsg-hub-smb-swc       | rg-hub-smb-swc    | Succeeded | Deny all inbound     |
 | Spoke NSG        | nsg-spoke-prod-swc    | rg-spoke-prod-swc | Succeeded | VNet + LB allowed    |
 | Private DNS Zone | privatelink.azure.com | rg-hub-smb-swc    | Succeeded | Auto-registration    |
+| Private DNS Zone | privatelink.vaultcore.azure.net | rg-hub-smb-swc | Succeeded | Key Vault PE         |
 
 ### Hub VNet Subnets
 
@@ -66,6 +68,7 @@
 | snet-workload | 10.0.2.0/25   | General workloads | ✅          |
 | snet-data     | 10.0.2.128/25 | Database/storage  | ✅          |
 | snet-app      | 10.0.3.0/25   | Application tier  | ✅          |
+| snet-pep      | 10.0.3.128/26 | Private endpoints | ✅          |
 
 ### Management & Governance
 
@@ -75,8 +78,11 @@
 | Recovery Vault     | rsv-smbrf-smb-swc      | rg-backup-smb-swc  | Succeeded |
 | VM Backup Policy   | DefaultVMPolicy        | rg-backup-smb-swc  | Succeeded |
 | Azure Migrate      | migrate-smbrf-smb-swc  | rg-migrate-smb-swc | Succeeded |
+| Key Vault          | kv-smbrf-smb-swc       | rg-security-smb-swc| Succeeded |
+| Automation Account | aa-smbrf-smb-swc       | rg-security-smb-swc| Succeeded |
+| Defender for Cloud | Free tier              | Subscription scope | Succeeded |
 | Budget             | budget-smb-monthly  | Subscription scope | Succeeded |
-| Policy Assignments | 21 `smb-*` policies | Subscription scope | Succeeded |
+| Policy Assignments | 34 `smb-*` policies | Subscription scope | Succeeded |
 
 ### VM Backup Configuration
 
@@ -162,8 +168,11 @@ cd infra/bicep/smb-ready-foundation
 - [x] Recovery Services vault with DefaultVMPolicy configured
 - [x] Auto-backup policy assignment (smb-backup-02) deployed
 - [x] Azure Migrate project created
-- [x] Policy assignments applied at subscription scope (21 policies)
+- [x] Policy assignments applied at subscription scope (34 policies)
 - [x] Budget alerts configured at $500/month
+- [x] Key Vault deployed with private endpoint
+- [x] Automation Account provisioned
+- [x] Defender for Cloud enabled (Free tier)
 
 ## Post-Deployment Tasks
 

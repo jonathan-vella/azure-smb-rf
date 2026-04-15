@@ -29,6 +29,8 @@ from diagrams.azure.migration import MigrationProjects
 from diagrams.azure.devops import ApplicationInsights
 from diagrams.azure.general import CostManagement, Tags
 from diagrams.azure.storage import RecoveryServicesVaults
+from diagrams.azure.security import KeyVaults
+from diagrams.azure.integration import LogicApps  # for Automation Account icon
 from diagrams.onprem.compute import Server
 from diagrams.generic.network import Firewall as GenericFirewall
 
@@ -64,7 +66,7 @@ with Diagram(
         with Cluster("Subscription Services"):
             defender = ApplicationInsights("Defender for Cloud\n(Free Tier)")
             budget = CostManagement("Cost Management\nBudget $500/mo")
-            policies = Tags("20 Azure Policies\n(Deny/Audit)")
+            policies = Tags("34 Azure Policies\n(Deny/Audit)")
 
         # Hub Resource Group
         with Cluster("rg-hub-smb-swc"):
@@ -82,6 +84,7 @@ with Diagram(
 
             # Hub supporting services
             dns = DNSPrivateZones("Private DNS Zone\nauto-registration")
+            dns_kv = DNSPrivateZones("Private DNS Zone\nvaultcore.azure.net")
             hub_nsg = NetworkSecurityGroupsClassic("Hub NSG\nDefault Deny")
             route_table = RouteTables("Route Table\n0.0.0.0/0 → FW")
 
@@ -97,6 +100,9 @@ with Diagram(
                         VM("Migrated VM 2"),
                     ]
 
+                with Cluster("snet-pep (/26)"):
+                    pep = Subnets("Private Endpoints")
+
         # Migration Resource Group
         with Cluster("rg-migrate-smb-swc"):
             migrate = MigrationProjects("Azure Migrate\nVMware Assessment")
@@ -104,10 +110,15 @@ with Diagram(
         # Monitor Resource Group
         with Cluster("rg-monitor-smb-swc"):
             logs = ApplicationInsights("Log Analytics\n500MB/day cap")
+            automation = LogicApps("Automation Account\nPatch Mgmt")
 
         # Backup Resource Group
         with Cluster("rg-backup-smb-swc"):
             vault = RecoveryServicesVaults("Recovery Services\nVault")
+
+        # Security Resource Group
+        with Cluster("rg-security-smb-swc"):
+            keyvault = KeyVaults("Key Vault\nRBAC, PE, Purge")
 
     # Data flow connections
 
@@ -139,3 +150,6 @@ with Diagram(
 
     # NSG protects subnets
     spoke_nsg >> Edge(label="Protects", style="invis") >> vms[0]
+
+    # Key Vault private endpoint
+    pep >> Edge(label="PE", style="dotted") >> keyvault

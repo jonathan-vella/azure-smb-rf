@@ -56,11 +56,14 @@ cd infra/bicep/smb-ready-foundation
 - Hub + Spoke VNet topology
 - NAT Gateway (outbound internet)
 - Azure Bastion Developer (secure VM access)
-- Private DNS Zone (auto-registration)
+- Private DNS Zones (auto-registration + Key Vault PE)
 - Log Analytics (500 MB/day cap)
 - Recovery Services Vault (VM backup)
 - Azure Migrate Project
-- 20 Azure Policy guardrails
+- Azure Key Vault (RBAC, private endpoint, purge protection)
+- Azure Automation Account (patch management)
+- Microsoft Defender for Cloud (Free tier)
+- 34 Azure Policy guardrails
 - Monthly budget alert ($500)
 
 ### Scenario-Specific

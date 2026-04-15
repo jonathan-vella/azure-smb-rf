@@ -16,9 +16,9 @@ infra/bicep/smb-ready-foundation/
 ├── scripts/
 │   └── Remove-SmbReadyFoundationPolicies.ps1   # Policy cleanup script
 └── modules/
-    ├── policy-assignments.bicep        # 20 Azure Policy assignments
+    ├── policy-assignments.bicep        # 33 Azure Policy assignments
     ├── policy-backup-auto.bicep        # VM backup auto-enrollment (DeployIfNotExists)
-    ├── resource-groups.bicep           # 5 resource groups
+    ├── resource-groups.bicep           # 6 resource groups
     ├── networking-hub.bicep            # Hub VNet, Bastion, NSG, DNS
     ├── networking-spoke.bicep          # Spoke VNet, NAT Gateway, NSG
     ├── networking-peering.bicep        # VNet peering orchestration
@@ -29,7 +29,10 @@ infra/bicep/smb-ready-foundation/
     ├── migrate.bicep                   # Azure Migrate Project
     ├── budget.bicep                    # Cost Management Budget
     ├── firewall.bicep                  # Azure Firewall Basic (optional)
-    └── vpn-gateway.bicep               # VPN Gateway (optional)
+    ├── vpn-gateway.bicep               # VPN Gateway (optional)
+    ├── keyvault.bicep                  # Key Vault with private endpoint
+    ├── defender.bicep                  # Defender for Cloud configuration
+    └── automation.bicep                # Automation Account
 ```
 
 ## Validation Status
@@ -51,18 +54,19 @@ infra/bicep/smb-ready-foundation/
 
 | Resource                | Bicep Type                                | Module                   |
 | ----------------------- | ----------------------------------------- | ------------------------ |
-| Policy Assignments (21) | Microsoft.Authorization/policyAssignments | policy-assignments.bicep |
+| Policy Assignments (34) | Microsoft.Authorization/policyAssignments | policy-assignments.bicep |
 | Cost Management Budget  | Microsoft.Consumption/budgets             | budget.bicep             |
 
-### Resource Groups (5)
+### Resource Groups (6)
 
-| Resource Group | Name Pattern              | Module                |
-| -------------- | ------------------------- | --------------------- |
-| Hub            | rg-hub-{env}-{region}     | resource-groups.bicep |
-| Spoke          | rg-spoke-{env}-{region}   | resource-groups.bicep |
-| Monitor        | rg-monitor-{env}-{region} | resource-groups.bicep |
-| Backup         | rg-backup-{env}-{region}  | resource-groups.bicep |
-| Migrate        | rg-migrate-{env}-{region} | resource-groups.bicep |
+| Resource Group | Name Pattern                | Module                |
+| -------------- | --------------------------- | --------------------- |
+| Hub            | rg-hub-{env}-{region}       | resource-groups.bicep |
+| Spoke          | rg-spoke-{env}-{region}     | resource-groups.bicep |
+| Monitor        | rg-monitor-{env}-{region}   | resource-groups.bicep |
+| Backup         | rg-backup-{env}-{region}    | resource-groups.bicep |
+| Migrate        | rg-migrate-{env}-{region}   | resource-groups.bicep |
+| Security       | rg-security-{env}-{region}  | resource-groups.bicep |
 
 ### Core Infrastructure
 
@@ -79,6 +83,10 @@ infra/bicep/smb-ready-foundation/
 | Log Analytics           | Microsoft.OperationalInsights/workspaces | monitoring.bicep       |
 | Recovery Services Vault | Microsoft.RecoveryServices/vaults        | backup.bicep           |
 | Azure Migrate Project   | Microsoft.Migrate/migrateProjects        | migrate.bicep          |
+| Key Vault               | Microsoft.KeyVault/vaults                | keyvault.bicep         |
+| Automation Account      | Microsoft.Automation/automationAccounts  | automation.bicep       |
+| Defender for Cloud      | Microsoft.Security/pricings              | defender.bicep         |
+| Private DNS Zone (KV)   | Microsoft.Network/privateDnsZones        | keyvault.bicep         |
 
 ### Optional Resources (Per Scenario)
 
@@ -115,6 +123,8 @@ All applicable modules have been migrated to Azure Verified Modules (AVM) for im
 | migrate.bicep            | N/A                                                 | -       | ⚠️ Raw (no AVM)    |
 | budget.bicep             | N/A                                                 | -       | ⚠️ Raw (sub-scope) |
 | policy-\*.bicep          | N/A                                                 | -       | ⚠️ Raw (native)    |
+| keyvault.bicep           | `br/public:avm/res/key-vault/vault`                 | 0.11.0  | ✅ AVM             |
+| automation.bicep         | `br/public:avm/res/automation/automation-account`    | 0.11.0  | ✅ AVM             |
 
 **Key Pattern**: Public IPs are pre-created before the firewall to avoid transient provisioning
 failures. See [ADR-0003](07-ab-adr-0003-avm-firewall-migration.md) for details.
@@ -189,10 +199,11 @@ var regionAbbreviations = {
 | snet-workload       | /24  | Workload VMs (256 IPs)     |
 | snet-data           | /24  | Data tier (256 IPs)        |
 | snet-app            | /24  | Application tier (256 IPs) |
+| snet-pep            | /26  | Private endpoints (64 IPs) |
 
 ### Policy Assignments
 
-21 Azure Policies deployed at subscription scope:
+34 Azure Policies deployed at subscription scope:
 
 - **4 Compute**: VM SKU restrictions, no public IPs, managed disks, ARM VMs
 - **4 Network**: NSG requirements, management ports, IP forwarding

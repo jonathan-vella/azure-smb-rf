@@ -242,12 +242,12 @@ function Test-CidrOverlap {
     # Parse CIDR notation
     $parts1 = $Cidr1 -split '/'
     $parts2 = $Cidr2 -split '/'
-    
+
     $ip1 = [System.Net.IPAddress]::Parse($parts1[0])
     $ip2 = [System.Net.IPAddress]::Parse($parts2[0])
     $prefix1 = [int]$parts1[1]
     $prefix2 = [int]$parts2[1]
-    
+
     # Convert to integers
     $bytes1 = $ip1.GetAddressBytes()
     $bytes2 = $ip2.GetAddressBytes()
@@ -255,18 +255,18 @@ function Test-CidrOverlap {
     [Array]::Reverse($bytes2)
     $int1 = [BitConverter]::ToUInt32($bytes1, 0)
     $int2 = [BitConverter]::ToUInt32($bytes2, 0)
-    
+
     # Calculate network masks
     $mask1 = [uint32]::MaxValue -shl (32 - $prefix1)
     $mask2 = [uint32]::MaxValue -shl (32 - $prefix2)
-    
+
     # Get network addresses
     $net1 = $int1 -band $mask1
     $net2 = $int2 -band $mask2
-    
+
     # Check overlap using the smaller mask (larger network)
     $smallerMask = if ($prefix1 -lt $prefix2) { $mask1 } else { $mask2 }
-    
+
     return ($net1 -band $smallerMask) -eq ($net2 -band $smallerMask)
 }
 
@@ -634,7 +634,7 @@ if (-not $NonInteractive) {
         Write-Host ""
         Write-Host "  ─── Network Configuration ───" -ForegroundColor Yellow
         Write-Host ""
-        
+
         # Hub VNet CIDR with validation
         do {
             $HubVnetAddressSpace = Read-HostWithDefault "  Hub VNet CIDR" $HubVnetAddressSpace
@@ -642,7 +642,7 @@ if (-not $NonInteractive) {
                 Write-Host "  Invalid CIDR format. Use format: x.x.x.x/prefix (prefix 16-29)" -ForegroundColor Red
             }
         } while (-not (Test-ValidCidr $HubVnetAddressSpace))
-        
+
         # Spoke VNet CIDR with validation and overlap check
         do {
             $SpokeVnetAddressSpace = Read-HostWithDefault "  Spoke VNet CIDR" $SpokeVnetAddressSpace

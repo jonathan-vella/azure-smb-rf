@@ -93,7 +93,7 @@ scores in Reliability and Performance pillars.
 
 - **POS-001**: Repeatable deployment across 1000+ customer subscriptions with zero per-customer customization
 - **POS-002**: 90% budget headroom in baseline configuration for customer workload compute costs
-- **POS-003**: Strong security posture via 20 Azure Policies with Deny effects preventing misconfigurations
+- **POS-003**: Strong security posture via 33 Azure Policies with Deny effects preventing misconfigurations
 - **POS-004**: Free Azure Bastion Developer eliminates ~$138/month compared to Basic SKU
 - **POS-005**: Hub-spoke topology enables future Azure Firewall or VPN Gateway without architectural changes
 - **POS-006**: Policy-as-code approach ensures consistent governance across all customer deployments

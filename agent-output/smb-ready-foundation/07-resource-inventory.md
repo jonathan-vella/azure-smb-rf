@@ -11,11 +11,12 @@
 
 | Category             | Count |
 | -------------------- | ----- |
-| **Total Resources**  | 58    |
-| 🌐 Networking        | 15    |
-| 📊 Monitoring        | 2     |
+| **Total Resources**  | 66    |
+| 🌐 Networking        | 17    |
+| 📊 Monitoring        | 3     |
 | 💾 Backup & Recovery | 2     |
-| 🔐 Security          | 21    |
+| 🔑 Security Services | 4     |
+| 🔐 Security Policies | 34    |
 | 📋 Governance        | 18    |
 
 ---
@@ -40,6 +41,7 @@
 | rt-spoke-smb-swc      | Route Table               | 0.0.0.0/0 → Firewall   | swedencentral  |
 | rt-gateway-smb-swc    | Route Table               | Spoke routes → Firewall| swedencentral  |
 | privatelink.azure.com | Private DNS Zone          | Auto-registration      | Global         |
+| privatelink.vaultcore.azure.net | Private DNS Zone | Key Vault PE resolution| Global         |
 | hub-spoke-peer        | VNet Peering              | Gateway Transit        | swedencentral  |
 
 ### Hub VNet Subnets
@@ -59,12 +61,14 @@
 | snet-workload | 10.0.2.0/25     | General workloads | ✅          |
 | snet-data     | 10.0.2.128/25   | Database/storage  | ✅          |
 | snet-app      | 10.0.3.0/25     | Application tier  | ✅          |
+| snet-pep      | 10.0.3.128/26   | Private endpoints | ➖          |
 
 ### 📊 Monitoring Resources
 
 | Name              | Type                    | Retention  | Location      |
 | ----------------- | ----------------------- | ---------- | ------------- |
 | log-smbrf-smb-swc | Log Analytics Workspace | 30 days    | swedencentral |
+| aa-smbrf-smb-swc  | Automation Account      | Basic SKU  | swedencentral |
 | budget-smb     | Cost Management Budget  | Monthly    | Subscription  |
 
 **Log Analytics Configuration:**
@@ -112,6 +116,39 @@
 | smb-compliance-02 | Deny             | Subscription | Allowed locations            |
 | smb-backup-01     | AuditIfNotExists | Subscription | Backup audit                 |
 | smb-backup-02     | DeployIfNotExists| Subscription | Auto-backup enrollment       |
+| smb-backup-03     | Audit            | Subscription | Storage geo-redundancy       |
+| smb-kv-01         | Audit            | Subscription | Key Vault soft delete        |
+| smb-kv-02         | Audit            | Subscription | Key Vault deletion protection|
+| smb-kv-03         | Audit            | Subscription | Key Vault RBAC model         |
+| smb-kv-04         | Audit            | Subscription | Key Vault no public network  |
+| smb-kv-05         | Audit            | Subscription | KV secrets expiration        |
+| smb-kv-06         | Audit            | Subscription | KV keys expiration           |
+| smb-kv-07         | AuditIfNotExists | Subscription | KV resource logs enabled     |
+| smb-network-05    | AuditIfNotExists | Subscription | NSG flow logs required       |
+| smb-compute-05    | AuditIfNotExists | Subscription | System updates on VMs        |
+| smb-compute-06    | AuditIfNotExists | Subscription | Endpoint protection on VMs   |
+| smb-identity-03   | AuditIfNotExists | Subscription | MFA for subscription owners  |
+| smb-identity-04   | AuditIfNotExists | Subscription | Deprecated accounts audit    |
+
+### 🔑 Security Services
+
+| Name                    | Type                    | Configuration              | Location      |
+| ----------------------- | ----------------------- | -------------------------- | ------------- |
+| kv-smbrf-swc-*          | Azure Key Vault         | Standard, RBAC, PE, purge  | swedencentral |
+| pep-kv-smbrf-smb-swc    | Private Endpoint        | Key Vault → spoke snet-pep | swedencentral |
+| Defender for Cloud       | Security Configuration  | Free tier (VMs, Storage, KV)| Subscription |
+
+**Key Vault Configuration:**
+
+| Setting              | Value                          |
+| -------------------- | ------------------------------ |
+| SKU                  | Standard                       |
+| Permission Model     | RBAC (no access policies)      |
+| Soft Delete          | Enabled (90-day retention)     |
+| Purge Protection     | Enabled                        |
+| Public Network       | Disabled (PE only)             |
+| Network Bypass       | AzureServices                  |
+| Diagnostic Settings  | All logs → Log Analytics       |
 
 ### 📋 Governance (Resource Groups)
 
@@ -122,6 +159,7 @@
 | rg-monitor-smb-swc   | Monitoring       | smb             | swedencentral |
 | rg-backup-smb-swc    | Backup services  | smb             | swedencentral |
 | rg-migrate-smb-swc   | Migration tools  | smb             | swedencentral |
+| rg-security-smb-swc  | Security services| smb             | swedencentral |
 
 ---
 
@@ -135,8 +173,10 @@
 | Log Analytics         |               $0   |               $0   |           $0  |            $0  |
 | Recovery Services     |               $0   |               $0   |           $0  |            $0  |
 | Public IPs            |               $4   |               $22  |          $11  |           $33  |
+| Key Vault             |               $0   |               $0   |           $0  |            $0  |
+| Automation Account    |               $0   |               $0   |           $0  |            $0  |
 | Other (VNets, NSGs)   |               $12  |               $40  |          $38  |           $31  |
-| **Monthly Total**     |           **$48**  |           **$336** |      **$187** |       **$476** |
+| **Monthly Total**     |           **$49**  |           **$337** |      **$188** |       **$477** |
 
 ---
 
