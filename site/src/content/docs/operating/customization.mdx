@@ -1,0 +1,107 @@
+---
+title: Customization
+description: How to extend, modify, and fork SMB Ready Foundation
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+## Changing the Region
+
+Two regions are supported:
+
+```bash
+# Sweden Central (default, EU GDPR)
+azd env set AZURE_LOCATION swedencentral
+
+# Germany West Central (failover)
+azd env set AZURE_LOCATION germanywestcentral
+```
+
+To add a new region, update the `location` parameter's `@allowed` list in `main.bicep` and add a region abbreviation mapping in the `regionShort` variable.
+
+## Adjusting Network Address Spaces
+
+```bash
+azd env set HUB_VNET_ADDRESS_SPACE "10.10.0.0/23"
+azd env set SPOKE_VNET_ADDRESS_SPACE "10.10.2.0/23"
+```
+
+The pre-provision hook validates CIDRs for:
+- Valid CIDR format
+- No overlap between hub and spoke
+- No overlap with on-premises (if set)
+
+## Adding Bicep Modules
+
+<Aside type="tip">
+  Use [Azure Verified Modules](https://aka.ms/avm) wherever possible. The existing modules follow AVM conventions.
+</Aside>
+
+1. Create your module in `modules/your-module.bicep`
+2. Add the module call in `main.bicep` with the appropriate scope:
+   ```bicep
+   module yourModule 'modules/your-module.bicep' = {
+     name: 'your-module-${uniqueSuffix}'
+     scope: resourceGroup(rgNames.hub)  // or appropriate RG
+     params: {
+       location: location
+       tags: sharedServicesTags
+     }
+   }
+   ```
+3. Run `bicep build main.bicep` to validate
+4. Run `bicep lint main.bicep` to check style
+
+## Adding Policy Assignments
+
+MG-scoped policies are defined in `modules/policy-assignments-mg.bicep`. To add a new policy:
+
+1. Find the policy definition ID from the [Azure Policy built-in definitions](https://learn.microsoft.com/azure/governance/policy/samples/built-in-policies)
+2. Add to the `policyDefinitions` variable:
+   ```bicep
+   yourPolicy: '/providers/Microsoft.Authorization/policyDefinitions/<guid>'
+   ```
+3. Add the resource:
+   ```bicep
+   resource policyYour01 'Microsoft.Authorization/policyAssignments@2024-04-01' = {
+     name: 'smb-your-01'
+     location: location
+     properties: {
+       displayName: 'SMB LZ: Your Policy Name'
+       description: 'Your policy description'
+       policyDefinitionId: policyDefinitions.yourPolicy
+       enforcementMode: 'Default'
+     }
+   }
+   ```
+
+## Changing Resource Names
+
+Resource names follow the [Azure Cloud Adoption Framework (CAF)](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/azure-best-practices/naming-and-tagging) convention. The naming pattern is defined in variables within each module.
+
+Key naming components:
+- **`regionShort`**: Derived from location (`swedencentral` → `swc`)
+- **`environment`**: From parameter (`prod`, `dev`, `staging`)
+- **`uniqueSuffix`**: From `uniqueString(subscription().subscriptionId)` — deterministic per subscription
+
+## Forking for Multiple Customers
+
+Each customer deployment should use a separate azd environment:
+
+```bash
+# Customer A
+azd env new customer-a-prod
+azd env set SCENARIO firewall
+azd env set OWNER "admin@customer-a.com"
+# ... set other params
+azd up
+
+# Customer B (different subscription)
+az account set --subscription "customer-b-sub"
+azd env new customer-b-prod
+azd env set SCENARIO baseline
+azd env set OWNER "admin@customer-b.com"
+azd up
+```
+
+For significant customization, fork the repository and maintain customer-specific branches.

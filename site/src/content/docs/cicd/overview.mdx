@@ -1,0 +1,52 @@
+---
+title: CI/CD Integration
+description: Pipeline templates for automated deployment
+sidebar:
+  badge:
+    text: Soon
+    variant: caution
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+<Aside type="caution">
+  CI/CD pipeline templates are planned but not yet available. This page documents the design approach.
+</Aside>
+
+## Design Approach
+
+SMB Ready Foundation is designed to be deployed via `azd up`, which handles:
+- Pre-provision hooks (CIDR validation, MG policy deployment, cleanup)
+- ARM template deployment
+- Post-provision hooks (summary output)
+
+CI/CD pipelines should wrap `azd up` rather than calling `az deployment` directly.
+
+## GitHub Actions (Planned)
+
+Key requirements for a GitHub Actions workflow:
+- Use federated identity credentials (OIDC) — no stored secrets
+- Run `azd auth login` with service principal
+- Set environment variables via `azd env set`
+- Run `azd up --no-prompt`
+- Require manual approval for production deployments
+
+## Azure DevOps (Planned)
+
+Key requirements for an Azure DevOps pipeline:
+- Use service connection with Workload Identity Federation
+- Stage-gated deployment (dev → staging → prod)
+- Run `azd up --no-prompt` in each stage
+- Artifact publishing for deployment logs
+
+## Manual Deployment (Current)
+
+Until pipeline templates are available, deploy manually:
+
+```bash
+cd infra/bicep/smb-ready-foundation
+azd env select my-environment
+azd up
+```
+
+See [Quick Start](/azure-smb-rf/getting-started/quick-start/) for the full workflow.

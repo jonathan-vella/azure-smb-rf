@@ -1,0 +1,21 @@
+---
+title: Changelog
+description: Version history and release notes
+---
+
+See the full [CHANGELOG.md](https://github.com/jonathan-vella/azure-smb-rf/blob/main/CHANGELOG.md) for complete version history.
+
+## Current Version
+
+**v0.10.0** — Azure Developer CLI (azd) migration, AVM version updates, 4-scenario deployment testing.
+
+### Highlights
+
+- Migrated from `deploy.ps1` to `azd up` with pre/post-provision hooks
+- Updated 7 of 13 AVM modules to latest versions
+- Split MG deployment into creation (step 5a) + policy deployment (step 5b)
+- Fixed retired policy definition GUID (`auditDeprecatedAccounts`)
+- Added automated 4-scenario test runner (`scripts/test-scenarios.sh`)
+- All 4 scenarios (baseline, firewall, vpn, full) tested and validated against live Azure
+- Restructured progress log to structured tables
+- Resolved all validation errors (tag casing, public access, orphaned refs)

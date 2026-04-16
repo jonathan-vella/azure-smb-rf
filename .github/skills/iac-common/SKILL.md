@@ -94,8 +94,8 @@ Deploy everything in one operation. Still requires user approval.
 | Cross-platform         | Yes                                                         | PowerShell only                                 |
 | Environment management | Built-in (`azd env`)                                        | Manual parameters                               |
 | Hooks (pre/post)       | `azure.yaml` hooks                                          | Custom script logic                             |
-| Phased deployment      | Use hooks (`preprovision`/`postprovision`)                  | Fine-grained phases *(deprecated)*              |
-| New projects           | **Use azd**                                                 | **Deprecated — do not use for new projects** |
+| Phased deployment      | Use hooks (`preprovision`/`postprovision`)                  | Fine-grained phases _(deprecated)_              |
+| New projects           | **Use azd**                                                 | **Deprecated — do not use for new projects**    |
 | Existing projects      | Use azd (generate `azure.yaml` if missing)                  | Deprecated fallback if no `azure.yaml`          |
 | Project isolation      | Per-project: `infra/{iac}/{project}/azure.yaml` + `.azure/` | Per-project: `infra/{iac}/{project}/deploy.ps1` |
 | Env naming             | `{project}-{env}` (e.g., `hub-spoke-dev`)                   | Manual parameter per invocation                 |

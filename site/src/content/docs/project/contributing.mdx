@@ -1,0 +1,56 @@
+---
+title: Contributing
+description: How to contribute to SMB Ready Foundation
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+See the full [CONTRIBUTING.md](https://github.com/jonathan-vella/azure-smb-rf/blob/main/CONTRIBUTING.md) for detailed guidelines.
+
+## Quick Reference
+
+### Branch Naming
+
+| Type | Pattern | Example |
+|------|---------|---------|
+| Feature | `feature/description` | `feature/add-cosmos-db-module` |
+| Bug fix | `fix/description` | `fix/vpn-gateway-timeout` |
+| Documentation | `docs/description` | `docs/update-readme` |
+
+### Commit Convention
+
+Use [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+feat(bicep): add SQL Server module
+fix(hooks): handle MG conflict on retry
+docs: update deployment guide
+```
+
+### Validation Before Committing
+
+```bash
+# Full validation suite
+npm run validate:all
+
+# Bicep
+bicep build infra/bicep/smb-ready-foundation/main.bicep
+bicep lint infra/bicep/smb-ready-foundation/main.bicep
+
+# Markdown
+npm run lint:md
+```
+
+### Key Directories
+
+| Directory | Purpose |
+|-----------|---------|
+| `infra/bicep/smb-ready-foundation/` | Bicep templates |
+| `infra/bicep/smb-ready-foundation/modules/` | AVM module wrappers |
+| `infra/bicep/smb-ready-foundation/hooks/` | azd lifecycle hooks |
+| `infra/bicep/smb-ready-foundation/scripts/` | Cleanup and utility scripts |
+| `site/src/content/docs/` | Documentation (this site) |
+
+<Aside type="tip">
+  The repository includes a dev container with all tools pre-installed. Use **Dev Containers: Reopen in Container** for the smoothest development experience.
+</Aside>

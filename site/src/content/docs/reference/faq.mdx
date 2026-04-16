@@ -1,0 +1,110 @@
+---
+title: FAQ
+description: Frequently asked questions about SMB Ready Foundation
+---
+
+## General
+
+### What is SMB Ready Foundation?
+
+A cost-optimized Azure landing zone designed for Microsoft Partners migrating SMB customers from VMware to Azure. It provides hub-spoke networking, 33 governance policies, and 4 deployment scenarios — all deployable with a single `azd up` command.
+
+### Who is this for?
+
+- Microsoft Partners hosting SMB customers on on-premises infrastructure
+- Managed Service Providers (MSPs) standardizing Azure onboarding
+- IT consultants delivering repeatable migration projects
+
+### How much does it cost?
+
+From ~$48/month (baseline) to ~$476/month (full). See [Cost Comparison](/azure-smb-rf/reference/costs/) for detailed breakdowns.
+
+## Deployment
+
+### Can I deploy to multiple subscriptions?
+
+Yes. Each subscription gets its own management group, policies, and resource groups. Use separate azd environments:
+
+```bash
+az account set --subscription "customer-a"
+azd env new customer-a-prod
+azd up
+
+az account set --subscription "customer-b"
+azd env new customer-b-prod
+azd up
+```
+
+### Can I change scenarios after deployment?
+
+Yes. Delete the resource groups, change the scenario, and redeploy. Management group policies persist across scenario changes.
+
+```bash
+# Teardown current
+pwsh scripts/Remove-SmbReadyFoundation.ps1 -Force
+
+# Switch scenario
+azd env set SCENARIO firewall
+azd up
+```
+
+### Why azd instead of `az deployment`?
+
+azd provides:
+- Environment-based configuration (`azd env set`)
+- Pre/post-provision hooks (CIDR validation, MG policy deployment, cleanup)
+- Consistent deployment lifecycle
+- Easy multi-environment management
+
+### Do I need Global Administrator for every deployment?
+
+No. Global Administrator is only needed once to run `Setup-ManagementGroupPermissions.ps1`. After that, Owner or Contributor on the subscription is sufficient.
+
+## Architecture
+
+### Why hub-spoke instead of a flat VNet?
+
+Hub-spoke enables:
+- Centralized shared services (Bastion, DNS, Firewall)
+- Workload isolation (spoke per environment/customer)
+- Policy inheritance through management groups
+- Cost efficiency (shared Firewall/VPN across workloads)
+
+### Why management group-scoped policies?
+
+MG-scoped policies apply to **all** resources in the subscription — including resources created manually in the portal or by other tools. This ensures consistent governance regardless of how resources are provisioned.
+
+### Why are route tables in the hub RG, not the spoke?
+
+Route tables are centrally managed networking resources. They live in the hub RG but are associated with spoke subnets via resource ID cross-reference. This follows the CAF hub-spoke pattern where the hub owns all routing decisions.
+
+### Why no Azure Bastion Standard?
+
+Bastion Developer (free tier) is sufficient for SMB workloads. It provides portal-based SSH/RDP without a dedicated Bastion host. Partners can upgrade to Standard if needed.
+
+## Policies
+
+### Can I disable specific policies?
+
+Yes. Delete individual policy assignments:
+
+```bash
+az policy assignment delete \
+  --name smb-compute-01 \
+  --scope "/providers/Microsoft.Management/managementGroups/smb-rf"
+```
+
+### Why Audit instead of Deny for most policies?
+
+Deny policies block resource creation immediately, which can disrupt existing workflows. The foundation uses Deny only for critical guardrails (VM SKUs, public IPs, managed disks, storage HTTPS, Key Vault soft-delete, tagging). Everything else starts as Audit — partners can tighten enforcement after assessing impact.
+
+### What if a policy blocks my resource?
+
+Check which policy is blocking:
+
+```bash
+az policy state list --resource-group rg-spoke-prod-swc \
+  --query "[?complianceState=='NonCompliant'].{policy:policyAssignmentName, resource:resourceId}" -o table
+```
+
+Then either adjust your resource to comply, or remove the specific policy assignment.

@@ -1,0 +1,102 @@
+---
+title: Deployment Scenarios & Costs
+description: Choose the right deployment scenario for your workload
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+SMB Ready Foundation offers four deployment scenarios, each adding network security and hybrid connectivity capabilities at increasing cost.
+
+## Scenario Comparison
+
+| Feature | Baseline | Firewall | VPN | Full |
+|---------|----------|----------|-----|------|
+| **Monthly cost** | ~$48 | ~$336 | ~$187 | ~$476 |
+| Hub-spoke VNets | ✅ | ✅ | ✅ | ✅ |
+| NSGs + Private DNS | ✅ | ✅ | ✅ | ✅ |
+| Bastion Developer | ✅ | ✅ | ✅ | ✅ |
+| Key Vault + PE | ✅ | ✅ | ✅ | ✅ |
+| Log Analytics + Automation | ✅ | ✅ | ✅ | ✅ |
+| Recovery Services Vault | ✅ | ✅ | ✅ | ✅ |
+| Azure Migrate | ✅ | ✅ | ✅ | ✅ |
+| 33 MG Policies | ✅ | ✅ | ✅ | ✅ |
+| Budget + Defender (free) | ✅ | ✅ | ✅ | ✅ |
+| **NAT Gateway** | ✅ | — | ✅ | — |
+| **Azure Firewall + Policy** | — | ✅ | — | ✅ |
+| **Route Tables (UDR)** | — | ✅ | — | ✅ |
+| **VPN Gateway** | — | — | ✅ | ✅ |
+| **Hub↔Spoke Peering** | — | ✅ | ✅ | ✅ |
+| **On-premises connectivity** | — | — | ✅ | ✅ |
+
+## When to Use Each Scenario
+
+### Baseline (~$48/month)
+**Best for**: Cloud-native workloads with no hybrid connectivity requirements.
+
+- Outbound internet via NAT Gateway (default outbound is deprecated)
+- No VPN tunnel to on-premises
+- No centralized egress filtering
+- Lowest cost starting point
+
+### Firewall (~$336/month)
+**Best for**: Workloads requiring centralized egress control and network traffic inspection.
+
+- Azure Firewall inspects all outbound traffic
+- User-defined routes (UDR) force spoke traffic through firewall
+- Hub↔spoke peering for centralized networking
+- NAT Gateway replaced by Firewall for outbound
+
+### VPN (~$187/month)
+**Best for**: Hybrid workloads needing site-to-site connectivity to on-premises.
+
+- VPN Gateway with IPsec/IKEv2 tunnel
+- Gateway transit through hub↔spoke peering
+- NAT Gateway for internet-bound traffic (no firewall)
+- Requires `ON_PREMISES_ADDRESS_SPACE` parameter
+
+### Full (~$476/month)
+**Best for**: Complete security + hybrid connectivity.
+
+- Combines Firewall and VPN Gateway
+- All egress routed through Firewall (UDR)
+- Site-to-site VPN for on-premises
+- Maximum protection, highest cost
+
+## Cost Breakdown
+
+<Aside type="tip">
+  Costs are estimated monthly prices for Sweden Central (swedencentral) region as of 2026. Actual costs may vary. Use the [Azure Pricing Calculator](https://azure.microsoft.com/pricing/calculator/) for current pricing.
+</Aside>
+
+| Resource | Monthly Cost | Scenarios |
+|----------|-------------|-----------|
+| NAT Gateway + data | ~$35 | baseline, vpn |
+| Azure Firewall (Basic) | ~$275 | firewall, full |
+| Firewall Public IPs (×2) | ~$7 | firewall, full |
+| VPN Gateway (VpnGw1) | ~$140 | vpn, full |
+| VPN Public IP | ~$4 | vpn, full |
+| Log Analytics (500MB/day) | ~$0 | all (free tier) |
+| Key Vault (PE) | ~$5 | all |
+| Recovery Services Vault | ~$0 | all (no backups configured) |
+| Bastion Developer | ~$0 | all (free) |
+| Budget, Defender, Migrate | ~$0 | all (free tier) |
+
+## Setting the Scenario
+
+```bash
+# Baseline (default)
+azd env set SCENARIO baseline
+
+# Firewall
+azd env set SCENARIO firewall
+
+# VPN (requires on-prem CIDR)
+azd env set SCENARIO vpn
+azd env set ON_PREMISES_ADDRESS_SPACE "192.168.0.0/16"
+
+# Full (requires on-prem CIDR)
+azd env set SCENARIO full
+azd env set ON_PREMISES_ADDRESS_SPACE "192.168.0.0/16"
+```
+
+Then deploy: `azd up`

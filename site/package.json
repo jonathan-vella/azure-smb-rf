@@ -1,0 +1,26 @@
+{
+  "name": "azure-smb-ready-foundation-docs",
+  "type": "module",
+  "version": "0.10.0",
+  "description": "Documentation site for Azure SMB Ready Foundation",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "keywords": [],
+  "author": "Jonathan Vella",
+  "license": "MIT",
+  "dependencies": {
+    "@astrojs/starlight": "^0.38.3",
+    "@fontsource/ibm-plex-mono": "^5.2.7",
+    "@fontsource/manrope": "^5.2.8",
+    "@fontsource/space-grotesk": "^5.2.10",
+    "astro": "^6.1.7",
+    "rehype-mermaid-lite": "^1.1.0",
+    "sharp": "^0.34.5",
+    "starlight-links-validator": "^0.23.0"
+  }
+}

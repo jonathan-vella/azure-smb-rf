@@ -1,0 +1,14 @@
+/* SMB Ready Foundation — Custom Styles */
+
+:root {
+  --sl-font: "Space Grotesk", sans-serif;
+  --sl-font-system: "Manrope", sans-serif;
+  --sl-font-mono: "IBM Plex Mono", monospace;
+}
+
+/* Azure blue accent */
+:root {
+  --sl-color-accent-low: #1a3a5c;
+  --sl-color-accent: #0078d4;
+  --sl-color-accent-high: #4da6ff;
+}

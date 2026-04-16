@@ -1,0 +1,107 @@
+---
+title: Configuration & Parameters
+description: All deployment parameters and how to customize them
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+All configuration is done through `azd env set` commands. Parameters are passed to Bicep via `main.parameters.json` using `${ENV_VAR}` substitution.
+
+## Parameter Reference
+
+| Parameter | azd env var | Type | Default | Description |
+|-----------|-------------|------|---------|-------------|
+| `scenario` | `SCENARIO` | string | `baseline` | Deployment scenario: `baseline`, `firewall`, `vpn`, `full` |
+| `location` | `AZURE_LOCATION` | string | `swedencentral` | Azure region: `swedencentral` or `germanywestcentral` |
+| `environment` | `ENVIRONMENT` | string | `prod` | Environment name: `dev`, `staging`, `prod` |
+| `owner` | `OWNER` | string | *(required)* | Owner email for tags and budget alerts |
+| `hubVnetAddressSpace` | `HUB_VNET_ADDRESS_SPACE` | string | `10.0.0.0/16` | Hub VNet CIDR |
+| `spokeVnetAddressSpace` | `SPOKE_VNET_ADDRESS_SPACE` | string | `10.1.0.0/16` | Spoke VNet CIDR |
+| `onPremisesAddressSpace` | `ON_PREMISES_ADDRESS_SPACE` | string | `''` | On-premises CIDR (vpn/full only) |
+| `logAnalyticsDailyCapGb` | `LOG_ANALYTICS_DAILY_CAP_GB` | string | `0.5` | Log Analytics daily cap in GB |
+| `budgetAmount` | *(Bicep default)* | int | `500` | Monthly budget in USD (100–10000) |
+| `budgetAlertEmail` | *(= owner)* | string | `= owner` | Budget alert recipient |
+| `budgetStartDate` | *(auto)* | string | Current month | Auto-generated, cannot be customized |
+
+<Aside type="caution" title="Bicep defaults vs recommended values">
+  The Bicep parameter defaults use `/16` CIDRs for simplicity. For production, use `/23` CIDRs to minimize IP waste:
+  - Hub: `10.0.0.0/23` (512 addresses)
+  - Spoke: `10.0.2.0/23` (512 addresses)
+</Aside>
+
+## Recommended Production Configuration
+
+```bash
+azd env set SCENARIO baseline          # or firewall, vpn, full
+azd env set OWNER "ops-team@contoso.com"
+azd env set AZURE_LOCATION swedencentral
+azd env set ENVIRONMENT prod
+azd env set HUB_VNET_ADDRESS_SPACE "10.0.0.0/23"
+azd env set SPOKE_VNET_ADDRESS_SPACE "10.0.2.0/23"
+azd env set LOG_ANALYTICS_DAILY_CAP_GB "0.5"
+azd env set MANAGEMENT_GROUP_ID smb-rf
+```
+
+For VPN or full scenarios, also set:
+
+```bash
+azd env set ON_PREMISES_ADDRESS_SPACE "192.168.0.0/16"
+```
+
+## CIDR Planning
+
+The hub and spoke VNets must not overlap with each other or with on-premises ranges. The pre-provision hook validates this automatically.
+
+| Network | Recommended CIDR | Addresses | Purpose |
+|---------|-----------------|-----------|---------|
+| Hub | `10.0.0.0/23` | 512 | Shared services, Bastion, Firewall, VPN |
+| Spoke | `10.0.2.0/23` | 512 | Production workloads |
+| On-premises | `192.168.0.0/16` | 65,536 | Existing on-prem network (VPN only) |
+
+### Subnet Allocation (Hub)
+
+| Subnet | CIDR | Purpose |
+|--------|------|---------|
+| `snet-default` | `/25` | General hub resources |
+| `AzureBastionSubnet` | `/26` | Azure Bastion Developer |
+| `AzureFirewallSubnet` | `/26` | Azure Firewall (firewall/full only) |
+| `GatewaySubnet` | `/27` | VPN Gateway (vpn/full only) |
+| `snet-private-endpoints` | `/27` | Private endpoints |
+
+## Hook-Only Parameters
+
+These parameters are read by the pre-provision hook but are **not** passed to Bicep:
+
+| azd env var | Purpose | Used by |
+|-------------|---------|---------|
+| `MANAGEMENT_GROUP_ID` | Target management group name | Hook step 4 (MG verification) + step 5a/5b (MG deployment + policies) |
+
+## Budget Customization
+
+The budget defaults to $500/month. To override:
+
+```bash
+# Option 1: Override via azd parameter injection
+azd env set infra.parameters.budgetAmount 1000
+```
+
+<Aside type="note">
+  The `budgetAmount` parameter is intentionally not in `main.parameters.json` to avoid type mismatch issues (string substitution vs integer). The Bicep default of 500 applies unless overridden via `infra.parameters`.
+</Aside>
+
+## Multiple Environments
+
+You can maintain multiple azd environments for different scenarios or customers:
+
+```bash
+# Create environments for different scenarios
+azd env new customer-a-baseline
+azd env new customer-a-firewall
+
+# Switch between them
+azd env select customer-a-baseline
+azd env get-values   # verify current config
+
+# Deploy the selected environment
+azd up
+```

@@ -68,10 +68,10 @@ teardown() {
 configure_env() {
   local scenario="$1"
   cd "$PROJ_DIR"
-  
+
   # Select or create env
   azd env select "smb-rf-${scenario}" 2>/dev/null || azd env new "smb-rf-${scenario}"
-  
+
   azd env set SCENARIO "$scenario"
   azd env set OWNER "$OWNER"
   azd env set AZURE_LOCATION "$LOCATION"
@@ -94,19 +94,19 @@ configure_env() {
 deploy() {
   local scenario="$1"
   local start end duration exit_code
-  
+
   cd "$PROJ_DIR"
   start=$(date +%s)
   log "DEPLOY [$scenario]: Starting azd up..."
-  
+
   set +e
   azd up --no-prompt 2>&1 | tee -a "$LOG_FILE"
   exit_code=$?
   set -e
-  
+
   end=$(date +%s)
   duration=$(( end - start ))
-  
+
   if [[ $exit_code -eq 0 ]]; then
     log "DEPLOY [$scenario]: SUCCESS (${duration}s)"
   else
@@ -132,7 +132,7 @@ deploy() {
 validate() {
   local scenario="$1"
   local failures=0
-  
+
   log "VALIDATE [$scenario]: Starting..."
 
   # 1. Check 6 RGs
@@ -272,23 +272,23 @@ for scenario in "${SCENARIOS[@]}"; do
   hr
   log "═══ SCENARIO: $scenario ═══"
   hr
-  
+
   configure_env "$scenario"
-  
+
   if ! deploy "$scenario"; then
     log "FATAL: $scenario deploy failed after retry — stopping"
     exit 1
   fi
-  
+
   if ! validate "$scenario"; then
     log "WARNING: $scenario validation had failures — continuing"
   fi
-  
+
   # Teardown between scenarios (not after the last one — Phase E handles that)
   if [[ "$scenario" != "full" ]]; then
     teardown "$scenario"
   fi
-  
+
   hr
 done
 

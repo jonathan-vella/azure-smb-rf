@@ -1,0 +1,139 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for SMB Ready Foundation deployments
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+## Deployment Errors
+
+### PolicyDefinitionNotFound
+
+```
+ERROR: The policy definition '/providers/Microsoft.Authorization/policyDefinitions/...' could not be found.
+```
+
+**Cause**: A policy definition ID in `policy-assignments-mg.bicep` references a retired or invalid Azure built-in policy.
+
+**Fix**: Look up the current policy definition ID in the [Azure Policy built-in reference](https://learn.microsoft.com/azure/governance/policy/samples/built-in-policies) and update the GUID in the Bicep file.
+
+### Defender StorageAccounts Conflict
+
+```
+ERROR: Conflict: Another update operation is in progress. Please retry in a few minutes
+```
+
+**Cause**: `Microsoft.Security/pricings/StorageAccounts` has a concurrent update from a previous deployment. This is transient.
+
+**Fix**: Wait 2–3 minutes and retry `azd up`. The deployment is idempotent — already-created resources are skipped.
+
+### Budget StartDate Immutable
+
+```
+ERROR: The property 'timePeriod.startDate' is immutable after creation.
+```
+
+**Cause**: Azure Budgets do not allow changing the start date after creation. The pre-provision hook normally handles this by deleting the existing budget before redeployment.
+
+**Fix**: Manually delete the budget, then redeploy:
+
+```bash
+az consumption budget delete --budget-name budget-smb-monthly
+azd up
+```
+
+### CIDR Overlap Detected
+
+```
+ERROR: CIDR overlap detected between hub (10.0.0.0/16) and spoke (10.0.2.0/23)
+```
+
+**Cause**: The pre-provision hook validates that hub, spoke, and on-premises CIDRs don't overlap.
+
+**Fix**: Choose non-overlapping CIDRs:
+
+```bash
+azd env set HUB_VNET_ADDRESS_SPACE "10.0.0.0/23"
+azd env set SPOKE_VNET_ADDRESS_SPACE "10.0.2.0/23"
+```
+
+### Management Group Not Found
+
+```
+ERROR: Management group 'smb-rf' not found.
+```
+
+**Cause**: The management group hasn't been created or the current user lacks permissions.
+
+**Fix**: Follow the [Management Group setup](/azure-smb-rf/deploying/management-group/) guide.
+
+## azd Issues
+
+### .bicepparam Takes Precedence
+
+<Aside type="caution">
+  If both `main.bicepparam` and `main.parameters.json` exist, azd uses `.bicepparam` and **silently ignores** all `azd env set` values. The `.bicepparam` file has been renamed to `.bicepparam.reference` to prevent this.
+</Aside>
+
+If you accidentally restore `main.bicepparam`, rename it back:
+
+```bash
+mv main.bicepparam main.bicepparam.reference
+```
+
+### Environment Variables Not Taking Effect
+
+**Cause**: azd env values are stored per-environment in `.azure/<env-name>/.env`.
+
+**Fix**: Verify which environment is active and check its values:
+
+```bash
+azd env list
+azd env get-values
+```
+
+### Hooks Not Running on Preview
+
+`azd provision --preview` does **not** trigger pre/post-provision hooks. This is by design. Hooks only run during `azd up` or `azd provision`.
+
+## Resource-Specific Issues
+
+### VPN Gateway Provisioning Slow
+
+VPN Gateway creation takes 25–45 minutes. This is normal Azure behavior. The deployment will show the spinner during this time.
+
+### Key Vault Soft Delete Recovery
+
+If a Key Vault with the same name was previously deleted, it may be in soft-delete state:
+
+```bash
+az keyvault list-deleted --query "[?name=='kv-smbrf-swc-fcxhutc7']" -o table
+az keyvault purge --name kv-smbrf-swc-fcxhutc7 --location swedencentral
+```
+
+### Faulted Firewall or VPN Gateway
+
+The pre-provision hook automatically detects and cleans up faulted resources. If cleanup fails:
+
+```bash
+# Check resource state
+az network firewall show -g rg-hub-smb-swc -n fw-hub-smb-swc --query provisioningState
+
+# Force delete
+az network firewall delete -g rg-hub-smb-swc -n fw-hub-smb-swc
+```
+
+## Validation Commands
+
+Quick health check after deployment:
+
+```bash
+# Resource groups (expect 6)
+az group list --query "[?starts_with(name,'rg-') && (contains(name,'smb') || contains(name,'spoke'))].{name:name,state:properties.provisioningState}" -o table
+
+# Policies (expect 33)
+az policy assignment list --scope "/providers/Microsoft.Management/managementGroups/smb-rf" --query "length(@)"
+
+# Budget
+az consumption budget list --query "[?name=='budget-smb-monthly'].{name:name,amount:amount}" -o table
+```

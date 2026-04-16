@@ -1,0 +1,37 @@
+---
+title: SMB Ready Foundation
+description: Cost-optimized Azure landing zone for SMB VMware-to-Azure migrations
+template: splash
+hero:
+  tagline: Cost-optimized Azure landing zone with hub-spoke networking, 33 governance policies, and 4 deployment scenarios — from $48/month.
+  actions:
+    - text: Quick Start
+      link: /azure-smb-rf/getting-started/quick-start/
+      icon: right-arrow
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/jonathan-vella/azure-smb-rf
+      icon: external
+---
+
+import { Card, CardGrid } from "@astrojs/starlight/components";
+
+<CardGrid stagger>
+  <Card title="4 Deployment Scenarios" icon="setting">
+    Choose **baseline** ($48/mo), **firewall** ($336/mo), **vpn** ($187/mo), or
+    **full** ($476/mo) — each tailored to different security and connectivity
+    needs.
+  </Card>
+  <Card title="33 Governance Policies" icon="approve-check-circle">
+    Management group-scoped Azure Policy assignments covering compute, network,
+    storage, identity, tagging, Key Vault, monitoring, and backup.
+  </Card>
+  <Card title="azd-Powered Deployment" icon="rocket">
+    One command to deploy: `azd up`. Pre-provision hooks handle management group
+    creation, policy deployment, CIDR validation, and cleanup automatically.
+  </Card>
+  <Card title="Azure Verified Modules" icon="puzzle">
+    Built on 13 AVM Bicep modules — production-tested, Microsoft-maintained
+    infrastructure components.
+  </Card>
+</CardGrid>

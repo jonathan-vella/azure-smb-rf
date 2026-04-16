@@ -1,0 +1,114 @@
+---
+title: Teardown & Cleanup
+description: Remove deployed resources safely
+---
+
+import { Aside, Steps } from "@astrojs/starlight/components";
+
+## Quick Teardown (Resource Groups Only)
+
+Delete all resource groups but keep the management group and policies:
+
+```bash
+for rg in rg-hub-smb-swc rg-spoke-prod-swc rg-monitor-smb-swc rg-backup-smb-swc rg-migrate-smb-swc rg-security-smb-swc; do
+  az group delete --name "$rg" --yes --no-wait
+done
+```
+
+Wait for completion:
+
+```bash
+for rg in rg-hub-smb-swc rg-spoke-prod-swc rg-monitor-smb-swc rg-backup-smb-swc rg-migrate-smb-swc rg-security-smb-swc; do
+  az group wait --name "$rg" --deleted 2>/dev/null
+done
+```
+
+Also delete the budget (subscription-scoped, not in any RG):
+
+```bash
+az consumption budget delete --budget-name budget-smb-monthly
+```
+
+## Full Cleanup Script
+
+The `Remove-SmbReadyFoundation.ps1` script handles complete cleanup:
+
+```bash
+cd infra/bicep/smb-ready-foundation
+
+# Preview what will be deleted (dry run)
+pwsh scripts/Remove-SmbReadyFoundation.ps1 -WhatIf
+
+# Delete everything except management group
+pwsh scripts/Remove-SmbReadyFoundation.ps1 -Force
+
+# Delete everything including management group
+pwsh scripts/Remove-SmbReadyFoundation.ps1 -Force -RemoveManagementGroup
+```
+
+The script removes:
+- 6 resource groups (with all contained resources)
+- Subscription-scoped budget
+- MG-scoped policy assignments (33 policies)
+- Management group itself (with `-RemoveManagementGroup`)
+
+## Selective Cleanup
+
+### Remove only hub networking
+
+```bash
+az group delete --name rg-hub-smb-swc --yes
+```
+
+### Remove only the spoke
+
+```bash
+az group delete --name rg-spoke-prod-swc --yes
+```
+
+### Remove policies only
+
+```bash
+# List current assignments
+az policy assignment list \
+  --scope "/providers/Microsoft.Management/managementGroups/smb-rf" \
+  --query "[].{name:name, displayName:properties.displayName}" -o table
+
+# Delete a specific policy
+az policy assignment delete \
+  --name smb-compute-01 \
+  --scope "/providers/Microsoft.Management/managementGroups/smb-rf"
+```
+
+## Cleanup Between Scenario Tests
+
+When switching scenarios, delete resource groups and budget but keep the MG and policies:
+
+<Steps>
+
+1. Delete resource groups (parallel, async)
+2. Wait for deletions
+3. Delete budget
+4. Configure new scenario with `azd env set SCENARIO <new-scenario>`
+5. Deploy with `azd up`
+
+</Steps>
+
+<Aside type="caution">
+  Resources with delete locks (Key Vault soft delete, Recovery Services Vault) may require manual intervention. Check the Azure Portal if deletions appear stuck.
+</Aside>
+
+## azd Environment Cleanup
+
+Remove azd environment state (local only — does not delete Azure resources):
+
+```bash
+azd env select my-environment
+azd env delete --force
+```
+
+List all environments:
+
+```bash
+azd env list
+```

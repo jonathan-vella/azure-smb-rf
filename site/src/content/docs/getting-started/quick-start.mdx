@@ -1,0 +1,93 @@
+---
+title: Quick Start
+description: Deploy your first SMB Ready Foundation in 5 minutes
+---
+
+import { Steps, Aside } from "@astrojs/starlight/components";
+
+Deploy a complete Azure landing zone with hub-spoke networking, governance policies, and monitoring — in 5 commands.
+
+<Aside type="tip">
+  This guide deploys the **baseline** scenario (~$48/month). See [Deployment Scenarios](/azure-smb-rf/deploying/scenarios/) for all options.
+</Aside>
+
+<Steps>
+
+1. **Clone and navigate to the project**
+
+   ```bash
+   git clone https://github.com/jonathan-vella/azure-smb-rf.git
+   cd azure-smb-rf/infra/bicep/smb-ready-foundation
+   ```
+
+2. **Create a management group** (one-time setup)
+
+   ```bash
+   az account management-group create --name smb-rf --display-name "SMB Ready Foundation"
+   SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+   az account management-group subscription add --name smb-rf --subscription $SUBSCRIPTION_ID
+   ```
+
+   <Aside type="note">
+     If you need management group permissions, run `scripts/Setup-ManagementGroupPermissions.ps1` first. See [Prerequisites](/azure-smb-rf/getting-started/prerequisites/).
+   </Aside>
+
+3. **Create and configure the azd environment**
+
+   ```bash
+   azd env new my-foundation
+   azd env set SCENARIO baseline
+   azd env set OWNER "your@email.com"
+   azd env set AZURE_LOCATION swedencentral
+   azd env set ENVIRONMENT prod
+   azd env set HUB_VNET_ADDRESS_SPACE "10.0.0.0/23"
+   azd env set SPOKE_VNET_ADDRESS_SPACE "10.0.2.0/23"
+   azd env set LOG_ANALYTICS_DAILY_CAP_GB "0.5"
+   azd env set MANAGEMENT_GROUP_ID smb-rf
+   ```
+
+4. **Deploy**
+
+   ```bash
+   azd up
+   ```
+
+   The pre-provision hook automatically:
+   - Validates CIDR address spaces for overlaps
+   - Checks Azure CLI authentication and resource providers
+   - Creates the management group and associates your subscription
+   - Deploys 33 management group-scoped governance policies
+   - Cleans up stale budgets and faulted resources
+
+5. **Verify**
+
+   ```bash
+   # Check resource groups (expect 6)
+   az group list --query "[?starts_with(name,'rg-')].{name:name, state:properties.provisioningState}" -o table
+
+   # Check policies (expect 33)
+   az policy assignment list --scope "/providers/Microsoft.Management/managementGroups/smb-rf" --query "length(@)"
+   ```
+
+</Steps>
+
+## What Gets Deployed
+
+The baseline scenario creates:
+
+| Resource Group | Resources |
+|----------------|-----------|
+| `rg-hub-smb-swc` | Hub VNet, NSG, Private DNS Zone |
+| `rg-spoke-prod-swc` | Spoke VNet, NSG, NAT Gateway, Public IP |
+| `rg-monitor-smb-swc` | Log Analytics Workspace (500MB cap), Automation Account |
+| `rg-backup-smb-swc` | Recovery Services Vault |
+| `rg-security-smb-swc` | Key Vault (with Private Endpoint) |
+| `rg-migrate-smb-swc` | Azure Migrate Project |
+
+Plus: Monthly budget ($500), Defender for Cloud (free CSPM), and 33 MG-scoped policies.
+
+## Next Steps
+
+- [Choose a different scenario](/azure-smb-rf/deploying/scenarios/) (firewall, vpn, full)
+- [Customize parameters](/azure-smb-rf/deploying/configuration/) (CIDRs, budget, region)
+- [Understand the policies](/azure-smb-rf/reference/policies/)

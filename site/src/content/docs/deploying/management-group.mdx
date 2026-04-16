@@ -1,0 +1,97 @@
+---
+title: Management Group & Policies
+description: Management group setup and 33 governance policy assignments
+---
+
+import { Aside, Steps } from "@astrojs/starlight/components";
+
+SMB Ready Foundation deploys governance at the management group scope — ensuring policies apply to all resources in the subscription, even those created outside of this deployment.
+
+## Architecture
+
+```
+Tenant Root Group
+└── smb-rf (SMB Ready Foundation)
+    ├── 33 Azure Policy assignments
+    └── Subscription: your-subscription
+        ├── rg-hub-smb-swc
+        ├── rg-spoke-prod-swc
+        ├── rg-monitor-smb-swc
+        ├── rg-backup-smb-swc
+        ├── rg-security-smb-swc
+        └── rg-migrate-smb-swc
+```
+
+## One-Time Setup
+
+<Steps>
+
+1. **Grant management group permissions** (requires Global Administrator)
+
+   ```bash
+   cd scripts
+   pwsh ./Setup-ManagementGroupPermissions.ps1
+   ```
+
+   This elevates your account to create management groups at the tenant root level. Only needed once per tenant.
+
+2. **Create the management group**
+
+   ```bash
+   az account management-group create --name smb-rf --display-name "SMB Ready Foundation"
+   ```
+
+3. **Associate your subscription**
+
+   ```bash
+   SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+   az account management-group subscription add --name smb-rf --subscription $SUBSCRIPTION_ID
+   ```
+
+</Steps>
+
+<Aside type="note">
+  After initial setup, the pre-provision hook handles MG creation and policy deployment idempotently on every `azd up`. You don't need to repeat these steps.
+</Aside>
+
+## How Policies Are Deployed
+
+The pre-provision hook (`hooks/pre-provision.ps1`) deploys policies in two steps:
+
+1. **Step 5a**: Deploys `deploy-mg.bicep` to the **parent** management group — creates the `smb-rf` MG and associates the subscription (idempotent)
+2. **Step 5b**: Deploys `modules/policy-assignments-mg.bicep` to the `smb-rf` MG — creates 33 policy assignments
+
+Both steps run a `what-if` preview before deploying.
+
+## Policy Categories
+
+| Category | Count | Enforcement | Purpose |
+|----------|-------|-------------|---------|
+| Compute | 6 | 4 Deny + 2 Audit | VM SKU restrictions, no public IPs, managed disks, no classic VMs |
+| Network | 5 | 1 Deny + 4 Audit | NSG on subnets, restrict ports, disable IP forwarding, flow logs |
+| Storage | 5 | 2 Deny + 3 Audit | HTTPS-only, no public blob, TLS 1.2, restrict network access |
+| Identity | 4 | 4 Audit | Blocked accounts, MFA for owners, external accounts |
+| Tagging | 3 | 3 Deny | Require Environment, Owner, Project tags |
+| Key Vault | 7 | 1 Deny + 6 Audit | Soft delete, purge protection, RBAC, secrets/keys expiration |
+| Monitoring | 1 | 1 Audit | Diagnostic settings required for key resource types |
+| Backup | 1 | 1 Audit | VMs should be backed up |
+| Governance | 1 | 1 Audit | Allowed resource locations |
+
+**Total: 33 policy assignments** (11 Deny + 22 Audit)
+
+For the complete policy catalog with policy definition IDs, see [Policy Catalog](/azure-smb-rf/reference/policies/).
+
+## Persistence Across Deployments
+
+Management group resources (the MG itself and its 33 policies) persist across `azd up` re-deployments. They are **not** torn down between scenario changes. This is by design:
+
+- Policies apply to the subscription regardless of which scenario is deployed
+- Re-deploying policies is idempotent (ARM update-in-place)
+- Only resource groups and budget are torn down between scenarios
+
+To fully remove policies, use the cleanup script:
+
+```bash
+cd infra/bicep/smb-ready-foundation
+pwsh scripts/Remove-SmbReadyFoundation.ps1 -Force -RemoveManagementGroup
+```

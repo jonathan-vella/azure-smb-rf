@@ -1,0 +1,99 @@
+---
+title: Policy Catalog
+description: All 33 management group-scoped Azure Policy assignments
+---
+
+All policies are assigned at the `smb-rf` management group scope with `Default` enforcement mode.
+
+## Compute Guardrails (6 policies)
+
+| Name | Display Name | Effect | Description |
+|------|-------------|--------|-------------|
+| `smb-compute-01` | Allowed VM SKUs | Deny | Restrict to B-series and D/E v5/v6 SKUs |
+| `smb-compute-02` | No Public IPs on NICs | Deny | Prevent public IPs on VM network interfaces |
+| `smb-compute-03` | Require Managed Disks | Deny | Block VMs without managed disks |
+| `smb-compute-04` | No Classic VMs | Deny | Block classic (ASM) virtual machines |
+| `smb-compute-05` | Audit VM Extensions | Audit | Audit VMs with unapproved extensions |
+| `smb-compute-06` | Audit Unattached Disks | Audit | Audit managed disks not attached to VMs |
+
+## Network Guardrails (5 policies)
+
+| Name | Display Name | Effect | Description |
+|------|-------------|--------|-------------|
+| `smb-network-01` | NSG on Subnets | Audit | Audit subnets without an NSG |
+| `smb-network-02` | Close Management Ports | Audit | Audit VMs with ports 22/3389 exposed |
+| `smb-network-03` | Restrict NSG Ports | Audit | Audit NSG rules allowing unrestricted access |
+| `smb-network-04` | Disable IP Forwarding | Deny | Block IP forwarding on NICs |
+| `smb-network-05` | Audit NSG Flow Logs | Audit | Audit NSGs without flow logs configured |
+
+## Storage Guardrails (5 policies)
+
+| Name | Display Name | Effect | Description |
+|------|-------------|--------|-------------|
+| `smb-storage-01` | Storage HTTPS Only | Deny | Require HTTPS on storage accounts |
+| `smb-storage-02` | No Public Blob Access | Deny | Deny public blob access |
+| `smb-storage-03` | Storage TLS 1.2 | Audit | Audit minimum TLS version below 1.2 |
+| `smb-storage-04` | Restrict Storage Network | Audit | Audit unrestricted network access |
+| `smb-storage-05` | Storage ARM Migration | Audit | Audit classic storage accounts |
+
+## Identity & Access (4 policies)
+
+| Name | Display Name | Effect | Description |
+|------|-------------|--------|-------------|
+| `smb-identity-01` | Audit External Accounts (Read) | Audit | Audit external accounts with read permissions |
+| `smb-identity-02` | Audit External Accounts (Owner) | Audit | Audit external accounts with owner permissions |
+| `smb-identity-03` | Audit MFA for Owners | Audit | Audit owner accounts without MFA |
+| `smb-identity-04` | Audit Blocked Accounts | Audit | Audit blocked accounts with read/write permissions |
+
+## Key Vault (7 policies)
+
+| Name | Display Name | Effect | Description |
+|------|-------------|--------|-------------|
+| `smb-kv-01` | Key Vault Soft Delete | Deny | Require soft delete on Key Vaults |
+| `smb-kv-02` | Key Vault Purge Protection | Audit | Audit Key Vaults without purge protection |
+| `smb-kv-03` | Key Vault RBAC | Audit | Audit Key Vaults not using RBAC |
+| `smb-kv-04` | Key Vault No Public Network | Audit | Audit public network access |
+| `smb-kv-05` | Key Vault Secrets Expiration | Audit | Audit secrets without expiration dates |
+| `smb-kv-06` | Key Vault Keys Expiration | Audit | Audit keys without expiration dates |
+| `smb-kv-07` | Key Vault Resource Logs | Audit | Audit Key Vaults without resource logs |
+
+## Tagging (3 policies)
+
+| Name | Display Name | Effect | Description |
+|------|-------------|--------|-------------|
+| `smb-tagging-01` | Require Environment Tag | Deny | Block resources without Environment tag |
+| `smb-tagging-02` | Require Owner Tag | Deny | Block resources without Owner tag |
+| `smb-tagging-03` | Require Project Tag | Deny | Block resources without Project tag |
+
+## Monitoring (1 policy)
+
+| Name | Display Name | Effect | Description |
+|------|-------------|--------|-------------|
+| `smb-monitoring-01` | Diagnostic Settings Required | Audit | Audit resources without diagnostic settings |
+
+## Backup (1 policy)
+
+| Name | Display Name | Effect | Description |
+|------|-------------|--------|-------------|
+| `smb-backup-01` | VM Backup Required | Audit | Audit VMs without backup configured |
+
+## Governance (1 policy)
+
+| Name | Display Name | Effect | Description |
+|------|-------------|--------|-------------|
+| `smb-governance-01` | Allowed Locations | Audit | Audit resources outside allowed regions |
+
+## Summary
+
+| Category | Deny | Audit | Total |
+|----------|------|-------|-------|
+| Compute | 4 | 2 | 6 |
+| Network | 1 | 4 | 5 |
+| Storage | 2 | 3 | 5 |
+| Identity | 0 | 4 | 4 |
+| Key Vault | 1 | 6 | 7 |
+| Tagging | 3 | 0 | 3 |
+| Monitoring | 0 | 1 | 1 |
+| Backup | 0 | 1 | 1 |
+| Governance | 0 | 1 | 1 |
+| **Total** | **11** | **22** | **33** |

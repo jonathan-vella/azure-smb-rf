@@ -1,0 +1,61 @@
+---
+title: Prerequisites
+description: What you need before deploying SMB Ready Foundation
+---
+
+## Azure Requirements
+
+- **Azure subscription** with Owner or Contributor role
+- **Management group permissions** — ability to create child management groups under Tenant Root Group
+- **Azure AD Global Administrator** (one-time) — to grant management group access via `Setup-ManagementGroupPermissions.ps1`
+
+## CLI Tools
+
+| Tool | Version | Install |
+|------|---------|---------|
+| **Azure CLI** | 2.60+ | [Install](https://learn.microsoft.com/cli/azure/install-azure-cli) |
+| **Azure Developer CLI (azd)** | 1.9+ | [Install](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd) |
+| **Bicep CLI** | 0.30+ | `az bicep upgrade` |
+| **PowerShell** | 7.4+ | [Install](https://learn.microsoft.com/powershell/scripting/install/installing-powershell) |
+
+Verify installation:
+
+```bash
+az --version
+azd version
+bicep --version
+pwsh --version
+```
+
+## Authentication
+
+```bash
+# Login to Azure CLI
+az login
+
+# Set your target subscription
+az account set --subscription "your-subscription-name"
+
+# Login to azd (uses Azure CLI credentials)
+azd auth login
+```
+
+## Dev Container (Recommended)
+
+The repository includes a dev container with all tools pre-installed. Open in VS Code:
+
+1. Clone the repository
+2. Open in VS Code
+3. Press `F1` → **Dev Containers: Reopen in Container**
+4. All CLI tools are pre-configured
+
+## Resource Providers
+
+The pre-provision hook automatically registers required providers, but you can verify manually:
+
+```bash
+az provider show -n Microsoft.Network --query registrationState -o tsv
+az provider show -n Microsoft.KeyVault --query registrationState -o tsv
+az provider show -n Microsoft.RecoveryServices --query registrationState -o tsv
+az provider show -n Microsoft.OperationalInsights --query registrationState -o tsv
+```
