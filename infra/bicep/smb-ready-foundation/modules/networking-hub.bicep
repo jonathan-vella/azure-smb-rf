@@ -4,9 +4,9 @@
 // Purpose: Deploy hub VNet with NSG and Private DNS Zone using Azure Verified Modules
 // Version: v0.3 (AVM Migration)
 // AVM Modules:
-//   - Virtual Network: br/public:avm/res/network/virtual-network:0.7.2
-//   - NSG: br/public:avm/res/network/network-security-group:0.5.2
-//   - Private DNS Zone: br/public:avm/res/network/private-dns-zone:0.8.0
+//   - Virtual Network: br/public:avm/res/network/virtual-network:0.8.0
+//   - NSG: br/public:avm/res/network/network-security-group:0.5.3
+//   - Private DNS Zone: br/public:avm/res/network/private-dns-zone:0.8.1
 // ============================================================================
 
 // ============================================================================
@@ -61,7 +61,7 @@ var gatewaySubnetPrefix = cidrSubnet(vnetAddressSpace, 27, 6)           // /27 =
 // ============================================================================
 
 @description('Hub NSG with default deny inbound rules')
-module hubNsg 'br/public:avm/res/network/network-security-group:0.5.2' = {
+module hubNsg 'br/public:avm/res/network/network-security-group:0.5.3' = {
   name: 'deploy-hub-nsg'
   params: {
     name: nsgName
@@ -91,7 +91,7 @@ module hubNsg 'br/public:avm/res/network/network-security-group:0.5.2' = {
 // ============================================================================
 
 @description('Hub VNet with reserved subnets for Firewall, Firewall Management, and Gateway')
-module hubVnet 'br/public:avm/res/network/virtual-network:0.7.2' = {
+module hubVnet 'br/public:avm/res/network/virtual-network:0.8.0' = {
   name: 'deploy-hub-vnet'
   params: {
     name: vnetName
@@ -131,7 +131,7 @@ module hubVnet 'br/public:avm/res/network/virtual-network:0.7.2' = {
 // ============================================================================
 
 @description('Private DNS Zone for Azure Private Link endpoints')
-module privateDnsZone 'br/public:avm/res/network/private-dns-zone:0.8.0' = {
+module privateDnsZone 'br/public:avm/res/network/private-dns-zone:0.8.1' = {
   name: 'deploy-private-dns-zone'
   params: {
     name: privateDnsZoneName

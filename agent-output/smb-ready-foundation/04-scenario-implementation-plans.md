@@ -19,18 +19,18 @@ trade-offs.
 
 ### Deployment Command Reference
 
-```powershell
+```bash
 # Scenario 1: Firewall only (~$336/mo)
-./deploy.ps1 -Scenario firewall
+azd env set SCENARIO firewall && azd up
 
 # Scenario 2: VPN only (~$187/mo)
-./deploy.ps1 -Scenario vpn
+azd env set SCENARIO vpn && azd env set ON_PREMISES_ADDRESS_SPACE "192.168.0.0/16" && azd up
 
 # Scenario 3: Firewall + VPN (~$476/mo)
-./deploy.ps1 -Scenario full
+azd env set SCENARIO full && azd env set ON_PREMISES_ADDRESS_SPACE "192.168.0.0/16" && azd up
 
 # Scenario 4: Baseline (NAT Gateway only, ~$48/mo)
-./deploy.ps1 -Scenario baseline
+azd env set SCENARIO baseline && azd up
 ```
 
 ---
@@ -630,10 +630,10 @@ graph TB
 
 **Upgrade Process:**
 
-1. **S4 → S1 (Add Firewall):** Re-run `./deploy.ps1 -Scenario firewall`
-2. **S4 → S2 (Add VPN):** Re-run `./deploy.ps1 -Scenario vpn`
-3. **S1 → S3 (Add VPN):** Re-run `./deploy.ps1 -Scenario full`
-4. **S2 → S3 (Add Firewall):** Re-run `./deploy.ps1 -Scenario full`
+1. **S4 → S1 (Add Firewall):** Re-run `azd env set SCENARIO firewall && azd up`
+2. **S4 → S2 (Add VPN):** Re-run `azd env set SCENARIO vpn && azd up`
+3. **S1 → S3 (Add VPN):** Re-run `azd env set SCENARIO full && azd up`
+4. **S2 → S3 (Add Firewall):** Re-run `azd env set SCENARIO full && azd up`
 
 **Note:** Each upgrade is an incremental deployment—existing resources are preserved.
 

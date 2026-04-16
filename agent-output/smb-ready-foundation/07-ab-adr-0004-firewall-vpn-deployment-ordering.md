@@ -102,9 +102,9 @@ Create `AzureFirewallSubnet` and `GatewaySubnet` as explicit resources before de
 
 ## Related Changes
 
-1. **deploy.ps1 v0.5**: Added `Remove-FaultedVpnGateway` function for cleanup
-2. **deploy.ps1 v0.5**: Enhanced retry logic to detect `AnotherOperationInProgress` and `Conflict` errors
-3. **deploy.ps1 v0.5**: Added progress indicators with estimated deployment times
+1. **pre-provision.ps1**: `Remove-FaultedVpnGateway` function for cleanup (migrated from deploy.ps1 v0.5)
+2. **post-provision.ps1**: Retry logic detects `AnotherOperationInProgress` and `Conflict` errors (migrated from deploy.ps1 v0.5)
+3. **post-provision.ps1**: Progress indicators with estimated deployment times
 4. **Remove-SmbReadyFoundation.ps1 v1.1**: Added VPN Gateway and orphaned PIP cleanup
 
 ## References

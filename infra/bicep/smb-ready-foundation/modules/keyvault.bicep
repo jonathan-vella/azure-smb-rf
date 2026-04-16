@@ -5,7 +5,7 @@
 //          purge protection, private endpoint in spoke VNet, and
 //          diagnostic settings to Log Analytics.
 // Version: v0.1
-// AVM Module: br/public:avm/res/key-vault/vault:0.11.0
+// AVM Module: br/public:avm/res/key-vault/vault:0.13.3
 // ============================================================================
 
 // ============================================================================
@@ -42,7 +42,7 @@ var pepName = 'pep-kv-smbrf-smb-${regionShort}'
 // ============================================================================
 
 @description('Key Vault with RBAC, soft delete, purge protection, and private endpoint')
-module keyVault 'br/public:avm/res/key-vault/vault:0.11.0' = {
+module keyVault 'br/public:avm/res/key-vault/vault:0.13.3' = {
   name: 'deploy-${keyVaultName}'
   params: {
     name: keyVaultName
@@ -103,7 +103,7 @@ module keyVault 'br/public:avm/res/key-vault/vault:0.11.0' = {
 // ============================================================================
 
 @description('Private DNS Zone for Key Vault private endpoint resolution')
-module privateDnsZone 'br/public:avm/res/network/private-dns-zone:0.8.0' = {
+module privateDnsZone 'br/public:avm/res/network/private-dns-zone:0.8.1' = {
   name: 'deploy-pdz-keyvault'
   params: {
     name: 'privatelink.vaultcore.azure.net'

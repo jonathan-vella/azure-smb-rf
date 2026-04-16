@@ -33,15 +33,13 @@ az account set --subscription "<your-subscription-id>"
 cd scripts
 ./Setup-ManagementGroupPermissions.ps1
 
-# 5. Phase 1: Management Group + MG Policies
+# 5. Phase 1+2: Configure and deploy (MG policies + infra in one step)
 cd ../infra/bicep/smb-ready-foundation
-./deploy-mg.ps1 -Scenario baseline
-
-# 6. Phase 2: Deploy subscription infrastructure (choose one)
-./deploy.ps1 -Scenario baseline    # ~4 min, ~$48/mo
-./deploy.ps1 -Scenario firewall    # ~15 min, ~$336/mo
-./deploy.ps1 -Scenario vpn         # ~25 min, ~$187/mo
-./deploy.ps1 -Scenario full        # ~45 min, ~$476/mo
+azd env new smb-rf-baseline
+azd env set SCENARIO baseline       # or: firewall, vpn, full
+azd env set OWNER "partner-ops@contoso.com"
+# For vpn/full: azd env set ON_PREMISES_ADDRESS_SPACE "192.168.0.0/16"
+azd up                              # Deploys MG policies + subscription infra
 ```
 
 ---

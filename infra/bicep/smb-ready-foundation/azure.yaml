@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+# SMB Ready Foundation — azd project manifest
+# Replaces deploy.ps1 (archived to scripts/legacy/)
+# Partners configure via: azd env set SCENARIO baseline && azd env set OWNER partner@contoso.com
+name: smb-ready-foundation
+metadata:
+  template: smb-ready-foundation@1.0.0
+infra:
+  provider: bicep
+  path: .
+  module: main
+hooks:
+  preprovision:
+    posix:
+      shell: pwsh
+      run: ./hooks/pre-provision.ps1
+    windows:
+      shell: pwsh
+      run: ./hooks/pre-provision.ps1
+  postprovision:
+    posix:
+      shell: pwsh
+      run: ./hooks/post-provision.ps1
+    windows:
+      shell: pwsh
+      run: ./hooks/post-provision.ps1

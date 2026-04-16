@@ -82,16 +82,17 @@ Infrastructure is defined as code and stored in Git:
 
 | Component          | Backup Location                       | Recovery Method              |
 | ------------------ | ------------------------------------- | ---------------------------- |
-| Bicep Templates    | GitHub repository                     | `./deploy.ps1` redeploy      |
+| Bicep Templates    | GitHub repository                     | `azd up` redeploy             |
 | Azure Policies     | Bicep + Git                           | Auto-applied on deployment   |
 | Network Config     | Bicep + Git                           | Auto-applied on deployment   |
 | Firewall Rules     | Bicep (firewall.bicep)                | Auto-applied on deployment   |
 
 **Redeploy Infrastructure Command:**
 
-```powershell
+```bash
 cd infra/bicep/smb-ready-foundation
-./deploy.ps1 -Scenario full -Location swedencentral
+azd env set SCENARIO full
+azd up
 ```
 
 ### 2.3 Data Not Backed Up
@@ -137,8 +138,9 @@ cd infra/bicep/smb-ready-foundation
    ./scripts/Remove-SmbReadyFoundation.ps1 -Location swedencentral -Force
    ```
 3. Redeploy infrastructure:
-   ```powershell
-   ./deploy.ps1 -Scenario full -Location swedencentral
+   ```bash
+   azd env set SCENARIO full
+   azd up
    ```
 4. Restore VMs from backup (if applicable)
 5. Verify all resources operational
@@ -153,9 +155,11 @@ cd infra/bicep/smb-ready-foundation
 **Procedure:**
 
 1. Confirm region outage via [Azure Status](https://status.azure.com)
-2. Update Bicep parameters for secondary region:
-   ```powershell
-   ./deploy.ps1 -Scenario full -Location germanywestcentral
+2. Update azd environment for secondary region:
+   ```bash
+   azd env set AZURE_LOCATION germanywestcentral
+   azd env set SCENARIO full
+   azd up
    ```
 3. Wait for infrastructure deployment (~45 min for full scenario)
 4. Restore VMs from backup (if GRS enabled - not default)
@@ -262,10 +266,11 @@ After primary region is restored:
 
 ### 8.1 Quick Recovery Commands
 
-```powershell
+```bash
 # Full infrastructure redeploy
 cd infra/bicep/smb-ready-foundation
-./deploy.ps1 -Scenario full -Location swedencentral
+azd env set SCENARIO full
+azd up
 
 # Check deployment status
 az deployment sub show --name "smb-prod" --query "properties.provisioningState"

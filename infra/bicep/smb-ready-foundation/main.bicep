@@ -4,7 +4,7 @@
 // Purpose: Cost-optimized Azure SMB Ready Foundation for VMware-to-Azure migrations
 // Version: v0.4
 // Generated: 2026-04-15
-// Deployment Order: MG Policies (via deploy.ps1) → Sub Resources → Firewall → VPN → Peering
+// Deployment Order: MG Policies (via preprovision hook) → Sub Resources → Firewall → VPN → Peering
 // Management Group: smb-rf (policies deployed at MG scope, infra at subscription scope)
 // ============================================================================
 // Deployment Scenarios:
@@ -67,7 +67,7 @@ param budgetAmount int = 500
 @description('Budget alert email address')
 param budgetAlertEmail string = owner
 
-@description('Budget start date - uses current month. Azure Budgets cannot update start date after creation, so deploy.ps1 deletes existing budget before redeployment.')
+@description('Budget start date - uses current month. Azure Budgets cannot update start date after creation, so the preprovision hook deletes existing budget before redeployment.')
 param budgetStartDate string = utcNow('yyyy-MM-01')
 
 // ============================================================================
@@ -126,7 +126,7 @@ var rgNames = {
 
 // ----------------------------------------------------------------------------
 // Phase 1: Subscription-Scope Resources (Budget + Defender)
-// Note: 30 MG-scoped policies are deployed via deploy.ps1 using
+// Note: 30 MG-scoped policies are deployed via the preprovision hook using
 //       az deployment mg create. See modules/policy-assignments-mg.bicep.
 //       The auto-backup policy (smb-backup-02) is deployed in Phase 4
 //       after the Recovery Services Vault is created.

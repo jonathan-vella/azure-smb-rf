@@ -4,7 +4,7 @@
 // Purpose: Deploy Azure Automation Account for patch management and runbooks,
 //          linked to Log Analytics Workspace.
 // Version: v0.1
-// AVM Module: br/public:avm/res/automation/automation-account:0.11.0
+// AVM Module: br/public:avm/res/automation/automation-account:0.19.0
 // ============================================================================
 
 // ============================================================================
@@ -37,7 +37,7 @@ var automationAccountName = 'aa-smbrf-${environment}-${regionShort}'
 // ============================================================================
 
 @description('Azure Automation Account with system-assigned managed identity')
-module automationAccount 'br/public:avm/res/automation/automation-account:0.11.0' = {
+module automationAccount 'br/public:avm/res/automation/automation-account:0.19.0' = {
   name: 'deploy-${automationAccountName}'
   params: {
     name: automationAccountName

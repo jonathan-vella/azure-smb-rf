@@ -134,7 +134,7 @@ var regionAbbreviations = {
 
 ### Positive
 
-- **POS-001**: Single `deploy.ps1` script provides complete deployment workflow with what-if preview
+- **POS-001**: `azd up` with lifecycle hooks provides complete deployment workflow with what-if preview
 - **POS-002**: Modular structure allows independent module updates without full redeployment
 - **POS-003**: Conditional resources (Firewall, VPN) add ~$0 when not deployed
 - **POS-004**: Policy-first deployment prevents non-compliant resources from creation
@@ -184,15 +184,17 @@ var regionAbbreviations = {
 
 ### Deployment Command
 
-```powershell
-# Preview deployment
-./deploy.ps1 -Scenario baseline -Owner "partner-ops@contoso.com" -WhatIf
+```bash
+# Configure environment
+azd env new smb-rf-baseline
+azd env set SCENARIO baseline
+azd env set OWNER "partner-ops@contoso.com"
 
-# Execute deployment by scenario
-./deploy.ps1 -Scenario baseline -Owner "partner-ops@contoso.com"    # NAT Gateway only (~$48/mo)
-./deploy.ps1 -Scenario firewall -Owner "partner-ops@contoso.com"   # Firewall + UDR (~$336/mo)
-./deploy.ps1 -Scenario vpn -Owner "partner-ops@contoso.com"        # VPN Gateway (~$187/mo)
-./deploy.ps1 -Scenario full -Owner "partner-ops@contoso.com" # Firewall + VPN (~$476/mo)
+# Preview deployment
+azd provision --preview
+
+# Execute deployment
+azd up    # Deploys MG policies (preprovision hook) + subscription infra
 ```
 
 ## References

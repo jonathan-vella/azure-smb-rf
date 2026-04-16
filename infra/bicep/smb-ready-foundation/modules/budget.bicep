@@ -9,10 +9,10 @@
 // Azure Budgets do NOT allow updating the start date after creation.
 // This means redeploying with a different month will FAIL.
 //
-// Solution: The deploy.ps1 script automatically deletes any existing
-// budget before deployment, ensuring a clean state.
+// Solution: The preprovision hook (hooks/pre-provision.ps1) automatically
+// deletes any existing budget before deployment, ensuring a clean state.
 //
-// If deploying manually (not via deploy.ps1), run:
+// If deploying manually (not via azd), run:
 //   az consumption budget delete --budget-name 'budget-smb-monthly'
 // ============================================================================
 

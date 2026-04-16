@@ -27,9 +27,9 @@ This plan complies with governance constraints defined in `01-requirements.md` (
 ```text
 Phase 0: Setup-ManagementGroupPermissions.ps1 (one-time, requires Global Admin)
     ↓
-Phase 1: deploy-mg.ps1 → deploy-mg.bicep (MG creation + 30 MG policies)
+Phase 1: preprovision hook → deploy-mg.bicep (MG creation + 30 MG policies)
     ↓
-Phase 2: deploy.ps1 → main.bicep (subscription infra + 3+1 sub policies)
+Phase 2: azd provision → main.bicep (subscription infra + 3+1 sub policies)
 ```
 
 ### Architecture Summary
@@ -141,8 +141,11 @@ infra/bicep/smb-ready-foundation/
     │   └── automation.bicep            # Automation Account [✅ AVM: automation/automation-account 0.11.0]
 ├── scripts/
 │   └── Remove-SmbReadyFoundationPolicies.ps1
-├── deploy.ps1                      # Subscription deployment orchestration script
-└── deploy-mg.ps1                   # MG deployment orchestration script
+├── azure.yaml                      # azd project manifest
+├── hooks/                          # azd lifecycle hooks
+│   ├── pre-provision.ps1           # Pre-deployment (MG policies, cleanup, validation)
+│   └── post-provision.ps1          # Post-deployment (verification, retry, outputs)
+└── scripts/legacy/                 # Archived: deploy.ps1, deploy-mg.ps1
 ```
 
 ### AVM Migration Status
@@ -606,24 +609,28 @@ resource vpnGateway 'Microsoft.Network/virtualNetworkGateways@2024-01-01' = {
 
 ---
 
-### Task 12: deploy.ps1 (Deployment Script)
+### Task 12: azd Deployment (via azure.yaml + hooks)
 
-**Purpose**: PowerShell script for deployment orchestration
+**Purpose**: Azure Developer CLI deployment with lifecycle hooks
 
 **Features**:
 
-- Parameter validation
-- Azure CLI authentication check
-- Bicep lint and build verification
-- What-If preview with user confirmation
-- Deployment execution (subscription scope)
-- Output display and logging
+- Parameter validation (pre-provision hook)
+- CIDR overlap detection
+- MG-scope policy deployment (pre-provision hook)
+- Budget deletion workaround
+- Faulted resource cleanup
+- Retry logic with exponential backoff (post-provision hook)
+- Deployment output parsing and verification
 
 **Usage**:
 
-```powershell
-.\deploy.ps1 -Scenario baseline -Owner "partner-ops@contoso.com" -WhatIf
-.\deploy.ps1 -Scenario full -Owner "partner-ops@contoso.com"
+```bash
+azd env new smb-rf-baseline
+azd env set SCENARIO baseline
+azd env set OWNER "partner-ops@contoso.com"
+azd provision --preview    # What-If
+azd up                     # Deploy
 ```
 
 ---

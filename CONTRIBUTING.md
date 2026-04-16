@@ -122,8 +122,7 @@ bicep build infra/bicep/smb-ready-foundation/main.bicep
 
 ```bash
 cd infra/bicep/smb-ready-foundation
-./deploy.ps1 -Scenario baseline -WhatIf
-./deploy.ps1 -Scenario full -WhatIf
+azd provision --preview
 ```
 
 ## 🔄 Pull Request Process

@@ -144,21 +144,16 @@ cd ../../scripts
 ./Setup-ManagementGroupPermissions.ps1
 cd ../infra/bicep/smb-ready-foundation
 
-# Phase 1: Management Group + MG Policies
-./deploy-mg.ps1 -Scenario baseline
+# Phase 1+2: Configure and deploy via azd
+azd env new smb-rf-baseline
+azd env set SCENARIO baseline
+azd env set OWNER "partner-ops@contoso.com"
+azd up
 
-# Phase 2: Subscription Infrastructure
-# Baseline: NAT Gateway only (~$48/mo)
-./deploy.ps1 -Scenario baseline
-
-# Firewall: Azure Firewall + UDR (~$336/mo)
-./deploy.ps1 -Scenario firewall
-
-# VPN: VPN Gateway + Gateway Transit (~$187/mo)
-./deploy.ps1 -Scenario vpn
-
-# Full: Firewall + VPN + UDR (~$476/mo)
-./deploy.ps1 -Scenario full
+# Alternative scenarios:
+# azd env set SCENARIO firewall   # Firewall + UDR (~$336/mo)
+# azd env set SCENARIO vpn        # VPN Gateway (~$187/mo)
+# azd env set SCENARIO full       # Firewall + VPN (~$476/mo)
 ```
 
 ### Issues Fixed During Testing

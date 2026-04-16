@@ -58,7 +58,7 @@ These documents were generated from the following agentic workflow outputs:
 
 ## 5. Quick Links
 
-- [Deployment Script](../../infra/bicep/smb-ready-foundation/deploy.ps1)
+- [azd Manifest](../../infra/bicep/smb-ready-foundation/azure.yaml)
 - [Main Bicep Template](../../infra/bicep/smb-ready-foundation/main.bicep)
 - [Cleanup Script](../../infra/bicep/smb-ready-foundation/scripts/Remove-SmbReadyFoundation.ps1)
 - [Partner Quick Reference](../../docs/partner-quick-reference.md)

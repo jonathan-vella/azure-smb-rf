@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "scenario": {
+      "value": "${SCENARIO}"
+    },
+    "owner": {
+      "value": "${OWNER}"
+    },
+    "location": {
+      "value": "${AZURE_LOCATION}"
+    },
+    "environment": {
+      "value": "${ENVIRONMENT}"
+    },
+    "hubVnetAddressSpace": {
+      "value": "${HUB_VNET_ADDRESS_SPACE}"
+    },
+    "spokeVnetAddressSpace": {
+      "value": "${SPOKE_VNET_ADDRESS_SPACE}"
+    },
+    "onPremisesAddressSpace": {
+      "value": "${ON_PREMISES_ADDRESS_SPACE}"
+    },
+    "logAnalyticsDailyCapGb": {
+      "value": "${LOG_ANALYTICS_DAILY_CAP_GB}"
+    }
+  }
+}

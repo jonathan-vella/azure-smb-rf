@@ -6,7 +6,7 @@
 // AVM Modules:
 //   - br/public:avm/res/network/public-ip-address:0.12.0
 //   - br/public:avm/res/network/firewall-policy:0.3.4
-//   - br/public:avm/res/network/azure-firewall:0.9.2
+//   - br/public:avm/res/network/azure-firewall:0.10.1
 // ============================================================================
 
 // ============================================================================
@@ -229,7 +229,7 @@ resource onPremRuleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleColle
 // ============================================================================
 
 @description('Azure Firewall Basic using AVM module with pre-created PIPs')
-module firewall 'br/public:avm/res/network/azure-firewall:0.9.2' = {
+module firewall 'br/public:avm/res/network/azure-firewall:0.10.1' = {
   name: 'deploy-${firewallName}'
   params: {
     name: firewallName

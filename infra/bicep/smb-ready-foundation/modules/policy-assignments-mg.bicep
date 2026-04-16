@@ -108,7 +108,7 @@ var policyDefinitions = {
   auditSystemUpdates: '/providers/Microsoft.Authorization/policyDefinitions/86b3d65f-7626-441e-b690-81a8b71cff60'
   auditEndpointProtection: '/providers/Microsoft.Authorization/policyDefinitions/26a828e1-e88f-464e-bbb3-c134a282b9de'
   auditMfaOwners: '/providers/Microsoft.Authorization/policyDefinitions/aa633080-8b72-40c4-a2d7-d00c03e80bed'
-  auditDeprecatedAccounts: '/providers/Microsoft.Authorization/policyDefinitions/ebb62a0c-3560-49e1-b3d6-2a54a51a46d5'
+  auditDeprecatedAccounts: '/providers/Microsoft.Authorization/policyDefinitions/8d7e1fde-fe26-4b5f-8108-f8e432cbc2be'
   auditStorageGeoRedundancy: '/providers/Microsoft.Authorization/policyDefinitions/bf045164-79ba-4215-8f95-f8048dc1780b'
 }
 
@@ -342,8 +342,8 @@ resource policyIdentity04 'Microsoft.Authorization/policyAssignments@2024-04-01'
   name: 'smb-identity-04'
   location: location
   properties: {
-    displayName: 'SMB LZ: Audit Deprecated Accounts'
-    description: 'Audit deprecated accounts with owner permissions on the subscription'
+    displayName: 'SMB LZ: Audit Blocked Accounts'
+    description: 'Audit blocked accounts with read and write permissions on Azure resources'
     policyDefinitionId: policyDefinitions.auditDeprecatedAccounts
     enforcementMode: 'Default'
   }

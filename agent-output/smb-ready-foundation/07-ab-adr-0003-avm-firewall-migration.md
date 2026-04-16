@@ -90,7 +90,7 @@ module firewall 'br/public:avm/res/network/azure-firewall:0.9.2' = {
 
 ## Alternatives Considered
 
-### 1. Retry Logic in deploy.ps1
+### 1. Retry Logic in deployment hooks
 
 Add PowerShell retry wrapper around deployment.
 

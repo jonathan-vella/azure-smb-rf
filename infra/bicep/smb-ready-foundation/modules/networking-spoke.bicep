@@ -4,9 +4,9 @@
 // Purpose: Deploy spoke VNet with conditional NAT Gateway or UDR for firewall
 // Version: v0.3 (AVM Migration)
 // AVM Modules:
-//   - Virtual Network: br/public:avm/res/network/virtual-network:0.7.2
-//   - NSG: br/public:avm/res/network/network-security-group:0.5.2
-//   - NAT Gateway: br/public:avm/res/network/nat-gateway:2.0.1
+//   - Virtual Network: br/public:avm/res/network/virtual-network:0.8.0
+//   - NSG: br/public:avm/res/network/network-security-group:0.5.3
+//   - NAT Gateway: br/public:avm/res/network/nat-gateway:2.1.0
 // ============================================================================
 // Routing Logic:
 // - If firewall deployed: Use UDR to route traffic through firewall
@@ -73,7 +73,7 @@ var hasRouteTable = !empty(routeTableId)
 // ============================================================================
 
 @description('Spoke NSG with default deny inbound rules')
-module spokeNsg 'br/public:avm/res/network/network-security-group:0.5.2' = {
+module spokeNsg 'br/public:avm/res/network/network-security-group:0.5.3' = {
   name: 'deploy-spoke-nsg'
   params: {
     name: nsgName
@@ -131,7 +131,7 @@ module spokeNsg 'br/public:avm/res/network/network-security-group:0.5.2' = {
 // ============================================================================
 
 @description('NAT Gateway for outbound internet (only deployed when no firewall)')
-module natGateway 'br/public:avm/res/network/nat-gateway:2.0.1' = if (deployNatGateway) {
+module natGateway 'br/public:avm/res/network/nat-gateway:2.1.0' = if (deployNatGateway) {
   name: 'deploy-nat-gateway'
   params: {
     name: natGatewayName
@@ -156,7 +156,7 @@ module natGateway 'br/public:avm/res/network/nat-gateway:2.0.1' = if (deployNatG
 // ============================================================================
 
 @description('Spoke VNet with workload subnets')
-module spokeVnet 'br/public:avm/res/network/virtual-network:0.7.2' = {
+module spokeVnet 'br/public:avm/res/network/virtual-network:0.8.0' = {
   name: 'deploy-spoke-vnet'
   params: {
     name: vnetName

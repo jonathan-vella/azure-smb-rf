@@ -12,9 +12,12 @@
 infra/bicep/smb-ready-foundation/
 ├── main.bicep                          # Main orchestration template (subscription scope)
 ├── main.bicepparam                     # Parameter file with defaults
-├── deploy.ps1                          # PowerShell deployment script (Phase 2)
-├── deploy-mg.bicep                     # Management group deployment template (Phase 1)
-├── deploy-mg.ps1                       # MG deployment orchestration script (Phase 1)
+├── azure.yaml                         # azd project manifest
+├── main.parameters.json               # azd parameter bridge
+├── hooks/
+│   ├── pre-provision.ps1              # Pre-deployment (MG policies, cleanup, validation)
+│   └── post-provision.ps1             # Post-deployment (verification, retry, outputs)
+├── deploy-mg.bicep                    # Management group deployment template (Phase 1)
 ├── scripts/
 │   └── Remove-SmbReadyFoundationPolicies.ps1   # Policy cleanup script
 └── modules/
@@ -143,57 +146,49 @@ cd scripts
 
 > Requires Global Administrator. Grants Management Group Contributor and Resource Policy Contributor.
 
-### Phase 1: Management Group + MG Policies
+### Phase 1+2: Configure and Deploy via azd
 
-```powershell
+```bash
 cd infra/bicep/smb-ready-foundation
-./deploy-mg.ps1 -Scenario baseline
+azd env new smb-rf-baseline
+azd env set SCENARIO baseline
+azd env set OWNER "partner-ops@contoso.com"
 ```
 
-> Creates `smb-rf` management group, moves subscription under it, deploys 30 MG-scoped policies.
-
-### Phase 2: Subscription Infrastructure
-
-### Quick Deploy
-
-```powershell
-cd infra/bicep/smb-ready-foundation
-./deploy.ps1 -Owner "partner-ops@contoso.com"
-```
+> The preprovision hook creates `smb-rf` management group, deploys 30 MG-scoped policies, validates CIDRs, and cleans up stale resources.
 
 ### Preview Changes (What-If)
 
-```powershell
-./deploy.ps1 -Owner "partner-ops@contoso.com" -WhatIf
+```bash
+azd provision --preview
 ```
 
 ### Custom Parameters
 
-```powershell
-./deploy.ps1 `
-    -Environment "prod" `
-    -Owner "partner-ops@contoso.com" `
-    -Location "swedencentral" `
-    -HubVnetAddressSpace "10.0.0.0/16" `
-    -SpokeVnetAddressSpace "10.1.0.0/16" `
-    -BudgetAmount 500 `
-    -LogAnalyticsDailyCapMb 500
+```bash
+azd env set ENVIRONMENT prod
+azd env set OWNER "partner-ops@contoso.com"
+azd env set HUB_VNET_ADDRESS_SPACE "10.0.0.0/16"
+azd env set SPOKE_VNET_ADDRESS_SPACE "10.1.0.0/16"
+azd env set BUDGET_AMOUNT 500
+azd env set LOG_ANALYTICS_DAILY_CAP_GB "0.5"
+azd up
 ```
 
 ### Scenario-Based Deployment
 
-```powershell
+```bash
 # Baseline: NAT Gateway only (~$48/mo)
-./deploy.ps1 -Scenario baseline -Owner "partner-ops@contoso.com"
+azd env set SCENARIO baseline && azd up
 
 # Firewall: Azure Firewall + UDR (~$336/mo)
-./deploy.ps1 -Scenario firewall -Owner "partner-ops@contoso.com"
+azd env set SCENARIO firewall && azd up
 
 # VPN: VPN Gateway + Gateway Transit (~$187/mo)
-./deploy.ps1 -Scenario vpn -Owner "partner-ops@contoso.com"
+azd env set SCENARIO vpn && azd env set ON_PREMISES_ADDRESS_SPACE "192.168.0.0/16" && azd up
 
 # Full: Firewall + VPN + UDR (~$476/mo)
-./deploy.ps1 -Scenario full -Owner "partner-ops@contoso.com"
+azd env set SCENARIO full && azd env set ON_PREMISES_ADDRESS_SPACE "192.168.0.0/16" && azd up
 ```
 
 ## Key Implementation Notes
