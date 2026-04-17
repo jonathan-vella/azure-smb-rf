@@ -5,10 +5,11 @@ description: Deploy your first SMB Ready Foundation in 5 minutes
 
 import { Steps, Aside } from "@astrojs/starlight/components";
 
-Deploy a complete Azure landing zone with hub-spoke networking, governance policies, and monitoring — in 5 commands.
+Deploy a complete Azure environment with hub-spoke networking, governance policies, and monitoring — in 5 commands.
 
 <Aside type="tip">
-  This guide deploys the **baseline** scenario (~$48/month). See [Deployment Scenarios](/azure-smb-rf/deploying/scenarios/) for all options.
+  This guide deploys the **baseline** scenario (~$48/month). See [Deployment
+  Scenarios](/azure-smb-rf/deploying/scenarios/) for all options.
 </Aside>
 
 <Steps>
@@ -29,7 +30,9 @@ Deploy a complete Azure landing zone with hub-spoke networking, governance polic
    ```
 
    <Aside type="note">
-     If you need management group permissions, run `scripts/Setup-ManagementGroupPermissions.ps1` first. See [Prerequisites](/azure-smb-rf/getting-started/prerequisites/).
+     If you need management group permissions, run
+     `scripts/Setup-ManagementGroupPermissions.ps1` first. See
+     [Prerequisites](/azure-smb-rf/getting-started/prerequisites/).
    </Aside>
 
 3. **Create and configure the azd environment**
@@ -75,14 +78,14 @@ Deploy a complete Azure landing zone with hub-spoke networking, governance polic
 
 The baseline scenario creates:
 
-| Resource Group | Resources |
-|----------------|-----------|
-| `rg-hub-smb-swc` | Hub VNet, NSG, Private DNS Zone |
-| `rg-spoke-prod-swc` | Spoke VNet, NSG, NAT Gateway, Public IP |
-| `rg-monitor-smb-swc` | Log Analytics Workspace (500MB cap), Automation Account |
-| `rg-backup-smb-swc` | Recovery Services Vault |
-| `rg-security-smb-swc` | Key Vault (with Private Endpoint) |
-| `rg-migrate-smb-swc` | Azure Migrate Project |
+| Resource Group        | Resources                                               |
+| --------------------- | ------------------------------------------------------- |
+| `rg-hub-smb-swc`      | Hub VNet, NSG, Private DNS Zone                         |
+| `rg-spoke-prod-swc`   | Spoke VNet, NSG, NAT Gateway, Public IP                 |
+| `rg-monitor-smb-swc`  | Log Analytics Workspace (500MB cap), Automation Account |
+| `rg-backup-smb-swc`   | Recovery Services Vault                                 |
+| `rg-security-smb-swc` | Key Vault (with Private Endpoint)                       |
+| `rg-migrate-smb-swc`  | Azure Migrate Project                                   |
 
 Plus: Monthly budget ($500), Defender for Cloud (free CSPM), and 33 MG-scoped policies.
 
