@@ -22,17 +22,17 @@ are published under [`agent-output/smb-ready-foundation/`](../../../agent-output
 
 ## Status by phase
 
-| Phase | Scope                                                             | Status      |
-| ----- | ----------------------------------------------------------------- | ----------- |
-| 1     | Root scaffolding (`versions.tf`, `providers.tf`, `backend.tf`, `variables.tf`, `locals.tf`, `outputs.tf`, `azure.yaml`, `.gitignore`, `terraform.tfvars.example`) | ✅ complete |
-| 2     | Management group + subscription association + 33 MG-scoped policy assignments (`modules/management-group/`, `modules/policy-assignments-mg/`) | ✅ complete |
-| 3     | Child-module composition — root `main.tf` orchestrates 17 modules under `modules/` | ✅ complete |
-| 4     | Resources under `modules/`: `resource-groups`, `network-hub`, `network-spoke`, `firewall`, `route-tables`, `vpn-gateway`, `peering`, `monitoring`, `backup`, `policy-backup-auto`, `migrate`, `keyvault`, `automation`, `budget`, `defender` | ✅ complete |
-| 5     | `terraform.auto.tfvars.json` bridge written by pre-provision hook (see `hooks/pre-provision.{sh,ps1}`) | ✅ complete |
-| 6     | Hooks — `hooks/pre-provision.{sh,ps1}`, `hooks/post-provision.{sh,ps1}`, shared helpers `hooks/_lib.{sh,ps1}` | ✅ complete |
-| 7     | State backend bootstrap — `scripts/bootstrap-tf-backend.{sh,ps1}` | ✅ complete |
-| 8     | CI — `.github/workflows/terraform-smb-ready-foundation.yml` + `tests/scenarios.tftest.hcl` + `.tflint.hcl` | ✅ complete |
-| 9     | Teardown — `scripts/remove-smb-ready-foundation.sh`, `scripts/Remove-SmbReadyFoundation.ps1` | ✅ complete |
+| Phase | Scope                                                                                                                                                                                                                                             | Status      |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| 1     | Root scaffolding (`versions.tf`, `providers.tf`, `backend.tf`, `variables.tf`, `locals.tf`, `outputs.tf`, `azure.yaml`, `.gitignore`, `terraform.tfvars.example`)                                                                                 | ✅ complete |
+| 2     | Management group + subscription association + 33 MG-scoped policy assignments (`modules/management-group/`, `modules/policy-assignments-mg/`)                                                                                                     | ✅ complete |
+| 3     | Child-module composition — root `main.tf` orchestrates 17 modules under `modules/`                                                                                                                                                                | ✅ complete |
+| 4     | Resources under `modules/`: `resource-groups`, `network-hub`, `network-spoke`, `firewall`, `route-tables`, `vpn-gateway`, `peering`, `monitoring`, `backup`, `policy-backup-auto`, `migrate`, `keyvault`, `automation`, `budget`, `defender`      | ✅ complete |
+| 5     | `terraform.auto.tfvars.json` bridge written by pre-provision hook (see `hooks/pre-provision.{sh,ps1}`)                                                                                                                                            | ✅ complete |
+| 6     | Hooks — `hooks/pre-provision.{sh,ps1}`, `hooks/post-provision.{sh,ps1}`, shared helpers `hooks/_lib.{sh,ps1}`                                                                                                                                     | ✅ complete |
+| 7     | State backend bootstrap — `scripts/bootstrap-tf-backend.{sh,ps1}`                                                                                                                                                                                 | ✅ complete |
+| 8     | CI — `.github/workflows/terraform-smb-ready-foundation.yml` + `tests/scenarios.tftest.hcl` + `.tflint.hcl`                                                                                                                                        | ✅ complete |
+| 9     | Teardown — `scripts/remove-smb-ready-foundation.sh`, `scripts/Remove-SmbReadyFoundation.ps1`                                                                                                                                                      | ✅ complete |
 | 10    | Agent-track artifacts (`04-implementation-plan-terraform.md`, `05-implementation-reference-terraform.md`, `07-ab-adr-0005-terraform-dual-track.md`, `07-ab-adr-0006-terraform-child-module-composition.md`, `07-resource-inventory-terraform.md`) | ✅ complete |
 
 ## Quickstart
@@ -91,22 +91,22 @@ TF_VAR env propagation pitfalls and pins `budget_start_date` to the first of
 the current month UTC so repeated applies do not drift the immutable start
 date.
 
-| azd env variable           | Terraform variable          | Default              |
-| -------------------------- | --------------------------- | -------------------- |
-| `OWNER`                    | `owner`                     | auto-detected        |
-| `AZURE_LOCATION`           | `location`                  | `swedencentral`      |
-| `ENVIRONMENT`              | `environment`               | `prod`               |
-| `HUB_VNET_ADDRESS_SPACE`   | `hub_vnet_address_space`    | `10.0.0.0/23`        |
-| `SPOKE_VNET_ADDRESS_SPACE` | `spoke_vnet_address_space`  | `10.0.2.0/23`        |
-| `ON_PREMISES_ADDRESS_SPACE`| `on_premises_address_space` | `""` (required VPN)  |
-| `LOG_ANALYTICS_DAILY_CAP_GB` | `log_analytics_daily_cap_gb` | `0.5`            |
-| `BUDGET_AMOUNT`            | `budget_amount`             | `100`                |
-| `BUDGET_ALERT_EMAIL`       | `budget_alert_email`        | falls back to owner  |
-| `SCENARIO`                 | → `deploy_firewall`, `deploy_vpn` | `baseline`     |
-| `DEPLOY_FIREWALL`          | `deploy_firewall`           | scenario-derived     |
-| `DEPLOY_VPN`               | `deploy_vpn`                | scenario-derived     |
-| *(computed)*               | `budget_start_date`         | first-of-month UTC   |
-| *(computed)*               | `subscription_id`           | from `az account show` |
+| azd env variable             | Terraform variable                | Default                |
+| ---------------------------- | --------------------------------- | ---------------------- |
+| `OWNER`                      | `owner`                           | auto-detected          |
+| `AZURE_LOCATION`             | `location`                        | `swedencentral`        |
+| `ENVIRONMENT`                | `environment`                     | `prod`                 |
+| `HUB_VNET_ADDRESS_SPACE`     | `hub_vnet_address_space`          | `10.0.0.0/23`          |
+| `SPOKE_VNET_ADDRESS_SPACE`   | `spoke_vnet_address_space`        | `10.0.2.0/23`          |
+| `ON_PREMISES_ADDRESS_SPACE`  | `on_premises_address_space`       | `""` (required VPN)    |
+| `LOG_ANALYTICS_DAILY_CAP_GB` | `log_analytics_daily_cap_gb`      | `0.5`                  |
+| `BUDGET_AMOUNT`              | `budget_amount`                   | `100`                  |
+| `BUDGET_ALERT_EMAIL`         | `budget_alert_email`              | falls back to owner    |
+| `SCENARIO`                   | → `deploy_firewall`, `deploy_vpn` | `baseline`             |
+| `DEPLOY_FIREWALL`            | `deploy_firewall`                 | scenario-derived       |
+| `DEPLOY_VPN`                 | `deploy_vpn`                      | scenario-derived       |
+| _(computed)_                 | `budget_start_date`               | first-of-month UTC     |
+| _(computed)_                 | `subscription_id`                 | from `az account show` |
 
 ## AVM-TF decision
 

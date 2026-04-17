@@ -4,7 +4,16 @@ status: "Implemented"
 date: "2026-04-17"
 artifact_version: "1.1"
 authors: "Terraform Code Agent"
-tags: ["architecture", "decision", "terraform", "management-group", "scopes", "iac", "modules"]
+tags:
+  [
+    "architecture",
+    "decision",
+    "terraform",
+    "management-group",
+    "scopes",
+    "iac",
+    "modules",
+  ]
 supersedes: ""
 superseded_by: ""
 ---
@@ -80,7 +89,7 @@ Terraform's resource graph orders operations automatically via references. Expli
 2. `module.vpn_gateway` takes a `firewall_serialisation_sentinel` input wired to
    `module.firewall.id` (or empty string when disabled) to serialise subnet-touching
    operations on the hub VNet (prevents `Another operation is in progress on the
-   VNet` conflicts during parallel apply).
+VNet` conflicts during parallel apply).
 3. `module.peering` takes a `vpn_gateway_id` input driving a `terraform_data.vpn_ready`
    relay inside the module — carries the VPN gateway id only when
    `var.deploy_vpn = true`. This makes `allow_gateway_transit` /

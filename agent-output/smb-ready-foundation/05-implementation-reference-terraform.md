@@ -69,14 +69,14 @@ CI workflow: `.github/workflows/terraform-smb-ready-foundation.yml`
 
 ## Validation status
 
-| Check                                   | Status | Notes                                                          |
-| --------------------------------------- | ------ | -------------------------------------------------------------- |
-| `terraform fmt -check -recursive`       | ✅ Pass |                                                                |
-| `terraform init -backend=false`         | ✅ Pass |                                                                |
-| `terraform validate`                    | ✅ Pass | 3 cosmetic v5.0 deprecation warnings (see below).              |
-| `terraform test` (plan mode, 6 runs)    | ✅ Pass | All 6 scenario assertions pass.                                |
-| `npm run validate:terraform`            | ✅ Pass |                                                                |
-| `npm run validate:iac-security-baseline` | ✅ Pass | 44 files, 0 errors, 0 warnings.                                |
+| Check                                    | Status  | Notes                                             |
+| ---------------------------------------- | ------- | ------------------------------------------------- |
+| `terraform fmt -check -recursive`        | ✅ Pass |                                                   |
+| `terraform init -backend=false`          | ✅ Pass |                                                   |
+| `terraform validate`                     | ✅ Pass | 3 cosmetic v5.0 deprecation warnings (see below). |
+| `terraform test` (plan mode, 6 runs)     | ✅ Pass | All 6 scenario assertions pass.                   |
+| `npm run validate:terraform`             | ✅ Pass |                                                   |
+| `npm run validate:iac-security-baseline` | ✅ Pass | 44 files, 0 errors, 0 warnings.                   |
 
 ### Known warnings (acceptable)
 
@@ -93,27 +93,27 @@ All will be addressed when this project upgrades to `azurerm ~> 5.0`.
 
 ### Management group scope (`modules/management-group/`, `modules/policy-assignments-mg/`)
 
-| Resource                                              | Purpose                                                  |
-| ----------------------------------------------------- | -------------------------------------------------------- |
-| `azurerm_management_group.smb_rf`                     | Intermediate MG `smb-rf` under tenant root. Adopted via root-level `import` block targeting `module.management_group.azurerm_management_group.smb_rf`. |
-| `azurerm_management_group_subscription_association.primary` | Moves target subscription under `smb-rf`.          |
-| `azurerm_management_group_policy_assignment.uniform` (22) | Deny policies: storage, identity, compute, network, monitoring. |
-| `azurerm_management_group_policy_assignment.kv_audit` (6) | Audit policies for Key Vault (soft delete, purge protection, etc.). |
-| `azurerm_management_group_policy_assignment.compute_01_allowed_skus` | Allowed VM SKUs list. |
-| `azurerm_management_group_policy_assignment.tagging_01_environment`  | Require Environment tag. |
-| `azurerm_management_group_policy_assignment.tagging_02_owner`        | Require Owner tag.       |
-| `azurerm_management_group_policy_assignment.governance_01_allowed_locations` | Allowed regions.  |
-| `azurerm_management_group_policy_assignment.monitoring_01_diagnostics` | Deploy-if-not-exists diagnostic settings. |
+| Resource                                                                     | Purpose                                                                                                                                                |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `azurerm_management_group.smb_rf`                                            | Intermediate MG `smb-rf` under tenant root. Adopted via root-level `import` block targeting `module.management_group.azurerm_management_group.smb_rf`. |
+| `azurerm_management_group_subscription_association.primary`                  | Moves target subscription under `smb-rf`.                                                                                                              |
+| `azurerm_management_group_policy_assignment.uniform` (22)                    | Deny policies: storage, identity, compute, network, monitoring.                                                                                        |
+| `azurerm_management_group_policy_assignment.kv_audit` (6)                    | Audit policies for Key Vault (soft delete, purge protection, etc.).                                                                                    |
+| `azurerm_management_group_policy_assignment.compute_01_allowed_skus`         | Allowed VM SKUs list.                                                                                                                                  |
+| `azurerm_management_group_policy_assignment.tagging_01_environment`          | Require Environment tag.                                                                                                                               |
+| `azurerm_management_group_policy_assignment.tagging_02_owner`                | Require Owner tag.                                                                                                                                     |
+| `azurerm_management_group_policy_assignment.governance_01_allowed_locations` | Allowed regions.                                                                                                                                       |
+| `azurerm_management_group_policy_assignment.monitoring_01_diagnostics`       | Deploy-if-not-exists diagnostic settings.                                                                                                              |
 
 ### Subscription scope
 
-| Resource                                        | Module                         | Notes                                        |
-| ----------------------------------------------- | ------------------------------ | -------------------------------------------- |
-| `azurerm_consumption_budget_subscription`       | `modules/budget/`              | 3 thresholds (forecast 80 + actual 90/100).  |
-| `azurerm_security_center_subscription_pricing` (4) | `modules/defender/`         | Free tier for VMs / Storage / KV / ARM.      |
-| `azurerm_security_center_auto_provisioning`     | `modules/defender/`            | Off (v5.0 deprecation).                      |
-| `azurerm_subscription_policy_assignment.backup_auto` | `modules/policy-backup-auto/` | DINE for VM backup (tag-based inclusion). |
-| `azurerm_role_assignment.backup_auto_*` (2)     | `modules/policy-backup-auto/`  | Backup Contributor + VM Contributor.         |
+| Resource                                             | Module                        | Notes                                       |
+| ---------------------------------------------------- | ----------------------------- | ------------------------------------------- |
+| `azurerm_consumption_budget_subscription`            | `modules/budget/`             | 3 thresholds (forecast 80 + actual 90/100). |
+| `azurerm_security_center_subscription_pricing` (4)   | `modules/defender/`           | Free tier for VMs / Storage / KV / ARM.     |
+| `azurerm_security_center_auto_provisioning`          | `modules/defender/`           | Off (v5.0 deprecation).                     |
+| `azurerm_subscription_policy_assignment.backup_auto` | `modules/policy-backup-auto/` | DINE for VM backup (tag-based inclusion).   |
+| `azurerm_role_assignment.backup_auto_*` (2)          | `modules/policy-backup-auto/` | Backup Contributor + VM Contributor.        |
 
 ### Resource-group scope (spoke + 5 shared RGs)
 
@@ -123,7 +123,7 @@ full list. Highlights:
 - Hub VNet + NSG + 4 subnets (`AzureFirewallSubnet`, `AzureFirewallManagementSubnet`,
   `GatewaySubnet`, `snet-management`) + shared `privatelink.azure.com` Private DNS zone.
 - Spoke VNet + NSG + 4 subnets (`snet-workload`, `snet-data`, `snet-app`, `snet-pep`)
-  + conditional NAT gateway + conditional route table association.
+  - conditional NAT gateway + conditional route table association.
 - Log Analytics Workspace (`log-smbrf-smb-<region>`), Recovery Services Vault
   (`rsv-smbrf-smb-<region>`) + DefaultVMPolicy, Azure Migrate project (`azapi`),
   Key Vault with private endpoint, Automation Account linked to LAW.
@@ -136,24 +136,24 @@ full list. Highlights:
 
 See `variables.tf` for full validation rules. Key variables:
 
-| Variable                          | Type       | Default                 |
-| --------------------------------- | ---------- | ----------------------- |
-| `subscription_id`                 | GUID       | (required)              |
-| `location`                        | string     | `swedencentral`         |
-| `environment`                     | string     | `prod`                  |
-| `owner`                           | string     | (required)              |
-| `hub_vnet_address_space`          | CIDR       | `10.0.0.0/23`           |
-| `spoke_vnet_address_space`        | CIDR       | `10.0.2.0/23`           |
-| `on_premises_address_space`       | CIDR       | `""`                    |
-| `log_analytics_daily_cap_gb`      | number     | `0.5`                   |
-| `budget_amount`                   | number     | `100`                   |
-| `budget_alert_email`              | string     | `""` (fallback: owner)  |
-| `budget_start_date`               | string     | (injected by hook)      |
-| `deploy_firewall`                 | bool       | `false`                 |
-| `deploy_vpn`                      | bool       | `false`                 |
-| `management_group_name`           | string     | `smb-rf`                |
-| `allowed_locations`               | list(string) | `["swedencentral", "germanywestcentral", "global"]` |
-| `allowed_vm_skus`                 | list(string) | 33 B / D / E series SKUs                          |
+| Variable                     | Type         | Default                                             |
+| ---------------------------- | ------------ | --------------------------------------------------- |
+| `subscription_id`            | GUID         | (required)                                          |
+| `location`                   | string       | `swedencentral`                                     |
+| `environment`                | string       | `prod`                                              |
+| `owner`                      | string       | (required)                                          |
+| `hub_vnet_address_space`     | CIDR         | `10.0.0.0/23`                                       |
+| `spoke_vnet_address_space`   | CIDR         | `10.0.2.0/23`                                       |
+| `on_premises_address_space`  | CIDR         | `""`                                                |
+| `log_analytics_daily_cap_gb` | number       | `0.5`                                               |
+| `budget_amount`              | number       | `100`                                               |
+| `budget_alert_email`         | string       | `""` (fallback: owner)                              |
+| `budget_start_date`          | string       | (injected by hook)                                  |
+| `deploy_firewall`            | bool         | `false`                                             |
+| `deploy_vpn`                 | bool         | `false`                                             |
+| `management_group_name`      | string       | `smb-rf`                                            |
+| `allowed_locations`          | list(string) | `["swedencentral", "germanywestcentral", "global"]` |
+| `allowed_vm_skus`            | list(string) | 33 B / D / E series SKUs                            |
 
 ## Outputs
 

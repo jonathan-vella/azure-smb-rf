@@ -46,15 +46,15 @@ inventory, policies, tags, and WAF scoring from ADR-0001.
 
 ### Intentional divergences
 
-| Concern              | Decision                                                                |
-| -------------------- | ----------------------------------------------------------------------- |
-| Scope composition    | Single-root Terraform (ADR-0006) vs. split Bicep templates.             |
-| AVM posture          | Raw `azurerm_*` / `azapi_resource` vs. Bicep AVM-first.                 |
-| Unique suffix        | `substr(sha1(sub_id), 0, 13)` — matches Bicep's `uniqueString()` hash.  |
-| `ManagedBy` tag value | `"Terraform"` vs. `"Bicep"` so deployed resources self-identify.       |
-| Budget start date    | Injected by hook (avoids `utcNow()` drift on repeated applies).         |
-| State backend        | Azure Storage Account (`rg-tfstate-smb-<region>`) bootstrapped by hook. |
-| Policy count output  | Dynamic (`policy_assignment_count`) vs. Bicep's stale hard-coded `30`.  |
+| Concern               | Decision                                                                |
+| --------------------- | ----------------------------------------------------------------------- |
+| Scope composition     | Single-root Terraform (ADR-0006) vs. split Bicep templates.             |
+| AVM posture           | Raw `azurerm_*` / `azapi_resource` vs. Bicep AVM-first.                 |
+| Unique suffix         | `substr(sha1(sub_id), 0, 13)` — matches Bicep's `uniqueString()` hash.  |
+| `ManagedBy` tag value | `"Terraform"` vs. `"Bicep"` so deployed resources self-identify.        |
+| Budget start date     | Injected by hook (avoids `utcNow()` drift on repeated applies).         |
+| State backend         | Azure Storage Account (`rg-tfstate-smb-<region>`) bootstrapped by hook. |
+| Policy count output   | Dynamic (`policy_assignment_count`) vs. Bicep's stale hard-coded `30`.  |
 
 ## Consequences
 

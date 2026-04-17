@@ -4,7 +4,8 @@ status: "Implemented"
 date: "2026-04-17"
 artifact_version: "1.0"
 authors: "Terraform Code Agent, Partner Operations Team"
-tags: ["implementation-plan", "terraform", "iac", "azure", "smb-ready-foundation"]
+tags:
+  ["implementation-plan", "terraform", "iac", "azure", "smb-ready-foundation"]
 supersedes: ""
 superseded_by: ""
 companion: "04-implementation-plan.md"
@@ -34,17 +35,17 @@ companion: "04-implementation-plan.md"
 
 ## Architectural delta vs. Bicep
 
-| Area                     | Bicep                                              | Terraform                                                            |
-| ------------------------ | -------------------------------------------------- | -------------------------------------------------------------------- |
-| Deployment scopes        | Two templates: `deploy-mg.bicep` (management       | Single root composes MG + subscription scopes (see ADR-0006).        |
-|                          | group) + `main.bicep` (subscription)               |                                                                      |
-| Scope split orchestration | `preprovision` hook runs `deploy-mg.bicep`,       | Single `azd provision` → `terraform apply`. MG + policies +           |
-|                          | then `azd provision` runs `main.bicep`             | sub-scope resources in one graph.                                    |
-| Module system            | `modules/*.bicep`                                  | Root-level topical `.tf` files (no child `modules/` dir).            |
-| AVM posture              | AVM-first mandatory                                | Raw `azurerm_*` / `azapi_resource` (see "AVM-TF decision" below).     |
-| Unique suffix            | `uniqueString(subscription().subscriptionId)`      | `substr(sha1(data.azurerm_subscription.current.subscription_id), 0, 13)` |
-| Budget start date        | `utcNow('yyyy-MM-01')` at param default            | Injected by pre-provision hook (`budget_start_date`) pinned to first-of-month UTC |
-| `ManagedBy` tag          | `"Bicep"`                                          | `"Terraform"` (intentional provenance divergence)                     |
+| Area                      | Bicep                                         | Terraform                                                                         |
+| ------------------------- | --------------------------------------------- | --------------------------------------------------------------------------------- |
+| Deployment scopes         | Two templates: `deploy-mg.bicep` (management  | Single root composes MG + subscription scopes (see ADR-0006).                     |
+|                           | group) + `main.bicep` (subscription)          |                                                                                   |
+| Scope split orchestration | `preprovision` hook runs `deploy-mg.bicep`,   | Single `azd provision` → `terraform apply`. MG + policies +                       |
+|                           | then `azd provision` runs `main.bicep`        | sub-scope resources in one graph.                                                 |
+| Module system             | `modules/*.bicep`                             | Root-level topical `.tf` files (no child `modules/` dir).                         |
+| AVM posture               | AVM-first mandatory                           | Raw `azurerm_*` / `azapi_resource` (see "AVM-TF decision" below).                 |
+| Unique suffix             | `uniqueString(subscription().subscriptionId)` | `substr(sha1(data.azurerm_subscription.current.subscription_id), 0, 13)`          |
+| Budget start date         | `utcNow('yyyy-MM-01')` at param default       | Injected by pre-provision hook (`budget_start_date`) pinned to first-of-month UTC |
+| `ManagedBy` tag           | `"Bicep"`                                     | `"Terraform"` (intentional provenance divergence)                                 |
 
 ## AVM-TF decision (single pass)
 
@@ -61,13 +62,13 @@ Phase 4 evaluated the AVM-TF registry for each Bicep-AVM module used in the Bice
 
 ## Provider + version pins
 
-| Component | Pin         | Rationale                                                                 |
-| --------- | ----------- | ------------------------------------------------------------------------- |
-| terraform | `>= 1.9`    | Required for `import` block + `mock_provider` / `override_resource`.      |
-| azurerm   | `~> 4.0`    | 4.x is current LTS-equivalent; `~>` allows 4.x minor upgrades.            |
-| azapi     | `~> 2.0`    | Needed for `Microsoft.Migrate/migrateProjects` (no azurerm support).      |
-| random    | `~> 3.6`    | Available for future SKU suffixing; not currently used.                   |
-| null      | `~> 3.2`    | Required by `terraform_data` relay pattern (see peering).                 |
+| Component | Pin      | Rationale                                                            |
+| --------- | -------- | -------------------------------------------------------------------- |
+| terraform | `>= 1.9` | Required for `import` block + `mock_provider` / `override_resource`. |
+| azurerm   | `~> 4.0` | 4.x is current LTS-equivalent; `~>` allows 4.x minor upgrades.       |
+| azapi     | `~> 2.0` | Needed for `Microsoft.Migrate/migrateProjects` (no azurerm support). |
+| random    | `~> 3.6` | Available for future SKU suffixing; not currently used.              |
+| null      | `~> 3.2` | Required by `terraform_data` relay pattern (see peering).            |
 
 ## File layout
 
