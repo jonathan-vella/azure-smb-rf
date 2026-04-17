@@ -5,55 +5,55 @@ description: Complete list of resources deployed by each scenario
 
 ## Resources by Scenario
 
-| Resource | Type | RG | baseline | firewall | vpn | full |
-|----------|------|-----|----------|----------|-----|------|
-| `vnet-hub-smb-{r}` | Virtual Network | hub | ✅ | ✅ | ✅ | ✅ |
-| `nsg-hub-smb-{r}` | Network Security Group | hub | ✅ | ✅ | ✅ | ✅ |
-| `pdnsz-*` | Private DNS Zone | hub | ✅ | ✅ | ✅ | ✅ |
-| `fw-hub-smb-{r}` | Azure Firewall | hub | — | ✅ | — | ✅ |
-| `fwpol-hub-smb-{r}` | Firewall Policy | hub | — | ✅ | — | ✅ |
-| `pip-fw-hub-smb-{r}` | Public IP (FW) | hub | — | ✅ | — | ✅ |
-| `pip-fw-mgmt-hub-smb-{r}` | Public IP (FW Mgmt) | hub | — | ✅ | — | ✅ |
-| `vpng-hub-smb-{r}` | VPN Gateway | hub | — | — | ✅ | ✅ |
-| `pip-vpng-hub-smb-{r}` | Public IP (VPN) | hub | — | — | ✅ | ✅ |
-| `rt-spoke-smb-{r}` | Route Table (spoke) | hub | — | ✅ | — | ✅ |
-| `rt-gateway-smb-{r}` | Route Table (gateway) | hub | — | ✅ | — | ✅ |
-| `vnet-spoke-prod-{r}` | Virtual Network | spoke | ✅ | ✅ | ✅ | ✅ |
-| `nsg-spoke-prod-{r}` | Network Security Group | spoke | ✅ | ✅ | ✅ | ✅ |
-| `nat-spoke-prod-{r}` | NAT Gateway | spoke | ✅ | — | ✅ | — |
-| `pip-nat-prod-{r}` | Public IP (NAT) | spoke | ✅ | — | ✅ | — |
-| `log-smbrf-smb-{r}` | Log Analytics Workspace | monitor | ✅ | ✅ | ✅ | ✅ |
-| `aa-smbrf-smb-{r}` | Automation Account | monitor | ✅ | ✅ | ✅ | ✅ |
-| `rsv-smbrf-smb-{r}` | Recovery Services Vault | backup | ✅ | ✅ | ✅ | ✅ |
-| `kv-smbrf-{r}-{suffix}` | Key Vault | security | ✅ | ✅ | ✅ | ✅ |
-| `pep-kv-smbrf-smb-{r}` | Private Endpoint | security | ✅ | ✅ | ✅ | ✅ |
-| `migrate-smbrf-smb-{r}` | Azure Migrate Project | migrate | ✅ | ✅ | ✅ | ✅ |
+| Resource                  | Type                    | RG       | baseline | firewall | vpn | full |
+| ------------------------- | ----------------------- | -------- | -------- | -------- | --- | ---- |
+| `vnet-hub-smb-{r}`        | Virtual Network         | hub      | ✅       | ✅       | ✅  | ✅   |
+| `nsg-hub-smb-{r}`         | Network Security Group  | hub      | ✅       | ✅       | ✅  | ✅   |
+| `pdnsz-*`                 | Private DNS Zone        | hub      | ✅       | ✅       | ✅  | ✅   |
+| `fw-hub-smb-{r}`          | Azure Firewall          | hub      | —        | ✅       | —   | ✅   |
+| `fwpol-hub-smb-{r}`       | Firewall Policy         | hub      | —        | ✅       | —   | ✅   |
+| `pip-fw-hub-smb-{r}`      | Public IP (FW)          | hub      | —        | ✅       | —   | ✅   |
+| `pip-fw-mgmt-hub-smb-{r}` | Public IP (FW Mgmt)     | hub      | —        | ✅       | —   | ✅   |
+| `vpng-hub-smb-{r}`        | VPN Gateway             | hub      | —        | —        | ✅  | ✅   |
+| `pip-vpng-hub-smb-{r}`    | Public IP (VPN)         | hub      | —        | —        | ✅  | ✅   |
+| `rt-spoke-smb-{r}`        | Route Table (spoke)     | hub      | —        | ✅       | —   | ✅   |
+| `rt-gateway-smb-{r}`      | Route Table (gateway)   | hub      | —        | ✅       | —   | ✅   |
+| `vnet-spoke-prod-{r}`     | Virtual Network         | spoke    | ✅       | ✅       | ✅  | ✅   |
+| `nsg-spoke-prod-{r}`      | Network Security Group  | spoke    | ✅       | ✅       | ✅  | ✅   |
+| `nat-spoke-prod-{r}`      | NAT Gateway             | spoke    | ✅       | —        | ✅  | —    |
+| `pip-nat-prod-{r}`        | Public IP (NAT)         | spoke    | ✅       | —        | ✅  | —    |
+| `log-smbrf-smb-{r}`       | Log Analytics Workspace | monitor  | ✅       | ✅       | ✅  | ✅   |
+| `aa-smbrf-smb-{r}`        | Automation Account      | monitor  | ✅       | ✅       | ✅  | ✅   |
+| `rsv-smbrf-smb-{r}`       | Recovery Services Vault | backup   | ✅       | ✅       | ✅  | ✅   |
+| `kv-smbrf-{r}-{suffix}`   | Key Vault               | security | ✅       | ✅       | ✅  | ✅   |
+| `pep-kv-smbrf-smb-{r}`    | Private Endpoint        | security | ✅       | ✅       | ✅  | ✅   |
+| `migrate-smbrf-smb-{r}`   | Azure Migrate Project   | migrate  | ✅       | ✅       | ✅  | ✅   |
 
 `{r}` = region abbreviation (e.g., `swc` for swedencentral)
 
 ## Subscription-Scoped Resources
 
-| Resource | Type | Scenarios |
-|----------|------|-----------|
-| `budget-smb-monthly` | Budget ($500) | All |
-| Defender for Cloud | Security Pricing (Free) | All |
-| 33 policy assignments | MG-scoped | All |
-| VNet Peering (hub↔spoke) | Network Peering | firewall, vpn, full |
+| Resource                 | Type                    | Scenarios           |
+| ------------------------ | ----------------------- | ------------------- |
+| `budget-smb-monthly`     | Budget ($500)           | All                 |
+| Defender for Cloud       | Security Pricing (Free) | All                 |
+| 33 policy assignments    | MG-scoped               | All                 |
+| VNet Peering (hub↔spoke) | Network Peering         | firewall, vpn, full |
 
 ## AVM Modules Used
 
-| # | AVM Module | Version | Used In |
-|---|-----------|---------|---------|
-| 1 | `network/virtual-network` | 0.8.0 | networking-hub, networking-spoke |
-| 2 | `network/network-security-group` | 0.5.3 | networking-hub, networking-spoke |
-| 3 | `network/nat-gateway` | 2.1.0 | networking-spoke |
-| 4 | `network/public-ip-address` | 0.12.0 | firewall |
-| 5 | `network/azure-firewall` | 0.10.1 | firewall |
-| 6 | `network/firewall-policy` | 0.3.4 | firewall |
-| 7 | `network/route-table` | 0.5.0 | route-tables |
-| 8 | `network/virtual-network-gateway` | 0.10.1 | vpn-gateway |
-| 9 | `network/private-dns-zone` | 0.8.1 | networking-hub, keyvault |
-| 10 | `key-vault/vault` | 0.13.3 | keyvault |
-| 11 | `operational-insights/workspace` | 0.15.0 | monitoring |
-| 12 | `automation/automation-account` | 0.19.0 | automation |
-| 13 | `recovery-services/vault` | 0.11.1 | backup |
+| #   | AVM Module                        | Version | Used In                          |
+| --- | --------------------------------- | ------- | -------------------------------- |
+| 1   | `network/virtual-network`         | 0.8.0   | networking-hub, networking-spoke |
+| 2   | `network/network-security-group`  | 0.5.3   | networking-hub, networking-spoke |
+| 3   | `network/nat-gateway`             | 2.1.0   | networking-spoke                 |
+| 4   | `network/public-ip-address`       | 0.12.0  | firewall                         |
+| 5   | `network/azure-firewall`          | 0.10.1  | firewall                         |
+| 6   | `network/firewall-policy`         | 0.3.4   | firewall                         |
+| 7   | `network/route-table`             | 0.5.0   | route-tables                     |
+| 8   | `network/virtual-network-gateway` | 0.10.1  | vpn-gateway                      |
+| 9   | `network/private-dns-zone`        | 0.8.1   | networking-hub, keyvault         |
+| 10  | `key-vault/vault`                 | 0.13.3  | keyvault                         |
+| 11  | `operational-insights/workspace`  | 0.15.0  | monitoring                       |
+| 12  | `automation/automation-account`   | 0.19.0  | automation                       |
+| 13  | `recovery-services/vault`         | 0.11.1  | backup                           |

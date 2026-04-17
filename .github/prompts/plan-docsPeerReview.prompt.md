@@ -13,7 +13,7 @@ then reconciliation into a prioritised triage report.
 
 ## Scope
 
-Published pages only. Excludes `tests/exec-plans/` and `site/public/`.
+Published pages only. Excludes `site/dist/`, `site/.astro/`, and `site/public/`.
 
 ### Step 0 — Build file inventory dynamically
 

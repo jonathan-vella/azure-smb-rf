@@ -31,11 +31,8 @@ Scan the repository for entropy and update health metrics.
    `node scripts/validate-agent-frontmatter.mjs`
 4. Quality score review — read `QUALITY_SCORE.md`, compare grades against current state,
    propose updates
-5. Tech debt inventory — read `tests/exec-plans/tech-debt-tracker.md`, verify items still
-   relevant, add new discoveries
 
 ## Output
 
 - Update `QUALITY_SCORE.md` with revised grades and change log entries
-- Update `tests/exec-plans/tech-debt-tracker.md` with new/resolved items
 - Report summary of findings to the user

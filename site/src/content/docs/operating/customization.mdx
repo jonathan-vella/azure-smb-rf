@@ -27,6 +27,7 @@ azd env set SPOKE_VNET_ADDRESS_SPACE "10.10.2.0/23"
 ```
 
 The pre-provision hook validates CIDRs for:
+
 - Valid CIDR format
 - No overlap between hub and spoke
 - No overlap with on-premises (if set)
@@ -34,7 +35,8 @@ The pre-provision hook validates CIDRs for:
 ## Adding Bicep Modules
 
 <Aside type="tip">
-  Use [Azure Verified Modules](https://aka.ms/avm) wherever possible. The existing modules follow AVM conventions.
+  Use [Azure Verified Modules](https://aka.ms/avm) wherever possible. The
+  existing modules follow AVM conventions.
 </Aside>
 
 1. Create your module in `modules/your-module.bicep`
