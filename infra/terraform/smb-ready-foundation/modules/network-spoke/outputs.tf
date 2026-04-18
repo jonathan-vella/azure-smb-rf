@@ -1,25 +1,25 @@
 output "vnet_id" {
-  value = azurerm_virtual_network.spoke.id
+  value = module.vnet.resource_id
 }
 
 output "vnet_name" {
-  value = azurerm_virtual_network.spoke.name
+  value = module.vnet.name
 }
 
 output "workload_subnet_id" {
-  value = azurerm_subnet.workload.id
+  value = module.vnet.subnets["workload"].resource_id
 }
 
 output "data_subnet_id" {
-  value = azurerm_subnet.data.id
+  value = module.vnet.subnets["data"].resource_id
 }
 
 output "app_subnet_id" {
-  value = azurerm_subnet.app.id
+  value = module.vnet.subnets["app"].resource_id
 }
 
 output "pep_subnet_id" {
-  value = azurerm_subnet.pep.id
+  value = module.vnet.subnets["pep"].resource_id
 }
 
 output "workload_subnet_ids" {

@@ -1,7 +1,7 @@
 output "name" {
-  value = azurerm_automation_account.smbrf.name
+  value = module.aa.automation_account_name
 }
 
 output "id" {
-  value = azurerm_automation_account.smbrf.id
+  value = module.aa.resource_id
 }

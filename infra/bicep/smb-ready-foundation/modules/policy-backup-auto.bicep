@@ -42,7 +42,7 @@ resource policyBackupAutoEnroll 'Microsoft.Authorization/policyAssignments@2024-
     type: 'SystemAssigned'
   }
   properties: {
-    displayName: 'SMB LZ: Auto-Backup VMs with Backup Tag'
+    displayName: 'SMB RF: Auto-Backup VMs with Backup Tag'
     description: 'Automatically configure backup on VMs tagged with Backup:true to the central Recovery Services Vault using DefaultVMPolicy (30d daily, 12w weekly, 12m monthly retention)'
     policyDefinitionId: policyDefinitionId
     enforcementMode: 'Default'

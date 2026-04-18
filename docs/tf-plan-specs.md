@@ -1,410 +1,366 @@
-# Plan: Terraform port of smb-ready-foundation
+# As-Built: Terraform port of smb-ready-foundation
 
-Port the existing Bicep IaC at `infra/bicep/smb-ready-foundation/` to Terraform at
-`infra/terraform/smb-ready-foundation/` (plus `infra/terraform/smb-ready-foundation-mg/`
-for MG bootstrap), preserving 100% functional and structural parity (resources, tags,
-names, outputs, scenarios, policies).
+Port of the Bicep IaC at `infra/bicep/smb-ready-foundation/` to Terraform at
+`infra/terraform/smb-ready-foundation/`, preserving functional and structural
+parity with the Bicep flavour (resources, tags, names, outputs, scenarios,
+policies).
 
-Strategy: AVM-TF for every module that has a mature AVM equivalent; raw `azurerm_*`
-resources only where AVM is missing/immature (Azure Migrate, auto-backup policy
-DeployIfNotExists, Defender pricing, consumption budget). `azd up` with
-`infra.provider: terraform` (alpha feature — must be enabled) plus full 1:1 hook
-parity in Bash **and** PowerShell. Terraform-native guards (`variable.validation`,
-`precondition`) are added as defense-in-depth, not as replacements for hook logic.
+**This document describes what was actually built**, replacing the original
+forward-looking plan. Deltas vs. the original plan are called out inline under
+"Deviations from original plan".
 
-## Key decisions (from refinement)
+Deploy tool: `azd up` with `infra.provider: terraform` (alpha — requires
+`azd config set alpha.terraform on`). Bash-only hooks. Terraform-native guards
+(`variable.validation`, `precondition`) layered on top of hook logic.
 
-- Path: `infra/terraform/smb-ready-foundation/` (main) + `infra/terraform/smb-ready-foundation-mg/` (MG bootstrap)
-- AVM-TF maximized; fallback `azurerm_*` only when AVM unavailable
-- Dual state backend: azurerm (default) or local, switchable via `TF_BACKEND` azd env var
-- Deploy tool: `azd up` with `infra.provider: terraform`
-- Hooks: Both PowerShell AND Bash variants, 1:1 ported; azd selects per-OS via
-  `hooks.{preprovision,postprovision}.{posix,windows}` (posix→`.sh`, windows→`.ps1`).
-  Logic kept in a shared helper library to minimize drift.
-- VPN Gateway (Q1): verify `Azure/avm-res-network-virtualnetworkgateway` maturity in
-  Phase 1; decide AVM vs. raw `azurerm_virtual_network_gateway` per-module at that gate.
-- Azure Migrate (Q2): implement via `azapi_resource` (adds `azapi` provider dependency);
-  no AVM-TF module exists.
-- Scenarios: per-feature booleans (`deploy_firewall`, `deploy_vpn`) — idiomatic TF
-- MG + 30 policies: separate root module run once before main
-- Parity target: 100% — same resources, names, tags, outputs
-- Agent artifacts: NEW Terraform variants alongside existing Bicep artifacts — do NOT modify existing
-- Testing: fmt/validate/tflint + `.tftest.hcl` + e2e apply in CI
+## Key decisions (as-built)
 
-## Scope boundaries
+- **Single-root composition** — MG bootstrap is a child module inside the main
+  root, not a separate root. Adoption of a pre-existing MG is handled with a
+  root-level `import` block targeting
+  `module.management_group.azurerm_management_group.smb_rf`.
+  See ADR-0006 (`07-ab-adr-0006-terraform-single-root-composition.md`).
+- **Raw `azurerm_*` throughout** — AVM-TF modules were evaluated and not used
+  for this project. Every resource is a direct `azurerm_*` or `azapi_resource`
+  call. Rationale in ADR-0005 (`07-ab-adr-0005-terraform-dual-track.md`).
+  `azapi_resource` is used only for Azure Migrate
+  (`Microsoft.Migrate/migrateProjects@2020-05-01`), where no azurerm coverage
+  exists.
+- **Scenarios via per-feature booleans** — `deploy_firewall` (bool),
+  `deploy_vpn` (bool). No `scenario` input variable; a derived
+  `local.scenario` is computed for human labeling and outputs.
+- **Bash-only hooks** — PowerShell hooks were not needed for the target
+  partner UX (devcontainer-first). Single hook implementation keeps drift risk
+  low. The original plan called for dual PS+Bash; this was simplified.
+- **Backend**: azurerm only. No runtime `TF_BACKEND=local` switch. State lives
+  in `sttfstatesmb<suffix>` / `rg-tfstate-smb-swc` / `tfstate` container, key
+  `smb-ready-foundation.tfstate`. Bootstrap via
+  `scripts/bootstrap-tf-backend.sh`.
+- **Single MG initiative + 1 sub-scoped DINE policy**. All 33 baseline
+  policies are consolidated into one custom Policy Set Definition
+  (`smb-baseline`) with one initiative assignment at MG scope. The DINE
+  backup policy (`smb-backup-02`) stays sub-scoped because it needs a
+  subscription-scoped managed identity with role assignments.
+- **`ManagedBy = "Terraform"`** — tag value diverges from Bicep's `"Bicep"` by
+  design so deployed resources carry accurate provenance. Globally-unique
+  names (Key Vault) still collide across flavours on the same subscription;
+  documented as mutually-exclusive per subscription in the module README.
+- **Agent artifacts created** (alongside existing Bicep artifacts, not
+  replacing): `04-implementation-plan-terraform.md`,
+  `05-implementation-reference-terraform.md`, ADR-0005, ADR-0006,
+  `07-resource-inventory-terraform.md`.
+- **CI**: `.github/workflows/terraform-smb-ready-foundation.yml` runs fmt
+  check, `init -backend=false`, validate, and tflint on PR. No e2e matrix job
+  yet. `.tftest.hcl` coverage is a single `tests/scenarios.tftest.hcl` file,
+  not per-module.
 
-- IN: full Terraform re-implementation (2 roots, all modules, azd manifest, hooks, bootstrap, CI, new TF-track artifacts)
-- OUT: no changes to existing Bicep project, to existing `agent-output/smb-ready-foundation/` artifacts, or to Bicep CI
-- OUT: no cross-provider state sharing between Bicep and TF (independent deploys)
+## Repository layout (as-built)
 
----
+```text
+infra/terraform/smb-ready-foundation/
+  versions.tf               # terraform >= 1.9, azurerm ~> 4.0, azapi ~> 2.0, random ~> 3.6, null ~> 3.2
+  providers.tf              # azurerm (features {}), azapi, data sources
+  backend.tf                # backend "azurerm" {} — partial config via provider.conf.json
+  variables.tf              # all inputs with validation blocks
+  locals.tf                 # region map, unique_suffix, scenario derivation, rg_names, tag maps
+  main.tf                   # root composition + import block for pre-existing MG
+  outputs.tf                # scenario, rg names, vnet ids, kv name, law id, budget/defender summaries
+  azure.yaml                # azd manifest: infra.provider=terraform, infra.path=., posix hooks only
+  terraform.tfvars.example  # documented variable combinations
+  terraform.auto.tfvars.json # written by pre-provision hook from azd env
+  provider.conf.json        # written by pre-provision hook from backend.hcl (azd alpha.terraform requirement)
+  main.tfvars.json          # empty {} placeholder (azd alpha.terraform requirement)
+  hooks/
+    _lib.sh                 # shared helpers (log, CIDR, scenario→booleans)
+    pre-provision.sh        # 9 steps incl. backend bootstrap, provider.conf.json write, tf init
+    post-provision.sh       # print scenario summary + outputs
+    _lib.ps1                # retained but unused (cross-platform compat placeholder)
+    pre-provision.ps1       # retained but unused
+    post-provision.ps1      # retained but unused
+  scripts/
+    bootstrap-tf-backend.sh # idempotent SA + RG create; writes .azure/<env>/backend.hcl
+    bootstrap-tf-backend.ps1
+    remove-smb-ready-foundation.sh
+    Remove-SmbReadyFoundation.ps1
+  tests/
+    scenarios.tftest.hcl    # 4 plan-mode runs: baseline, firewall, vpn, full
+  modules/
+    management-group/       # azurerm_management_group (no parent_management_group_id → tenant root)
+    policy-assignments-mg/  # Initiative (33 policies) + 1 assignment
+    resource-groups/        # 6 RGs: hub, spoke, monitor, backup, migrate, security
+    defender/               # azurerm_security_center_subscription_pricing × N (tier=Free/Standard)
+    budget/                 # azurerm_consumption_budget_subscription with 3 notifications
+    network-hub/            # VNet + NSG + 4 subnets (+ shared PDZ) + diag settings on VNet/NSG
+    network-spoke/          # VNet + NSG + 4 subnets + optional NAT gateway + diag settings
+    firewall/               # PIP×2 + firewall policy + rule collection groups + firewall + diag setting (conditional)
+    route-tables/           # route tables + UDRs + subnet associations (conditional on deploy_firewall)
+    vpn-gateway/            # PIP + VPN gateway (conditional on deploy_vpn, serialised after firewall)
+    peering/                # hub↔spoke peering + terraform_data VPN-ready relay
+    monitoring/             # Log Analytics workspace (PerGB2018, 30-day retention, daily_quota_gb)
+    backup/                 # Recovery Services Vault + DefaultVMPolicy + diag setting
+    policy-backup-auto/     # sub-scope DINE policy + 2 role assignments (Backup Contrib, VM Contrib)
+    migrate/                # azapi_resource Microsoft.Migrate/migrateProjects with schema_validation_enabled=false
+    keyvault/               # KV (RBAC, purge protect, PNA=false) + PDZ + PE + diag setting
+    automation/             # Automation Account (PNA=false) + LAW linked service + diag setting
+```
 
-## Phase 1 — Scaffolding & conventions
+## Resource vs. policy compliance map
 
-1. Create `infra/terraform/smb-ready-foundation/` with skeleton: `versions.tf`,
-   `providers.tf`, `variables.tf`, `locals.tf`, `main.tf`, `outputs.tf`, `azure.yaml`,
-   `.gitignore`, `backend.tf` (partial, configured via `-backend-config`).
-2. Create `infra/terraform/smb-ready-foundation-mg/` with skeleton for MG bootstrap
-   (MG create + subscription association + 30 MG-scoped policy assignments).
-3. Pin `terraform >= 1.9`, `azurerm ~> 4.0`, `azapi ~> 2.0` (for Azure Migrate),
-   `random`, `null`. Confirm `enable_telemetry` default for AVM modules (leave default
-   unless repo convention dictates `false`).
-4. **AVM-TF availability gate**: before module-level work begins, verify AVM-TF
-   existence and version for: virtualnetworkgateway, recoveryservices-vault (backup
-   policies), automationaccount, firewallpolicy, azurefirewall, natgateway, routetable,
-   privatednszone, operationalinsights-workspace, keyvault-vault, publicipaddress,
-   virtualnetwork, networksecuritygroup, resourcegroup, consumption-budget. Record
-   decisions (AVM vs. raw) in a table inside the TF-variant implementation-plan
-   artifact (Phase 10). Any `azurerm_*` fallbacks are flagged here, not discovered late.
-5. Define `locals.tf` with region map (`swedencentral→swc`, `germanywestcentral→gwc`),
-   `rg_names` map, `shared_services_tags`, `spoke_tags`, derived booleans
-   (`deploy_peering`, `deploy_spoke_nat_gateway`), and `unique_suffix`. Use
-   `random_string` (4 char lowercase) **and** `substr(sha1(data.azurerm_subscription.current.id), 0, 13)`
-   as the primary suffix generator to match Bicep's `uniqueString(subscription().subscriptionId)`
-   exactly for any resource whose name must be identical across IaC flavors
-   (e.g., Key Vault). Random suffix used only for resources where cross-flavor parity
-   is not required. **OPEN: confirm whether Bicep and Terraform deployments are ever
-   expected to target the same subscription simultaneously** — if so, global unique
-   names (storage, KV) will collide and names must diverge by design.
-6. Add `azure.yaml` with `infra.provider: terraform`, `infra.path: .`,
-   preprovision/postprovision hook bindings (posix→`.sh`, windows→`.ps1`).
-   **Do NOT set `infra.module`** — it is a Bicep-only field (points to `main.bicep`
-   filename). azd Terraform uses the root directory as the module.
-7. **Enable azd Terraform alpha**: add `azd config set alpha.terraform on` as the
-   first step of the preprovision hook (idempotent; matches documented azd
-   requirement for TF provider support).
+The foundation is deployed **first-time-right compliant** — no audit drift on
+`terraform apply`, no DeployIfNotExists remediation rewriting TF-managed state.
 
-## Phase 2 — Management Group bootstrap (`infra/terraform/smb-ready-foundation-mg/`)
+| Policy                                                                         | Effect            | Compliance mechanism in TF                                                                                                                                                                     |
+| ------------------------------------------------------------------------------ | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `smb-tagging-01/02` (Environment, Owner required)                              | Deny              | `local.shared_services_tags` / `local.spoke_tags` applied to every taggable resource                                                                                                           |
+| `smb-governance-01` (allowed locations)                                        | Deny              | All modules use `var.location` = `swedencentral`                                                                                                                                               |
+| `smb-storage-01/02/03` (HTTPS, no public blob, TLS 1.2)                        | Deny              | No storage accounts deployed in this foundation                                                                                                                                                |
+| `smb-kv-01..06` (soft delete, purge protect, RBAC, no public net, expirations) | Audit             | KV module: `soft_delete_retention_days=90`, `purge_protection_enabled=true`, `enable_rbac_authorization=true`, `public_network_access_enabled=false`, `network_acls { default_action="Deny" }` |
+| `smb-kv-07` (resource logs)                                                    | Audit             | `azurerm_monitor_diagnostic_setting.kv` → LAW                                                                                                                                                  |
+| `smb-monitoring-01` (diagnostic settings)                                      | AuditIfNotExists  | Diag settings on: KV, Automation Account, hub VNet, hub NSG, spoke VNet, spoke NSG, Firewall (conditional), Recovery Services Vault. All → LAW.                                                |
+| `smb-backup-02` (auto-backup VMs tagged `Backup:true`)                         | DeployIfNotExists | Sub-scope assignment in `policy-backup-auto` module; **no VMs deployed by this foundation**, so no state drift possible                                                                        |
+| `smb-network-01..05` (NSG on subnets, close mgmt ports, flow logs, etc.)       | Audit             | Hub/spoke NSGs attached to non-reserved subnets; default deny-all rule                                                                                                                         |
+| `smb-compute-01..06` (allowed SKUs, no public IPs on NICs, etc.)               | Deny/Audit        | No VMs/NICs deployed by this foundation                                                                                                                                                        |
 
-_Parallel with Phase 1._ Must run BEFORE main root.
+**This session's tightening**: added `log_analytics_workspace_id` variable to
+`network-hub`, `network-spoke`, `firewall`, `backup` modules and wired diag
+settings on hub VNet, hub NSG, spoke VNet, spoke NSG, Azure Firewall,
+Recovery Services Vault. Previously only KV + Automation Account had diag
+settings. This closes the `smb-monitoring-01` audit gap at apply time.
 
-1. `azurerm_management_group.smb_rf` + `azurerm_management_group_subscription_association`.
-2. Port `modules/policy-assignments-mg.bicep` → 30 discrete
-   `azurerm_management_group_policy_assignment` resources keyed by the existing
-   Bicep resource names (`policy_compute_01` … `policy_tagging_01`). Use `for_each`
-   over a **rich** policy-map whose value shape is:
-   `{ definition_id, display_name, description, parameters (object), enforcement_mode,
-identity_type (None|SystemAssigned), role_definition_ids (list), non_compliance_message }`.
-   Assignments whose shape diverges meaningfully from the uniform map (e.g., policies
-   with resource-type selectors, nested policy parameters, or DeployIfNotExists-only
-   properties) are lifted OUT of the map into individual resource blocks. Target:
-   ≥ 80% via `for_each`, remainder as explicit blocks. Do not pretend one-map-fits-all.
-3. Variables: `management_group_name`, `subscription_id`, `allowed_locations`,
-   `allowed_vm_skus` (33 SKUs matching Bicep exactly — value-identical list).
-4. Outputs: `management_group_id`.
-5. Independent state file: `smb-ready-foundation-mg.tfstate`.
-6. **Idempotency**: the MG may already exist (created previously by Bicep flow).
-   Import path via `import` block (TF 1.5+) keyed by MG id
-   `/providers/Microsoft.Management/managementGroups/smb-rf`. The import block is
-   no-op when resource matches, creates-on-first-apply otherwise.
-7. **Providers block**: `provider "azurerm" { features {} subscription_id = var.subscription_id }`
-   required even for MG-only operations (TF azurerm 4.x mandates subscription_id).
-   Add `data.azurerm_client_config.current` for tenant lookup.
+## Variables (as-built, `variables.tf`)
 
-## Phase 3 — Main root module composition (`infra/terraform/smb-ready-foundation/main.tf`)
+| Variable                        | Type         | Default                                           | Validation                          |
+| ------------------------------- | ------------ | ------------------------------------------------- | ----------------------------------- |
+| `subscription_id`               | string       | —                                                 | GUID format                         |
+| `location`                      | string       | `"swedencentral"`                                 | `swedencentral\|germanywestcentral` |
+| `environment`                   | string       | `"prod"`                                          | `dev\|staging\|prod`                |
+| `owner`                         | string       | —                                                 | non-empty                           |
+| `deploy_firewall`               | bool         | `false`                                           | —                                   |
+| `deploy_vpn`                    | bool         | `false`                                           | —                                   |
+| `management_group_name`         | string       | `"smb-rf"`                                        | —                                   |
+| `management_group_display_name` | string       | `"SMB Ready Foundation"`                          | —                                   |
+| `assignment_location`           | string       | `"swedencentral"`                                 | —                                   |
+| `allowed_vm_skus`               | list(string) | 33 SKUs                                           | non-empty                           |
+| `allowed_locations`             | list(string) | `["swedencentral","germanywestcentral","global"]` | non-empty                           |
+| `hub_vnet_address_space`        | string       | `"10.0.0.0/23"`                                   | CIDR regex                          |
+| `spoke_vnet_address_space`      | string       | `"10.0.2.0/23"`                                   | CIDR regex                          |
+| `on_premises_address_space`     | string       | `""`                                              | CIDR regex or empty                 |
+| `log_analytics_daily_cap_gb`    | number       | `0.5`                                             | `> 0`                               |
+| `budget_amount`                 | number       | `100`                                             | `100 <= x <= 10000`                 |
+| `budget_alert_email`            | string       | `""` (falls back to `owner`)                      | —                                   |
+| `budget_start_date`             | string       | — (hook-injected)                                 | `YYYY-MM-01` regex                  |
 
-_Depends on Phase 1._ Mirrors `main.bicep` phases exactly:
+azd → TF_VAR bridge: the pre-provision hook writes
+`terraform.auto.tfvars.json` from azd env vars so partners only need
+`azd env set SCENARIO / OWNER / …`.
 
-1. **Phase 3a — Subscription-scope**: budget (`azurerm_consumption_budget_subscription`
-   — no AVM-TF module exists for consumption budgets), Defender pricings
-   (`azurerm_security_center_subscription_pricing`).
-2. **Phase 3b — Resource groups**: `Azure/avm-res-resources-resourcegroup/azurerm` ×6
-   (hub, spoke, monitor, backup, migrate, security) via `for_each` on `rg_names` map.
-3. **Phase 3c — Core networking**: hub VNet module + spoke VNet module (see Phase 4).
-4. **Phase 3d — Supporting services**: monitoring, backup, migrate, keyvault, automation
-   (see Phase 4).
-5. **Phase 3e — Optional**: `module.firewall`, `module.route_tables`, `module.vpn_gateway`
-   — gated via `count = var.deploy_firewall ? 1 : 0` (TF 1.5+ supports module-level
-   `count`). Enforce VPN-after-Firewall ordering via explicit
-   `depends_on = [module.firewall]` (ADR-0004 race condition).
-6. **Phase 3f — Peering**: `module.networking_peering` gated on
-   `local.deploy_peering`. When VPN is deployed, wire
-   `depends_on = [module.vpn_gateway]`. To avoid the "unknown count at plan time"
-   pitfall with conditional modules, insert a `terraform_data` relay resource
-   (`resource "terraform_data" "vpn_ready" { triggers_replace = [module.vpn_gateway[*].id] }`)
-   and `depends_on = [terraform_data.vpn_ready]` on peering. This guarantees
-   correct ordering regardless of conditional module instantiation.
+## Management Group idempotency (as-built)
 
-## Phase 4 — Child modules (`infra/terraform/smb-ready-foundation/modules/`)
+```hcl
+# main.tf
+module "management_group" {
+  source = "./modules/management-group"
+  name            = var.management_group_name
+  display_name    = var.management_group_display_name
+  subscription_id = var.subscription_id
+}
 
-_Parallel sub-tasks._ One child module per Bicep module. Preserve resource names
-and outputs 1:1 with Bicep. Modules marked † **must be verified in the Phase 1
-AVM-TF availability gate** — if the AVM module does not exist or lacks required
-features, fall back to the raw-resource approach noted and record in the
-TF-variant resource-inventory artifact.
+import {
+  to = module.management_group.azurerm_management_group.smb_rf
+  id = "/providers/Microsoft.Management/managementGroups/${var.management_group_name}"
+}
+```
 
-| Bicep module               | TF module approach                                                                                                                                                  |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `resource-groups.bicep`    | `Azure/avm-res-resources-resourcegroup/azurerm` (inline in root via `for_each`) †                                                                                   |
-| `networking-hub.bicep`     | `Azure/avm-res-network-virtualnetwork` + `...-networksecuritygroup` + `...-privatednszone` †                                                                        |
-| `networking-spoke.bicep`   | Same VNet+NSG AVM; `Azure/avm-res-network-natgateway` (conditional) †                                                                                               |
-| `firewall.bicep`           | `Azure/avm-res-network-publicipaddress` ×2 + `...-firewallpolicy` + `...-azurefirewall` †                                                                           |
-| `route-tables.bicep`       | `Azure/avm-res-network-routetable` † (fallback: `azurerm_route_table` + `azurerm_route`)                                                                            |
-| `vpn-gateway.bicep`        | `Azure/avm-res-network-virtualnetworkgateway` † (fallback: `azurerm_virtual_network_gateway`)                                                                       |
-| `networking-peering.bicep` | `azurerm_virtual_network_peering` ×2 (hub→spoke, spoke→hub) — raw; no mature AVM                                                                                    |
-| `monitoring.bicep`         | `Azure/avm-res-operationalinsights-workspace` with `daily_quota_gb` (number, not string) †                                                                          |
-| `backup.bicep`             | `Azure/avm-res-recoveryservices-vault` † + `azurerm_backup_policy_vm` (AVM policy coverage partial)                                                                 |
-| `policy-backup-auto.bicep` | `azurerm_subscription_policy_assignment` with SystemAssigned identity + 2× `azurerm_role_assignment` (Backup Contributor, Virtual Machine Contributor) at sub scope |
-| `migrate.bicep`            | `azapi_resource` (`Microsoft.Migrate/assessmentProjects`) — no AVM-TF (Q2 decision)                                                                                 |
-| `keyvault.bicep`           | `Azure/avm-res-keyvault-vault` † with PE + DNS zone + diagnostic settings; mirror Bicep's `purge_protection_enabled` and `soft_delete_retention_days`               |
-| `defender.bicep`           | `azurerm_security_center_subscription_pricing` ×N — no AVM                                                                                                          |
-| `automation.bicep`         | `Azure/avm-res-automation-automationaccount` † + `azurerm_log_analytics_linked_service` (fallback: `azurerm_automation_account`)                                    |
-| `budget.bicep`             | `azurerm_consumption_budget_subscription` with 3 forecast thresholds (80/100/120%)                                                                                  |
+Root-level `import` adopts a pre-existing MG (created either by the
+`scripts/test-scenarios-tf.sh` pre-flight via `az account management-group create`
+or by a prior Bicep deployment). Falls back to create on first apply if the MG
+doesn't exist. The MG is placed under the tenant root (no
+`parent_management_group_id`).
 
-Legacy note: `modules/policy-assignments.bicep` is **not** ported. Per Bicep
-comments and the MG module header ("30 MG-scoped policies + 3 sub-scoped"), all
-policies have been migrated to the MG module (Phase 2) and the 3 sub-scoped
-assignments live in `policy-backup-auto.bicep`, `budget.bicep`, and `defender.bicep`.
-Confirm during Phase 1 by searching for lingering references to
-`policy-assignments.bicep` in `main.bicep`; if unreferenced, no port needed.
+## Policy assignments (as-built, `modules/policy-assignments-mg/main.tf`)
 
-Every module enforces: required tags, diagnostic settings → LA workspace, TLS 1.2,
-HTTPS-only, no public blob, `allow_shared_key_access = false` on storage, managed
-identity where applicable.
+Consolidated into a single custom initiative. Two Azure Policy resources at
+MG scope, one assignment at sub scope.
 
-## Phase 5 — Variables & parameter mapping
+| Block                                                                          | Count | Approach                                                                                                                                 |
+| ------------------------------------------------------------------------------ | ----- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `azurerm_management_group_policy_set_definition.smb_baseline`                  | 1     | Custom Policy Set (initiative) aggregating 33 built-in policy definitions                                                                |
+| ↳ uniform `policy_definition_reference` blocks                                 | 22    | `dynamic` over `local.uniform_refs` map, no parameters                                                                                   |
+| ↳ Key Vault audit references                                                   | 6     | `dynamic` over `local.kv_audit_refs` map with `effect = Audit` param                                                                     |
+| ↳ parameterised references                                                     | 5     | Explicit blocks for compute-01 (VM SKUs), tagging-01/02 (tagName), governance-01 (allowedLocations), monitoring-01 (listOfResourceTypes) |
+| `azurerm_management_group_policy_assignment.smb_baseline`                      | 1     | Single initiative assignment with 2 top-level params (`allowedLocations`, `allowedVmSkus`) sourced from variables                        |
+| **Total MG-scoped assignments**                                                | **1** | Down from 33 discrete assignments                                                                                                        |
+| `azurerm_subscription_policy_assignment.backup_auto` (in `policy-backup-auto`) | 1     | Sub-scope DINE with SystemAssigned identity + 2 role assignments (cannot live in the initiative because of scope)                        |
 
-1. `variables.tf` — **per-feature booleans are the authoritative input surface**:
-   `deploy_firewall` (bool), `deploy_vpn` (bool). There is **no** `scenario`
-   input variable. For human labeling/cost summary, compute a derived local:
-   `local.scenario = var.deploy_firewall && var.deploy_vpn ? "full" : var.deploy_firewall ? "firewall" : var.deploy_vpn ? "vpn" : "baseline"`.
-   The preprovision hook reads azd's `SCENARIO` env var (for parity with Bicep
-   partner UX) and **translates it** into `TF_VAR_deploy_firewall`/`TF_VAR_deploy_vpn`
-   exports — no TF-side scenario variable required.
-2. Port all Bicep params with correct TF types:
-   - `location` (string, validation: allowed list)
-   - `environment` (string, validation: `dev|staging|prod`)
-   - `owner` (string, required)
-   - `hub_vnet_address_space` (string, CIDR regex validation)
-   - `spoke_vnet_address_space` (string, CIDR regex validation)
-   - `on_premises_address_space` (string, optional, CIDR regex or empty)
-   - `log_analytics_daily_cap_gb` (**number**, default `0.5` — NOT string; Bicep
-     string `'0.5'` was a JSON-schema artifact, `azurerm_log_analytics_workspace.daily_quota_gb` requires a number)
-   - `budget_amount` (number, validation: 100–10000)
-   - `budget_alert_email` (string, default = `var.owner`)
-   - `budget_start_date` (string, **no default** — injected at apply time from the
-     hook as `TF_VAR_budget_start_date=$(date -u +%Y-%m-01)` to avoid `timestamp()`
-     drift causing perpetual recreate)
-3. Use TF `validation` blocks to replace Bicep `@allowed` / `@minValue` / `@maxValue`.
-4. Add `precondition` blocks on key resources for CIDR overlap detection (defense
-   in depth; the hook already fails hard on overlap before TF runs).
-5. `terraform.tfvars.example` with boolean combinations documented and a mapping
-   table from `SCENARIO` name to booleans for partner reference.
-6. **azd → TF_VAR bridge**: preprovision hook exports the following before calling
-   `terraform apply`:
-   `TF_VAR_owner`, `TF_VAR_location`, `TF_VAR_environment`,
-   `TF_VAR_hub_vnet_address_space`, `TF_VAR_spoke_vnet_address_space`,
-   `TF_VAR_on_premises_address_space`, `TF_VAR_log_analytics_daily_cap_gb`,
-   `TF_VAR_budget_amount`, `TF_VAR_budget_alert_email`, `TF_VAR_budget_start_date`,
-   `TF_VAR_deploy_firewall`, `TF_VAR_deploy_vpn`.
-   Values sourced from azd env vars (`SCENARIO`, `OWNER`, `AZURE_LOCATION`, etc.).
-   azd itself only auto-bridges `AZURE_ENV_NAME`, `AZURE_LOCATION`, `AZURE_SUBSCRIPTION_ID`
-   to `TF_VAR_*`, so the hook must handle everything else. (This replaces
-   `main.parameters.json` from Bicep.)
+### Why an initiative?
 
-## Phase 6 — Hooks (PowerShell **and** Bash, 1:1 parity with Bicep hooks)
+- **Atomic lifecycle** — all 33 policies enable/disable/version together.
+- **Faster destroy** — 2 MG objects instead of 34 to delete; avoids the
+  partial-teardown leftover-policy problem observed with per-policy
+  assignments.
+- **Simpler compliance reporting** — one initiative compliance score in
+  Azure Policy blade.
+- **Versioning** — the initiative carries a `version` metadata field; bumping
+  it triggers a single assignment refresh instead of 33 separate updates.
 
-Per Q3 decision, both OS variants exist and do the same work. Shared logic
-extracted to helper files to minimize drift.
+### Initiative parameters
 
-1. **Hook files**:
-   - `hooks/pre-provision.sh` + `hooks/pre-provision.ps1`
-   - `hooks/post-provision.sh` + `hooks/post-provision.ps1`
-   - `hooks/_lib.sh` + `hooks/_lib.ps1` — shared CIDR, cleanup, retry helpers
-2. **Preprovision responsibilities** (mirror `pre-provision.ps1`):
-   - `azd config set alpha.terraform on` (idempotent, enables TF provider support)
-   - Validate/auto-detect `OWNER`, `AZURE_LOCATION`, `SCENARIO`, CIDRs
-   - Derive script-relative paths:
-     Bash — `PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"`,
-     `MG_DIR="$(dirname "$PROJECT_DIR")/smb-ready-foundation-mg"`;
-     PS — `$ProjectDir = Split-Path $PSScriptRoot -Parent; $MgDir = Join-Path (Split-Path $ProjectDir -Parent) 'smb-ready-foundation-mg'`.
-     Never rely on the working directory; azd sets cwd inconsistently across versions.
-   - CIDR overlap + prefix validation (duplicated across lib files; shared regex in `_lib.*`)
-   - Run backend bootstrap: `scripts/bootstrap-tf-backend.{sh,ps1}` when
-     `TF_BACKEND=azurerm`
-   - Translate `SCENARIO` env var into `TF_VAR_deploy_firewall` and
-     `TF_VAR_deploy_vpn` exports
-   - Compute and export `TF_VAR_budget_start_date="$(date -u +%Y-%m-01)"`
-     (avoids `timestamp()` drift in TF config)
-   - Export all other `TF_VAR_*` values from azd env vars (Phase 5 step 6 list)
-   - `terraform -chdir="$MG_DIR" init -backend-config="$MG_DIR/backend.hcl"`
-     then `terraform -chdir="$MG_DIR" apply -auto-approve` to bootstrap MG + 30 policies
-   - Delete stale budget (Azure API limitation — no TF equivalent)
-   - Faulted firewall / VPN gateway cleanup via `az`
-   - Orphaned role-assignment cleanup
-3. **Postprovision responsibilities** (mirror `post-provision.ps1`):
-   - Parse `terraform output -json`, print scenario summary, cost estimate, next steps
-   - **Retry policy**: Bicep hook retries with 9 transient-error regex patterns and
-     exponential backoff. Terraform equivalent — if `azd provision` fails, the
-     postprovision hook detects via exit code / latest state, matches the same regex
-     set against captured stderr from a `TF_LOG=ERROR` tail, and re-runs
-     `terraform -chdir=<root> apply -auto-approve` with exponential backoff
-     (3 attempts, 30/60/120s). Maintains parity with ADR-documented behavior.
-4. **Terraform-native guards layered on top** (defense-in-depth, not replacement):
-   - CIDR validation → `variable.validation` in addition to hook-level check
-   - Scope enforcement → `precondition` on peering module (requires hub/spoke VNet IDs)
-   - Scenario invariants → `precondition` blocks on firewall/vpn modules asserting
-     the respective boolean is set. (Note: `check` blocks in TF 1.5+ only emit
-     warnings and never fail apply; use `precondition` for blocking assertions.
-     `check` is acceptable only for drift signaling in `terraform plan` output.)
-5. **azd manifest hook routing**: `posix` → `.sh`, `windows` → `.ps1`. Both shells
-   declared `pwsh` where the file is PS, `sh` where Bash. Match the existing Bicep
-   manifest convention for drop-in familiarity.
+The initiative exposes only the two parameters that legitimately vary per
+landing zone:
 
-## Phase 7 — State backend switching
+- `allowedLocations` (Array) — wired to `var.allowed_locations`
+- `allowedVmSkus` (Array) — wired to `var.allowed_vm_skus`
 
-1. `backend.tf` uses partial config: `backend "azurerm" {}` block with fields supplied
-   via `-backend-config=...` during `terraform init`.
-2. `hooks/pre-provision.{sh,ps1}` reads `TF_BACKEND` env var:
-   - `TF_BACKEND=azurerm` (default) → ensure backend storage account exists
-     (bootstrap via `az storage account create`), write `backend.hcl`
-   - `TF_BACKEND=local` → skip bootstrap, init with
-     `-backend-config=path=terraform.tfstate`
-3. Backend bootstrap helpers: `scripts/bootstrap-tf-backend.sh` and
-   `scripts/bootstrap-tf-backend.ps1` (idempotent SA creation). Backend SA lives in
-   a dedicated RG `rg-tfstate-smb-<regionShort>` with storage firewall + blob
-   versioning enabled.
-4. Backend config values (SA name, container, key) derived from
-   `AZURE_ENV_NAME` + subscription id suffix; `key` differs for `smb-ready-foundation`
-   vs. `smb-ready-foundation-mg` so state files never collide.
+Everything else (tagNames, resource-type lists, Audit effect on KV policies)
+is hard-coded at the reference level for determinism.
 
-## Phase 8 — CI / validation
+### Reference-id stability
 
-1. Confirm `scripts/validate-terraform.mjs` (invoked by `npm run validate:terraform`
-   and `npm run validate:_external`) already iterates `infra/terraform/*/`; if it
-   does, both new roots are picked up automatically. If not, patch it.
-2. Extend `scripts/diff-based-push-check.sh` so edits under
-   `infra/terraform/smb-ready-foundation{,-mg}/**/*.tf` trigger `terraform fmt -check`,
-   `terraform validate`, and `tflint` on the changed root(s). This matches the
-   repo's diff-based pre-push convention.
-3. Add GitHub Actions workflow
-   `.github/workflows/terraform-smb-ready-foundation.yml`:
-   fmt check, `terraform init -backend=false`, `validate`, `tflint`, plan on PR.
-   Runs for paths `infra/terraform/smb-ready-foundation{,-mg}/**`.
-4. Add e2e job (gated on label `e2e:terraform` or manual dispatch): OIDC federated
-   login, `azd up` in ephemeral sub, assert resources via `az` queries, `azd down`.
-   Matrix over 4 boolean combinations: `(false,false)`, `(true,false)`, `(false,true)`,
-   `(true,true)` — equivalent to baseline/firewall/vpn/full.
-5. Write `.tftest.hcl` files per module (mocked `azurerm` provider via
-   `mock_provider`) for the most critical modules: `networking-hub`, `networking-spoke`,
-   `firewall`, `vpn-gateway`, `networking-peering`, `keyvault`. Target: ≥ 1
-   plan-mode assertion per module.
-6. Add `iac-security-baseline` validation coverage for TF paths
-   (`npm run validate:iac-security-baseline`); confirm the script's glob covers
-   `infra/terraform/**/*.tf`.
+Each `policy_definition_reference.reference_id` matches the previous
+assignment name (`smb-compute-01`, `smb-tagging-02`, etc.) so compliance
+reports, dashboards, and exemptions keyed to those identifiers continue to
+work without remapping.
 
-## Phase 9 — Cleanup & teardown scripts
+## Hooks (as-built, Bash-only)
 
-Scripts live at `infra/terraform/smb-ready-foundation/scripts/` (project-local,
-mirroring Bicep's `infra/bicep/smb-ready-foundation/scripts/`). This prevents
-collision with the Bicep teardown scripts.
+`hooks/pre-provision.sh` steps:
 
-1. `scripts/remove-smb-ready-foundation.sh` (Bash) and
-   `scripts/Remove-SmbReadyFoundation.ps1` (PS) — both call
-   `terraform destroy -auto-approve` in the main root, then the MG root in reverse
-   order. Post-destroy steps: `az keyvault purge` for any KV with purge-protection,
-   `az backup vault backup-item` cleanup for Recovery Services Vault soft-deleted
-   items, orphaned role-assignment sweep (mirrors preprovision behavior).
-2. `scripts/remove-smb-ready-foundation-policies.sh` and
-   `scripts/Remove-SmbReadyFoundationPolicies.ps1` — destroy on
-   `smb-ready-foundation-mg` root only (policies without touching MG or infra).
-3. Key Vault module sets `purge_protection_enabled` and `soft_delete_retention_days`
-   matching the Bicep values; teardown script is aware and calls
-   `az keyvault purge --name <kv>` after TF destroy succeeds.
+1. Parameter validation (OWNER auto-detect, CIDR overlap)
+2. Azure preflight (`az account show`, required RP registration)
+3. Enable `azd config set alpha.terraform on` (idempotent)
+4. Bootstrap backend (calls `scripts/bootstrap-tf-backend.sh` — creates
+   `rg-tfstate-smb-<regionShort>`, SA `sttfstatesmb<suffix>`, container
+   `tfstate`; writes `.azure/<env>/backend.hcl`)
+5. Write `terraform.auto.tfvars.json` from azd env (incl.
+   `budget_start_date = $(date -u +%Y-%m-01)` to avoid `timestamp()` drift)
+6. Delete stale budget with the same name (Azure API cannot update
+   `start_date` post-creation)
+7. Clean faulted firewall / VPN Gateway public IPs from prior failed runs
+8. **Write `provider.conf.json`** by awk-parsing `backend.hcl` — required by
+   azd alpha.terraform to inject backend config into `terraform init`. Also
+   writes empty `main.tfvars.json` placeholder.
+9. `terraform init -reconfigure`
 
-## Phase 10 — Agent-output artifacts (Terraform variants, new files only)
+`hooks/post-provision.sh`:
 
-Create new files alongside existing Bicep artifacts. Do **not** touch existing files.
+- Parse `terraform output -json`, print scenario summary, budget, Defender
+  pricings, next steps.
 
-1. `agent-output/smb-ready-foundation/04-implementation-plan-terraform.md` —
-   TF-specific implementation plan (mirror structure of `04-implementation-plan.md`).
-2. `agent-output/smb-ready-foundation/05-implementation-reference-terraform.md` —
-   TF code reference index.
-3. `agent-output/smb-ready-foundation/07-ab-adr-0005-terraform-implementation.md` —
-   ADR documenting TF port decisions (AVM-TF, dual backend, MG bootstrap split, etc.).
-4. `agent-output/smb-ready-foundation/07-ab-adr-0006-terraform-hook-modernization.md` —
-   ADR on native-guard vs. PS hooks.
-5. `agent-output/smb-ready-foundation/07-resource-inventory-terraform.md` —
-   TF resource inventory (side-by-side with Bicep inventory).
-6. Update `agent-output/smb-ready-foundation/README.md` to add a **new section** only
-   (no modifications to existing content) pointing to the TF variants.
+**No retry loop on apply failures** — original plan called for a 9-pattern
+retry (mirroring Bicep); not implemented. Failed `azd provision` → operator
+reruns.
 
----
+## Scenario orchestration
 
-## Relevant files (reference templates to reuse)
+`scripts/test-scenarios-tf.sh` (mirror of Bicep's `test-scenarios.sh`):
 
-- `infra/bicep/smb-ready-foundation/main.bicep` — orchestration phases, scenario logic,
-  cross-module wiring; direct 1:1 translation target for `main.tf`
-- `infra/bicep/smb-ready-foundation/modules/*.bicep` — per-module source of truth
-- `infra/bicep/smb-ready-foundation/hooks/pre-provision.ps1` — preprovision behavior
-  contract (CIDR, MG, cleanup, retry); guides `hooks/pre-provision.sh`
-- `infra/bicep/smb-ready-foundation/hooks/post-provision.ps1` — postprovision UX
-- `infra/bicep/smb-ready-foundation/azure.yaml` — azd manifest template
-- `infra/bicep/smb-ready-foundation/modules/policy-assignments-mg.bicep` — 30 policy
-  assignments to replicate in `smb-ready-foundation-mg`
-- `infra/bicep/smb-ready-foundation/deploy-mg.bicep` — MG bootstrap target
-- `.github/skills/terraform-patterns/SKILL.md` + `references/` — AVM-TF patterns,
-  conditional deployment, private endpoints, diagnostic settings
-- `.github/instructions/iac-terraform-best-practices.instructions.md` — style guide
-- `AGENTS.md` — repo conventions (naming, tags, provider pins, AVM-first)
+- Pre-flight: detect existing `.azure/smb-rf-tf-*` env dirs and tear each
+  down.
+- For each scenario in `(firewall vpn full)`:
+  1. Pre-create MG (idempotent) via `az account management-group create`
+  2. `azd env select/new "smb-rf-tf-${scenario}"`
+  3. `azd env set` for SCENARIO, OWNER, AZURE_LOCATION,
+     AZURE_SUBSCRIPTION_ID, ENVIRONMENT, HUB/SPOKE/ON-PREM CIDRs, LAW cap
+  4. `azd up --no-prompt` (with one 60s-sleep retry)
+  5. Validate (9 checks incl. `terraform state list | wc -l > 0`)
+  6. `azd down --force --purge` + fallback `az group delete --no-wait`
+
+## Destroy ordering fragility (known issue)
+
+`azd down` → `terraform destroy` can abort mid-graph when subnet dependencies
+(NSG/route-table associations, private endpoints) are not removed in the
+right order. Observed failures:
+
+- `Error: deleting Subnet … performing Delete: 404 Not Found` — VNet already
+  deleted by a parallel destroy branch, subnet delete fails.
+- `Error: deleting Rule Collection Group … 404 Not Found` — firewall policy
+  already deleted.
+
+These are **cosmetic** once the destroy has progressed far enough (Azure GCs
+the subnets with the VNet), but Terraform exits non-zero, leaving orphaned
+state entries. Recovery: `az group delete` any leftover RGs, drop the state
+blob, re-run.
+
+Not currently mitigated in TF config. Candidate mitigations (not implemented):
+
+- `lifecycle { create_before_destroy = true }` on subnet/NSG associations
+- Pre-destroy `terraform state rm` for problem resource types
+- Explicit `depends_on` chains that force association deletes before VNet
+  delete
+
+## CI / validation (as-built)
+
+- `.github/workflows/terraform-smb-ready-foundation.yml` — fmt check, init
+  (`-backend=false`), validate, tflint on paths under
+  `infra/terraform/smb-ready-foundation/**`
+- `scripts/validate-terraform.mjs` (invoked via `npm run validate:terraform`)
+  iterates every `infra/terraform/*/` root
+- `scripts/diff-based-push-check.sh` runs fmt/validate/tflint on changed TF
+  roots pre-push
+- `scripts/validate-iac-security-baseline.mjs` covers TF paths
+- `tests/scenarios.tftest.hcl` — 4 plan-mode runs (baseline, firewall, vpn,
+  full) with mocked provider
+- **No e2e apply matrix** — original plan called for 4-scenario OIDC
+  federated apply/destroy. Local runner (`scripts/test-scenarios-tf.sh`)
+  serves this purpose.
 
 ## Verification
 
 1. `terraform fmt -check -recursive infra/terraform/` passes
 2. `cd infra/terraform/smb-ready-foundation && terraform init -backend=false && terraform validate` passes
-3. `cd infra/terraform/smb-ready-foundation-mg && terraform init -backend=false && terraform validate` passes
-4. `tflint --init && tflint` passes in both roots
-5. `npm run validate:terraform` passes
-6. `npm run validate:iac-security-baseline` passes on TF paths
-7. `terraform test` passes in each module with `.tftest.hcl`
-8. End-to-end: set `azd env set OWNER <email>` + boolean combinations via
-   `azd env set DEPLOY_FIREWALL <bool>` / `DEPLOY_VPN <bool>` (or use the
-   `SCENARIO` shim) and run `azd up` for each of the 4 combinations:
-   `(false,false)` baseline, `(true,false)` firewall, `(false,true)` vpn,
-   `(true,true)` full. Each deploys cleanly
-9. Policy count assertion: `az policy assignment list --scope /providers/Microsoft.Management/managementGroups/smb-rf --query "length(@)" -o tsv` equals **30**
-10. Sub-scoped policy/budget/Defender assertion: `az policy assignment list --scope /subscriptions/<sub> --query "length([?starts_with(name, 'smb-')])" -o tsv` equals **3** (auto-backup, budget, Defender plans)
-11. Side-by-side resource inventory (via `az resource list -g rg-hub-smb-swc -o table`) matches the Bicep deployment for the same scenario (resource type counts and tags)
-12. Deployed resource tags (`Environment`, `Owner`, `Project`, `ManagedBy=Terraform`), names, and counts match the Bicep naming convention
-13. `azd down` + teardown scripts leave no orphans (no soft-deleted KV, no orphaned role assignments, no leftover Public IPs from faulted VPN/Firewall)
-14. CI workflow `terraform-smb-ready-foundation.yml` green on PR (fmt, validate, tflint, plan)
+3. `tflint --init && tflint` passes
+4. `npm run validate:terraform` passes
+5. `npm run validate:iac-security-baseline` passes on TF paths
+6. `terraform test -test-directory=tests` — 4 scenario plans succeed
+7. `scripts/test-scenarios-tf.sh` — deploys firewall, vpn, full end-to-end
+8. MG-scoped assignment count = **1** (`smb-baseline` initiative aggregating **33** policies). Verify via:
+   - `az policy assignment list --scope /providers/Microsoft.Management/managementGroups/smb-rf --query "[?name=='smb-baseline']"`
+   - `az policy set-definition show --name smb-baseline --management-group smb-rf` — `length(policyDefinitions)` = **33**
+9. `az policy assignment list --query "length([?starts_with(name, 'smb-')])" -o tsv` (sub scope) = **1** (auto-backup DINE)
+10. Deployed resource tags (`Environment`, `Owner`, `Project`, `ManagedBy=Terraform`) match
+11. `azd down` + teardown script leaves no orphans (KV purged, no orphaned role assignments, no leftover PIPs)
 
-## Further considerations (residual risks flagged during planning)
+## Deviations from original plan
 
-1. **Shared-subscription naming collisions** — if Bicep and TF deployments ever target
-   the same subscription at the same time, globally unique names (Key Vault, storage)
-   will collide. Use per-flavor suffix (e.g., `${uniqueSuffix}t` for TF) or enforce
-   mutually exclusive deployments. Recommendation: document as an operational
-   constraint in the TF-variant README section; verify during Phase 1.
-2. **AVM-TF maturity gate (Phase 1 step 4)** — modules marked † in the Phase 4 table
-   are unverified. Expected gaps: `avm-res-migrate` (none — azapi), `avm-res-security-pricing`
-   (none — azurerm), `consumption-budget` (none — azurerm), possibly
-   `virtualnetworkgateway`, `route-table`, `automation-automationaccount`.
-   Each gap triggers an `azurerm_*`/`azapi_*` fallback and an entry in the TF-variant
-   resource-inventory artifact.
-3. **MG bootstrap idempotency when MG already exists from Bicep flow** — `import`
-   block chosen; must verify behavior for `Microsoft.Management/managementGroups`
-   with scope `/providers/Microsoft.Management/managementGroups/smb-rf`. If import
-   conflicts with Bicep-created MG, fall back to
-   `data.azurerm_management_group` + conditional creation (`count = data.exists ? 0 : 1`).
-4. **azd alpha.terraform churn** — azd's Terraform provider is marked alpha; field
-   names (`infra.provider`, hook env-var bridging) can change between azd versions.
-   Pin a minimum azd version in the project README and verify against it in CI.
-5. **30 MG-scoped policy assignments — role assignments for DeployIfNotExists** —
-   the policy-backup-auto policy requires a managed identity with Backup Contributor
-   - VM Contributor roles. AVM-TF does not abstract this; must hand-code the
-     system-assigned MI on the policy assignment and two
-     `azurerm_role_assignment` resources at subscription scope. Covered in the Phase 4
-     row for `policy-backup-auto.bicep`.
-6. **Terraform hook retry semantics diverge from Bicep** — Bicep retry calls
-   `az deployment sub create` directly; TF retry calls `terraform apply`. State
-   mutations from a partial `apply` persist, which is fine for TF (idempotent) but
-   means the error-pattern match may fire on stale stderr from a prior attempt.
-   Mitigation: hook captures only the most-recent run's stderr; documented in
-   ADR-0006 (TF hook modernization).
-7. **`random_string` vs. `uniqueString(sub.id)` parity** — the sha1-based suffix
-   reproduces Bicep's deterministic output only when the subscription id matches.
-   For any resource whose Bicep-produced name relies on `uniqueString` of something
-   other than subscription id (e.g., resource-group id), the TF port must replicate
-   the exact input to `sha1()`. Audit every Bicep `uniqueString()` call site during
-   Phase 1 and document the input in `locals.tf` comments.
+| Original plan                                                    | As-built                                             | Reason                                                         |
+| ---------------------------------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------- |
+| Two roots (`smb-ready-foundation/` + `smb-ready-foundation-mg/`) | Single root with MG as child module + `import` block | Simpler dependency graph; ADR-0006                             |
+| AVM-TF for every module with a mature equivalent                 | Raw `azurerm_*` + `azapi` for Migrate                | AVM-TF maturity insufficient; ADR-0005                         |
+| 30 MG-scoped + 3 sub-scoped policies                             | 1 MG initiative (33 policies) + 1 sub-scoped DINE    | Atomic lifecycle, faster destroy, simpler compliance reporting |
+| Dual PowerShell + Bash hooks                                     | Bash only                                            | Devcontainer-first partner UX                                  |
+| Dual state backend (azurerm/local switchable)                    | azurerm only                                         | Local backend adds surface area with no partner ask            |
+| Per-module `.tftest.hcl`                                         | Single `tests/scenarios.tftest.hcl` with 4 runs      | Plan-mode scenario coverage catches same error class cheaper   |
+| 9-pattern retry loop in post-provision                           | No retry loop                                        | Operator-driven rerun; state is idempotent                     |
+| E2E OIDC matrix in CI                                            | Local `test-scenarios-tf.sh`                         | CI cost; manual runs suffice for the partner UX                |
+| `policy-assignments.bicep` (legacy, unreferenced) port           | Not ported                                           | Confirmed unreferenced in Bicep main                           |
+
+## Residual risks
+
+1. **Shared-subscription naming collisions** — if Bicep and TF deployments
+   ever target the same subscription simultaneously, globally-unique names
+   (Key Vault) collide. Documented as mutually-exclusive per subscription.
+2. **Destroy ordering** — see "Destroy ordering fragility" above.
+3. **DeployIfNotExists drift from `smb-backup-02`** — the policy targets VMs,
+   which this foundation does not deploy. When partner workloads add tagged
+   VMs, backups will be created outside Terraform state by design (that's
+   the policy's job). Partner workload IaC should be aware.
+4. **azd alpha.terraform churn** — provider is alpha; field names and
+   required files (`provider.conf.json`, `main.tfvars.json`) may change
+   between azd versions. Pre-provision hook handles current requirements;
+   revisit when azd promotes TF to beta/GA.
+5. **azapi Migrate schema drift** — `schema_validation_enabled = false` was
+   required because the embedded schema for
+   `Microsoft.Migrate/migrateProjects@2020-05-01` lacks the `tags` field.
+   When azapi ships an updated schema, remove the flag.
+
+## Reference files
+
+- `infra/bicep/smb-ready-foundation/main.bicep` — orchestration source of truth
+- `infra/bicep/smb-ready-foundation/modules/*.bicep` — per-module parity target
+- `agent-output/smb-ready-foundation/07-ab-adr-0005-terraform-dual-track.md`
+- `agent-output/smb-ready-foundation/07-ab-adr-0006-terraform-single-root-composition.md`
+- `agent-output/smb-ready-foundation/04-implementation-plan-terraform.md`
+- `agent-output/smb-ready-foundation/05-implementation-reference-terraform.md`
+- `agent-output/smb-ready-foundation/07-resource-inventory-terraform.md`
+- `.github/instructions/iac-terraform-best-practices.instructions.md`
+- `AGENTS.md` — repo conventions (naming, tags, provider pins)

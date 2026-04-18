@@ -1,11 +1,11 @@
 output "name" {
-  value = azurerm_key_vault.smbrf.name
+  value = module.kv.name
 }
 
 output "uri" {
-  value = azurerm_key_vault.smbrf.vault_uri
+  value = module.kv.uri
 }
 
 output "id" {
-  value = azurerm_key_vault.smbrf.id
+  value = module.kv.resource_id
 }

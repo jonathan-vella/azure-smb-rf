@@ -1,7 +1,22 @@
-// MG-scoped Azure Policy assignments (33 total)
-// Mirrors infra/bicep/smb-ready-foundation/modules/policy-assignments-mg.bicep.
+// MG-scoped governance via a single custom Policy Set (Initiative).
+//
+// Replaces 33 individual policy assignments with one initiative containing
+// 33 policyDefinitionReferences and one initiative assignment.
+//
+// Rationale:
+//   - Atomic lifecycle: all policies enable/disable/version together.
+//   - Simpler compliance reporting: one initiative compliance score.
+//   - Faster destroy: 2 MG objects instead of 33 assignments.
+//
+// The DINE `smb-backup-02` policy stays sub-scoped in the separate
+// `policy-backup-auto` module because it needs a subscription-scoped
+// SystemAssigned identity with role assignments (Backup Contributor,
+// VM Contributor) that cannot be expressed via a MG-scoped initiative.
 
 locals {
+  # ------------------------------------------------------------------
+  # Built-in policy definition IDs
+  # ------------------------------------------------------------------
   policy_definitions = {
     allowedVmSkus             = "/providers/Microsoft.Authorization/policyDefinitions/cccc23c7-8427-4f53-ad12-b6a63eb452b3"
     noPublicIpOnNic           = "/providers/Microsoft.Authorization/policyDefinitions/83a86a26-fd1f-447c-b59d-e51f44264114"
@@ -37,146 +52,174 @@ locals {
     kvResourceLogs            = "/providers/Microsoft.Authorization/policyDefinitions/cf820ca0-f99e-4f3e-84fb-66e913812d21"
   }
 
-  uniform_policy_assignments = {
-    "smb-compute-02"  = { display_name = "SMB LZ: No Public IPs on NICs", description = "Prevent VMs from having public IP addresses for security", policy_definition = local.policy_definitions.noPublicIpOnNic }
-    "smb-compute-03"  = { display_name = "SMB LZ: Audit Managed Disks", description = "Audit VMs that do not use managed disks", policy_definition = local.policy_definitions.auditManagedDisks }
-    "smb-compute-04"  = { display_name = "SMB LZ: Audit ARM VMs", description = "Audit VMs created using classic deployment model", policy_definition = local.policy_definitions.auditArmVms }
-    "smb-compute-05"  = { display_name = "SMB LZ: Audit System Updates on VMs", description = "Audit VMs that are missing system updates", policy_definition = local.policy_definitions.auditSystemUpdates }
-    "smb-compute-06"  = { display_name = "SMB LZ: Audit Endpoint Protection", description = "Audit VMs that do not have endpoint protection installed", policy_definition = local.policy_definitions.auditEndpointProtection }
-    "smb-network-01"  = { display_name = "SMB LZ: NSG on Subnets", description = "Audit subnets that do not have a Network Security Group", policy_definition = local.policy_definitions.nsgOnSubnets }
-    "smb-network-02"  = { display_name = "SMB LZ: Close Management Ports", description = "Audit VMs with management ports (22, 3389) exposed to the internet", policy_definition = local.policy_definitions.closeManagementPorts }
-    "smb-network-03"  = { display_name = "SMB LZ: Restrict NSG Ports", description = "Audit NSG rules that allow unrestricted access", policy_definition = local.policy_definitions.restrictNsgPorts }
-    "smb-network-04"  = { display_name = "SMB LZ: Disable IP Forwarding", description = "Deny enabling IP forwarding on network interfaces", policy_definition = local.policy_definitions.disableIpForwarding }
-    "smb-network-05"  = { display_name = "SMB LZ: Audit NSG Flow Logs", description = "Audit Network Security Groups that do not have flow logs configured", policy_definition = local.policy_definitions.nsgFlowLogs }
-    "smb-storage-01"  = { display_name = "SMB LZ: Storage HTTPS Only", description = "Deny storage accounts that do not require HTTPS", policy_definition = local.policy_definitions.storageHttpsOnly }
-    "smb-storage-02"  = { display_name = "SMB LZ: No Public Blob Access", description = "Deny public blob access on storage accounts", policy_definition = local.policy_definitions.noPublicBlobAccess }
-    "smb-storage-03"  = { display_name = "SMB LZ: Storage TLS 1.2", description = "Deny storage accounts with minimum TLS version below 1.2", policy_definition = local.policy_definitions.storageTls12 }
-    "smb-storage-04"  = { display_name = "SMB LZ: Restrict Storage Network", description = "Audit storage accounts with unrestricted network access", policy_definition = local.policy_definitions.restrictStorageNetwork }
-    "smb-storage-05"  = { display_name = "SMB LZ: Storage ARM Migration", description = "Audit classic storage accounts that should be migrated to ARM", policy_definition = local.policy_definitions.storageArmMigration }
-    "smb-identity-01" = { display_name = "SMB LZ: SQL Azure AD Only", description = "Audit SQL servers that do not use Azure AD-only authentication", policy_definition = local.policy_definitions.sqlAzureAdOnly }
-    "smb-identity-02" = { display_name = "SMB LZ: SQL No Public Access", description = "Audit SQL servers with public network access enabled", policy_definition = local.policy_definitions.sqlNoPublicAccess }
-    "smb-identity-03" = { display_name = "SMB LZ: Audit MFA for Owners", description = "Audit accounts with owner permissions that do not have MFA enabled", policy_definition = local.policy_definitions.auditMfaOwners }
-    "smb-identity-04" = { display_name = "SMB LZ: Audit Blocked Accounts", description = "Audit blocked accounts with read and write permissions on Azure resources", policy_definition = local.policy_definitions.auditDeprecatedAccounts }
-    "smb-backup-01"   = { display_name = "SMB LZ: VM Backup Required", description = "Audit VMs that do not have backup configured", policy_definition = local.policy_definitions.vmBackupRequired }
-    "smb-backup-03"   = { display_name = "SMB LZ: Audit Storage Geo-Redundancy", description = "Audit storage accounts that do not use geo-redundant storage", policy_definition = local.policy_definitions.auditStorageGeoRedundancy }
-    "smb-kv-07"       = { display_name = "SMB LZ: Key Vault Resource Logs", description = "Audit Key Vaults that do not have resource logs enabled", policy_definition = local.policy_definitions.kvResourceLogs }
+  # ------------------------------------------------------------------
+  # Policy references with hard-coded parameters (initiative body).
+  # reference_id = the short smb-* policy name; identical to the
+  # previous per-assignment name for compliance-report continuity.
+  # ------------------------------------------------------------------
+  uniform_refs = {
+    "smb-compute-02"  = local.policy_definitions.noPublicIpOnNic
+    "smb-compute-03"  = local.policy_definitions.auditManagedDisks
+    "smb-compute-04"  = local.policy_definitions.auditArmVms
+    "smb-compute-05"  = local.policy_definitions.auditSystemUpdates
+    "smb-compute-06"  = local.policy_definitions.auditEndpointProtection
+    "smb-network-01"  = local.policy_definitions.nsgOnSubnets
+    "smb-network-02"  = local.policy_definitions.closeManagementPorts
+    "smb-network-03"  = local.policy_definitions.restrictNsgPorts
+    "smb-network-04"  = local.policy_definitions.disableIpForwarding
+    "smb-network-05"  = local.policy_definitions.nsgFlowLogs
+    "smb-storage-01"  = local.policy_definitions.storageHttpsOnly
+    "smb-storage-02"  = local.policy_definitions.noPublicBlobAccess
+    "smb-storage-03"  = local.policy_definitions.storageTls12
+    "smb-storage-04"  = local.policy_definitions.restrictStorageNetwork
+    "smb-storage-05"  = local.policy_definitions.storageArmMigration
+    "smb-identity-01" = local.policy_definitions.sqlAzureAdOnly
+    "smb-identity-02" = local.policy_definitions.sqlNoPublicAccess
+    "smb-identity-03" = local.policy_definitions.auditMfaOwners
+    "smb-identity-04" = local.policy_definitions.auditDeprecatedAccounts
+    "smb-backup-01"   = local.policy_definitions.vmBackupRequired
+    "smb-backup-03"   = local.policy_definitions.auditStorageGeoRedundancy
+    "smb-kv-07"       = local.policy_definitions.kvResourceLogs
   }
 
-  kv_audit_assignments = {
-    "smb-kv-01" = { display_name = "SMB LZ: Key Vault Soft Delete", description = "Audit Key Vaults that do not have soft delete enabled", policy_definition = local.policy_definitions.kvSoftDelete }
-    "smb-kv-02" = { display_name = "SMB LZ: Key Vault Deletion Protection", description = "Audit Key Vaults without purge protection and soft delete", policy_definition = local.policy_definitions.kvDeletionProtection }
-    "smb-kv-03" = { display_name = "SMB LZ: Key Vault RBAC Model", description = "Audit Key Vaults that do not use RBAC permission model", policy_definition = local.policy_definitions.kvRbacModel }
-    "smb-kv-04" = { display_name = "SMB LZ: Key Vault No Public Network", description = "Audit Key Vaults that have public network access enabled", policy_definition = local.policy_definitions.kvNoPublicNetwork }
-    "smb-kv-05" = { display_name = "SMB LZ: Key Vault Secrets Expiration", description = "Audit secrets that do not have an expiration date set", policy_definition = local.policy_definitions.kvSecretsExpiration }
-    "smb-kv-06" = { display_name = "SMB LZ: Key Vault Keys Expiration", description = "Audit keys that do not have an expiration date set", policy_definition = local.policy_definitions.kvKeysExpiration }
+  # Key Vault audit policies — `effect = Audit` parameter.
+  kv_audit_refs = {
+    "smb-kv-01" = local.policy_definitions.kvSoftDelete
+    "smb-kv-02" = local.policy_definitions.kvDeletionProtection
+    "smb-kv-03" = local.policy_definitions.kvRbacModel
+    "smb-kv-04" = local.policy_definitions.kvNoPublicNetwork
+    "smb-kv-05" = local.policy_definitions.kvSecretsExpiration
+    "smb-kv-06" = local.policy_definitions.kvKeysExpiration
   }
+
+  diagnostic_resource_types = [
+    "Microsoft.Compute/virtualMachines",
+    "Microsoft.Network/virtualNetworks",
+    "Microsoft.Network/networkSecurityGroups",
+    "Microsoft.Network/azureFirewalls",
+    "Microsoft.Network/bastionHosts",
+    "Microsoft.KeyVault/vaults",
+    "Microsoft.RecoveryServices/vaults",
+    "Microsoft.Sql/servers",
+  ]
+
+  # Total references = 22 uniform + 6 kv_audit + 5 parameterised = 33
+  total_policy_refs = length(local.uniform_refs) + length(local.kv_audit_refs) + 5
 }
 
-resource "azurerm_management_group_policy_assignment" "uniform" {
-  for_each = local.uniform_policy_assignments
+# ============================================================================
+# Policy Set Definition (Initiative)
+# ============================================================================
+resource "azurerm_management_group_policy_set_definition" "smb_baseline" {
+  name                = "smb-baseline"
+  policy_type         = "Custom"
+  display_name        = "SMB RF: Baseline Compliance Initiative"
+  description         = "Aggregates all SMB Ready Foundation governance policies into a single initiative. Replaces 33 individual MG-scoped assignments."
+  management_group_id = var.management_group_id
 
-  name                 = each.key
-  display_name         = each.value.display_name
-  description          = each.value.description
-  policy_definition_id = each.value.policy_definition
-  management_group_id  = var.management_group_id
-  enforce              = true
-  location             = var.assignment_location
-}
-
-resource "azurerm_management_group_policy_assignment" "kv_audit" {
-  for_each = local.kv_audit_assignments
-
-  name                 = each.key
-  display_name         = each.value.display_name
-  description          = each.value.description
-  policy_definition_id = each.value.policy_definition
-  management_group_id  = var.management_group_id
-  enforce              = true
-  location             = var.assignment_location
-
-  parameters = jsonencode({
-    effect = { value = "Audit" }
+  metadata = jsonencode({
+    category = "SMB Ready Foundation"
+    version  = "1.0.0"
   })
-}
-
-resource "azurerm_management_group_policy_assignment" "compute_01_allowed_skus" {
-  name                 = "smb-compute-01"
-  display_name         = "SMB LZ: Allowed VM SKUs"
-  description          = "Restrict VM deployments to cost-effective B-series and D/E v5/v6 series SKUs"
-  policy_definition_id = local.policy_definitions.allowedVmSkus
-  management_group_id  = var.management_group_id
-  enforce              = true
-  location             = var.assignment_location
 
   parameters = jsonencode({
-    listOfAllowedSKUs = { value = var.allowed_vm_skus }
-  })
-}
-
-resource "azurerm_management_group_policy_assignment" "tagging_01_environment" {
-  name                 = "smb-tagging-01"
-  display_name         = "SMB LZ: Require Environment Tag"
-  description          = "Deny resource creation without Environment tag"
-  policy_definition_id = local.policy_definitions.requireTag
-  management_group_id  = var.management_group_id
-  enforce              = true
-  location             = var.assignment_location
-
-  parameters = jsonencode({
-    tagName = { value = "Environment" }
-  })
-}
-
-resource "azurerm_management_group_policy_assignment" "tagging_02_owner" {
-  name                 = "smb-tagging-02"
-  display_name         = "SMB LZ: Require Owner Tag"
-  description          = "Deny resource creation without Owner tag"
-  policy_definition_id = local.policy_definitions.requireTag
-  management_group_id  = var.management_group_id
-  enforce              = true
-  location             = var.assignment_location
-
-  parameters = jsonencode({
-    tagName = { value = "Owner" }
-  })
-}
-
-resource "azurerm_management_group_policy_assignment" "governance_01_allowed_locations" {
-  name                 = "smb-governance-01"
-  display_name         = "SMB LZ: Allowed Locations"
-  description          = "Restrict resource deployment to swedencentral, germanywestcentral, and global"
-  policy_definition_id = local.policy_definitions.allowedLocations
-  management_group_id  = var.management_group_id
-  enforce              = true
-  location             = var.assignment_location
-
-  parameters = jsonencode({
-    listOfAllowedLocations = { value = var.allowed_locations }
-  })
-}
-
-resource "azurerm_management_group_policy_assignment" "monitoring_01_diagnostics" {
-  name                 = "smb-monitoring-01"
-  display_name         = "SMB LZ: Diagnostic Settings Required"
-  description          = "Audit resources that do not have diagnostic settings configured"
-  policy_definition_id = local.policy_definitions.diagnosticSettings
-  management_group_id  = var.management_group_id
-  enforce              = true
-  location             = var.assignment_location
-
-  parameters = jsonencode({
-    listOfResourceTypes = {
-      value = [
-        "Microsoft.Compute/virtualMachines",
-        "Microsoft.Network/virtualNetworks",
-        "Microsoft.Network/networkSecurityGroups",
-        "Microsoft.Network/azureFirewalls",
-        "Microsoft.Network/bastionHosts",
-        "Microsoft.KeyVault/vaults",
-        "Microsoft.RecoveryServices/vaults",
-        "Microsoft.Sql/servers",
-      ]
+    allowedLocations = {
+      type = "Array"
+      metadata = {
+        displayName = "Allowed locations"
+        description = "Regions where resources may be deployed (smb-governance-01)."
+      }
     }
+    allowedVmSkus = {
+      type = "Array"
+      metadata = {
+        displayName = "Allowed VM SKUs"
+        description = "VM SKUs permitted by smb-compute-01."
+      }
+    }
+  })
+
+  # ---- Uniform policies (no parameters) -----------------------------
+  dynamic "policy_definition_reference" {
+    for_each = local.uniform_refs
+    content {
+      reference_id         = policy_definition_reference.key
+      policy_definition_id = policy_definition_reference.value
+    }
+  }
+
+  # ---- Key Vault audits (effect=Audit) ------------------------------
+  dynamic "policy_definition_reference" {
+    for_each = local.kv_audit_refs
+    content {
+      reference_id         = policy_definition_reference.key
+      policy_definition_id = policy_definition_reference.value
+      parameter_values = jsonencode({
+        effect = { value = "Audit" }
+      })
+    }
+  }
+
+  # ---- smb-compute-01 : Allowed VM SKUs (initiative param) ----------
+  policy_definition_reference {
+    reference_id         = "smb-compute-01"
+    policy_definition_id = local.policy_definitions.allowedVmSkus
+    parameter_values = jsonencode({
+      listOfAllowedSKUs = { value = "[parameters('allowedVmSkus')]" }
+    })
+  }
+
+  # ---- smb-tagging-01 : Require Environment tag ---------------------
+  policy_definition_reference {
+    reference_id         = "smb-tagging-01"
+    policy_definition_id = local.policy_definitions.requireTag
+    parameter_values = jsonencode({
+      tagName = { value = "Environment" }
+    })
+  }
+
+  # ---- smb-tagging-02 : Require Owner tag ---------------------------
+  policy_definition_reference {
+    reference_id         = "smb-tagging-02"
+    policy_definition_id = local.policy_definitions.requireTag
+    parameter_values = jsonencode({
+      tagName = { value = "Owner" }
+    })
+  }
+
+  # ---- smb-governance-01 : Allowed locations (initiative param) -----
+  policy_definition_reference {
+    reference_id         = "smb-governance-01"
+    policy_definition_id = local.policy_definitions.allowedLocations
+    parameter_values = jsonencode({
+      listOfAllowedLocations = { value = "[parameters('allowedLocations')]" }
+    })
+  }
+
+  # ---- smb-monitoring-01 : Diagnostic settings required -------------
+  policy_definition_reference {
+    reference_id         = "smb-monitoring-01"
+    policy_definition_id = local.policy_definitions.diagnosticSettings
+    parameter_values = jsonencode({
+      listOfResourceTypes = { value = local.diagnostic_resource_types }
+    })
+  }
+}
+
+# ============================================================================
+# Single initiative assignment
+# ============================================================================
+resource "azurerm_management_group_policy_assignment" "smb_baseline" {
+  name                 = "smb-baseline"
+  display_name         = "SMB RF: Baseline Compliance"
+  description          = "Assigns the SMB baseline initiative (${local.total_policy_refs} policies) to the management group."
+  policy_definition_id = azurerm_management_group_policy_set_definition.smb_baseline.id
+  management_group_id  = var.management_group_id
+  enforce              = true
+  location             = var.assignment_location
+
+  parameters = jsonencode({
+    allowedLocations = { value = var.allowed_locations }
+    allowedVmSkus    = { value = var.allowed_vm_skus }
   })
 }

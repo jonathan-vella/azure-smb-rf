@@ -1,7 +1,7 @@
 output "workspace_id" {
-  value = azurerm_log_analytics_workspace.smbrf.id
+  value = module.law.resource_id
 }
 
 output "name" {
-  value = azurerm_log_analytics_workspace.smbrf.name
+  value = module.law.resource.name
 }

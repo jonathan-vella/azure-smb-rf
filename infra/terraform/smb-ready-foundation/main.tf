@@ -58,37 +58,43 @@ module "budget" {
 module "network_hub" {
   source = "./modules/network-hub"
 
-  location            = var.location
-  resource_group_name = module.resource_groups.shared["hub"].name
-  region_short        = local.region_short
-  address_space       = var.hub_vnet_address_space
-  tags                = local.shared_services_tags
+  location                   = var.location
+  resource_group_name        = module.resource_groups.shared["hub"].name
+  resource_group_id          = module.resource_groups.shared["hub"].id
+  region_short               = local.region_short
+  address_space              = var.hub_vnet_address_space
+  tags                       = local.shared_services_tags
+  log_analytics_workspace_id = module.monitoring.workspace_id
 }
 
 module "network_spoke" {
   source = "./modules/network-spoke"
 
-  location            = var.location
-  resource_group_name = module.resource_groups.spoke.name
-  region_short        = local.region_short
-  environment         = var.environment
-  address_space       = var.spoke_vnet_address_space
-  tags                = local.spoke_tags
-  deploy_nat_gateway  = local.deploy_spoke_nat_gateway
+  location                   = var.location
+  resource_group_name        = module.resource_groups.spoke.name
+  resource_group_id          = module.resource_groups.spoke.id
+  region_short               = local.region_short
+  environment                = var.environment
+  address_space              = var.spoke_vnet_address_space
+  tags                       = local.spoke_tags
+  deploy_nat_gateway         = local.deploy_spoke_nat_gateway
+  log_analytics_workspace_id = module.monitoring.workspace_id
+  route_table_id             = module.route_tables.route_table_id
 }
 
 module "firewall" {
   source = "./modules/firewall"
 
-  enabled                   = var.deploy_firewall
-  location                  = var.location
-  resource_group_name       = module.resource_groups.shared["hub"].name
-  region_short              = local.region_short
-  tags                      = local.shared_services_tags
-  afw_subnet_id             = module.network_hub.afw_subnet_id
-  afw_mgmt_subnet_id        = module.network_hub.afw_mgmt_subnet_id
-  spoke_vnet_address_space  = var.spoke_vnet_address_space
-  on_premises_address_space = var.on_premises_address_space
+  enabled                    = var.deploy_firewall
+  location                   = var.location
+  resource_group_name        = module.resource_groups.shared["hub"].name
+  region_short               = local.region_short
+  tags                       = local.shared_services_tags
+  afw_subnet_id              = module.network_hub.afw_subnet_id
+  afw_mgmt_subnet_id         = module.network_hub.afw_mgmt_subnet_id
+  spoke_vnet_address_space   = var.spoke_vnet_address_space
+  on_premises_address_space  = var.on_premises_address_space
+  log_analytics_workspace_id = module.monitoring.workspace_id
 }
 
 module "route_tables" {
@@ -102,7 +108,6 @@ module "route_tables" {
   firewall_private_ip       = module.firewall.private_ip
   spoke_vnet_address_space  = var.spoke_vnet_address_space
   on_premises_address_space = var.on_premises_address_space
-  spoke_workload_subnet_ids = module.network_spoke.workload_subnet_ids
 }
 
 module "vpn_gateway" {
@@ -144,10 +149,11 @@ module "monitoring" {
 module "backup" {
   source = "./modules/backup"
 
-  location            = var.location
-  resource_group_name = module.resource_groups.shared["backup"].name
-  region_short        = local.region_short
-  tags                = local.shared_services_tags
+  location                   = var.location
+  resource_group_name        = module.resource_groups.shared["backup"].name
+  region_short               = local.region_short
+  tags                       = local.shared_services_tags
+  log_analytics_workspace_id = module.monitoring.workspace_id
 }
 
 module "policy_backup_auto" {
@@ -164,6 +170,7 @@ module "migrate" {
   location          = var.location
   region_short      = local.region_short
   resource_group_id = module.resource_groups.shared["migrate"].id
+  tags              = local.shared_services_tags
 }
 
 module "keyvault" {

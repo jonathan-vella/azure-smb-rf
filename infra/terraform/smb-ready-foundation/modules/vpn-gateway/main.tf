@@ -32,7 +32,7 @@ resource "azurerm_virtual_network_gateway" "vpn" {
   generation    = "Generation1"
   sku           = "VpnGw1AZ"
   active_active = false
-  enable_bgp    = false
+  bgp_enabled   = false
 
   ip_configuration {
     name                          = "vnetGatewayConfig"

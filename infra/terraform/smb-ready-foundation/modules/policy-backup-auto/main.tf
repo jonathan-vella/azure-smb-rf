@@ -9,7 +9,7 @@ locals {
 
 resource "azurerm_subscription_policy_assignment" "backup_auto" {
   name                 = "smb-backup-02"
-  display_name         = "SMB LZ: Auto-Backup VMs with Backup Tag"
+  display_name         = "SMB RF: Auto-Backup VMs with Backup Tag"
   description          = "Automatically configure backup on VMs tagged with Backup:true to the central Recovery Services Vault using DefaultVMPolicy (30d daily, 12w weekly, 12m monthly retention)"
   policy_definition_id = local.backup_policy_definition_id
   subscription_id      = var.subscription_resource_id

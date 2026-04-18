@@ -34,3 +34,8 @@ variable "on_premises_address_space" {
   type    = string
   default = ""
 }
+
+variable "log_analytics_workspace_id" {
+  description = "Log Analytics workspace ID for firewall diagnostic settings (smb-monitoring-01 compliance)."
+  type        = string
+}

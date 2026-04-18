@@ -155,9 +155,13 @@ faithfully and emits the actual count dynamically
 2. **azd Terraform support is alpha.** The pre-provision hook runs
    `azd config set alpha.terraform on` (idempotent). Pin your local/CI
    `azd` version to a recent release with Terraform alpha support.
-3. **Single state file.** MG, policy assignments, and all sub-scope
+3. **Single shared state file.** MG, policy assignments, and all sub-scope
    resources share one state file (`smb-ready-foundation.tfstate`) in the
-   backend bootstrapped under `rg-tfstate-smb-<region>`.
+   backend bootstrapped under `rg-tfstate-smb-<region>`. All azd envs
+   (`smb-rf-tf-firewall`, `smb-rf-tf-vpn`, `smb-rf-tf-full`) point at the
+   same state so sub/tenant-scope resources (MG, Defender pricings, MG
+   subscription association) persist across scenario teardowns — only
+   RG-scoped resources cycle.
 4. **Budget start date immutability.** Azure Consumption API cannot update a
    budget's `start_date` after creation. The pre-provision hook deletes any
    existing `budget-smb-monthly` before apply and pins the start date to the

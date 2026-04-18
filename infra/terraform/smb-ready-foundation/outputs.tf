@@ -36,8 +36,13 @@ output "management_group_name" {
 }
 
 output "policy_assignment_count" {
-  description = "Total number of MG-scoped policy assignments created."
+  description = "Total number of MG-scoped policy assignments created (always 1 — the smb-baseline initiative)."
   value       = module.policy_assignments_mg.assignment_count
+}
+
+output "initiative_policy_count" {
+  description = "Number of policy definitions contained within the smb-baseline initiative."
+  value       = module.policy_assignments_mg.initiative_policy_count
 }
 
 output "hub_vnet_id" {

@@ -1,45 +1,59 @@
-// Recovery Services Vault + DefaultVMPolicy.
+// Recovery Services Vault + DefaultVMPolicy — AVM-TF module
+// (Azure/avm-res-recoveryservices-vault/azurerm).
 
 locals {
-  name = "rsv-smbrf-smb-${var.region_short}"
+  name           = "rsv-smbrf-smb-${var.region_short}"
+  vm_policy_name = "DefaultVMPolicy"
 }
 
-resource "azurerm_recovery_services_vault" "smbrf" {
+module "rsv" {
+  source  = "Azure/avm-res-recoveryservices-vault/azurerm"
+  version = "1.0.2"
+
   name                = local.name
   location            = var.location
   resource_group_name = var.resource_group_name
+  sku                 = "Standard"
   tags                = var.tags
 
-  sku                 = "Standard"
-  soft_delete_enabled = true
-  storage_mode_type   = "GeoRedundant"
-}
+  # storage_mode_type defaults to GeoRedundant — matches prior config.
+  # soft_delete_enabled defaults to true — matches prior config.
 
-resource "azurerm_backup_policy_vm" "default_vm" {
-  name                = "DefaultVMPolicy"
-  resource_group_name = var.resource_group_name
-  recovery_vault_name = azurerm_recovery_services_vault.smbrf.name
+  vm_backup_policy = {
+    (local.vm_policy_name) = {
+      name                           = local.vm_policy_name
+      timezone                       = "UTC"
+      policy_type                    = "V1"
+      frequency                      = "Daily"
+      instant_restore_retention_days = 2
 
-  timezone                       = "UTC"
-  instant_restore_retention_days = 2
+      backup = {
+        time = "02:00"
+      }
 
-  backup {
-    frequency = "Daily"
-    time      = "02:00"
+      retention_daily = 30
+
+      retention_weekly = {
+        count    = 12
+        weekdays = ["Sunday"]
+      }
+
+      retention_monthly = {
+        count    = 12
+        weekdays = ["Sunday"]
+        weeks    = ["First"]
+      }
+    }
   }
 
-  retention_daily {
-    count = 30
+  diagnostic_settings = {
+    law = {
+      name                  = "rsv-diag-law"
+      workspace_resource_id = var.log_analytics_workspace_id
+      log_groups            = ["allLogs"]
+      metric_categories     = ["AllMetrics"]
+    }
   }
 
-  retention_weekly {
-    count    = 12
-    weekdays = ["Sunday"]
-  }
-
-  retention_monthly {
-    count    = 12
-    weekdays = ["Sunday"]
-    weeks    = ["First"]
-  }
+  enable_telemetry = false
 }

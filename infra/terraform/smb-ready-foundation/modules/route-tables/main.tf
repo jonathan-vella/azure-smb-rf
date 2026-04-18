@@ -50,9 +50,7 @@ resource "azurerm_route_table" "gateway" {
   }
 }
 
-resource "azurerm_subnet_route_table_association" "spoke" {
-  for_each = var.enabled ? var.spoke_workload_subnet_ids : {}
+// Route-table association is now done inside the AVM spoke vnet subnet map
+// (via var.route_table_id in modules/network-spoke) to avoid two-writer
+// drift with azapi_resource.subnet.
 
-  subnet_id      = each.value
-  route_table_id = azurerm_route_table.spoke[0].id
-}

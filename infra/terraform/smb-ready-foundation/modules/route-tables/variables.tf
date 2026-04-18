@@ -29,8 +29,3 @@ variable "spoke_vnet_address_space" {
 variable "on_premises_address_space" {
   type = string
 }
-
-variable "spoke_workload_subnet_ids" {
-  description = "Map of workload/data/app subnet ids to associate with the spoke route table."
-  type        = map(string)
-}

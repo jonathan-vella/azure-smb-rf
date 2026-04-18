@@ -1,39 +1,42 @@
-// Azure Automation Account linked to Log Analytics.
+// Azure Automation Account — AVM-TF module
+// (Azure/avm-res-automation-automationaccount/azurerm). AVM handles diag.
+// The Log Analytics linked service is NOT covered by AVM, so it stays
+// hand-rolled in this wrapper module.
 
 locals {
   name = "aa-smbrf-smb-${var.region_short}"
 }
 
-resource "azurerm_automation_account" "smbrf" {
+module "aa" {
+  source  = "Azure/avm-res-automation-automationaccount/azurerm"
+  version = "0.2.0"
+
   name                = local.name
   location            = var.location
   resource_group_name = var.resource_group_name
+  sku                 = "Basic"
   tags                = var.tags
 
-  sku_name                      = "Basic"
   public_network_access_enabled = false
 
-  identity {
-    type = "SystemAssigned"
+  managed_identities = {
+    system_assigned = true
   }
+
+  diagnostic_settings = {
+    law = {
+      name                  = "aa-diag-law"
+      workspace_resource_id = var.log_analytics_workspace_id
+      log_groups            = ["allLogs"]
+      metric_categories     = ["AllMetrics"]
+    }
+  }
+
+  enable_telemetry = false
 }
 
 resource "azurerm_log_analytics_linked_service" "automation" {
   resource_group_name = var.resource_group_name
   workspace_id        = var.log_analytics_workspace_id
-  read_access_id      = azurerm_automation_account.smbrf.id
-}
-
-resource "azurerm_monitor_diagnostic_setting" "aa" {
-  name                       = "aa-diag-law"
-  target_resource_id         = azurerm_automation_account.smbrf.id
-  log_analytics_workspace_id = var.log_analytics_workspace_id
-
-  enabled_log {
-    category_group = "allLogs"
-  }
-
-  enabled_metric {
-    category = "AllMetrics"
-  }
+  read_access_id      = module.aa.resource_id
 }

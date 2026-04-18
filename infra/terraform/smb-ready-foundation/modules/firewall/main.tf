@@ -139,32 +139,50 @@ resource "azurerm_firewall_policy_rule_collection_group" "on_premises" {
   depends_on = [azurerm_firewall_policy_rule_collection_group.network]
 }
 
-resource "azurerm_firewall" "hub" {
+module "fw" {
+  source  = "Azure/avm-res-network-azurefirewall/azurerm"
+  version = "0.4.0"
+
   count = var.enabled ? 1 : 0
 
   name                = local.fw_name
   location            = var.location
   resource_group_name = var.resource_group_name
   tags                = var.tags
-  sku_name            = "AZFW_VNet"
-  sku_tier            = "Basic"
-  firewall_policy_id  = azurerm_firewall_policy.hub[0].id
-  zones               = local.fw_zones
 
-  ip_configuration {
-    name                 = "ipconfig"
-    subnet_id            = var.afw_subnet_id
-    public_ip_address_id = azurerm_public_ip.data[0].id
-  }
+  firewall_sku_name  = "AZFW_VNet"
+  firewall_sku_tier  = "Basic"
+  firewall_zones     = local.fw_zones
+  firewall_policy_id = azurerm_firewall_policy.hub[0].id
 
-  management_ip_configuration {
+  firewall_ip_configuration = [
+    {
+      name                 = "ipconfig"
+      subnet_id            = var.afw_subnet_id
+      public_ip_address_id = azurerm_public_ip.data[0].id
+    }
+  ]
+
+  firewall_management_ip_configuration = {
     name                 = "mgmtipconfig"
     subnet_id            = var.afw_mgmt_subnet_id
     public_ip_address_id = azurerm_public_ip.mgmt[0].id
   }
+
+  diagnostic_settings = {
+    law = {
+      name                  = "afw-diag-law"
+      workspace_resource_id = var.log_analytics_workspace_id
+      log_groups            = ["allLogs"]
+      metric_categories     = ["AllMetrics"]
+    }
+  }
+
+  enable_telemetry = false
 
   depends_on = [
     azurerm_firewall_policy_rule_collection_group.network,
     azurerm_firewall_policy_rule_collection_group.on_premises,
   ]
 }
+

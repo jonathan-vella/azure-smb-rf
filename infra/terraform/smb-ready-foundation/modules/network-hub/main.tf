@@ -1,4 +1,7 @@
-// Hub networking — VNet + NSG + 4 subnets + shared Private DNS Zone.
+// Hub networking — VNet via AVM-TF
+// (Azure/avm-res-network-virtualnetwork/azurerm) + hand-rolled NSG,
+// Private DNS Zone, PDZ VNet link and NSG diagnostics (AVM covers VNet diag +
+// subnets + NSG/RT associations via subnet args).
 
 locals {
   hub_prefix          = tonumber(split("/", var.address_space)[1])
@@ -31,45 +34,48 @@ resource "azurerm_network_security_group" "hub" {
   }
 }
 
-resource "azurerm_virtual_network" "hub" {
-  name                = local.vnet_name
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  tags                = var.tags
-  address_space       = [var.address_space]
-}
+module "vnet" {
+  source  = "Azure/avm-res-network-virtualnetwork/azurerm"
+  version = "0.17.1"
 
-resource "azurerm_subnet" "afw" {
-  name                 = "AzureFirewallSubnet"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.hub.name
-  address_prefixes     = [local.afw_subnet_cidr]
-}
+  name          = local.vnet_name
+  location      = var.location
+  parent_id     = var.resource_group_id
+  tags          = var.tags
+  address_space = [var.address_space]
 
-resource "azurerm_subnet" "afw_mgmt" {
-  name                 = "AzureFirewallManagementSubnet"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.hub.name
-  address_prefixes     = [local.afwmgmt_subnet_cidr]
-}
+  subnets = {
+    afw = {
+      name             = "AzureFirewallSubnet"
+      address_prefixes = [local.afw_subnet_cidr]
+    }
+    afw_mgmt = {
+      name             = "AzureFirewallManagementSubnet"
+      address_prefixes = [local.afwmgmt_subnet_cidr]
+    }
+    gateway = {
+      name             = "GatewaySubnet"
+      address_prefixes = [local.gw_subnet_cidr]
+    }
+    management = {
+      name             = "snet-management"
+      address_prefixes = [local.mgmt_subnet_cidr]
+      network_security_group = {
+        id = azurerm_network_security_group.hub.id
+      }
+    }
+  }
 
-resource "azurerm_subnet" "gateway" {
-  name                 = "GatewaySubnet"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.hub.name
-  address_prefixes     = [local.gw_subnet_cidr]
-}
+  diagnostic_settings = {
+    law = {
+      name                  = "vnet-diag-law"
+      workspace_resource_id = var.log_analytics_workspace_id
+      log_groups            = []
+      metric_categories     = ["AllMetrics"]
+    }
+  }
 
-resource "azurerm_subnet" "management" {
-  name                 = "snet-management"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.hub.name
-  address_prefixes     = [local.mgmt_subnet_cidr]
-}
-
-resource "azurerm_subnet_network_security_group_association" "management" {
-  subnet_id                 = azurerm_subnet.management.id
-  network_security_group_id = azurerm_network_security_group.hub.id
+  enable_telemetry = false
 }
 
 resource "azurerm_private_dns_zone" "shared" {
@@ -82,7 +88,18 @@ resource "azurerm_private_dns_zone_virtual_network_link" "shared_hub" {
   name                  = "link-${local.vnet_name}"
   resource_group_name   = var.resource_group_name
   private_dns_zone_name = azurerm_private_dns_zone.shared.name
-  virtual_network_id    = azurerm_virtual_network.hub.id
+  virtual_network_id    = module.vnet.resource_id
   registration_enabled  = true
   tags                  = var.tags
 }
+
+resource "azurerm_monitor_diagnostic_setting" "nsg" {
+  name                       = "nsg-diag-law"
+  target_resource_id         = azurerm_network_security_group.hub.id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+}
+
