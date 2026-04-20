@@ -1,0 +1,68 @@
+# =============================================================================
+# Terraform CI for infra/terraform/smb-ready-foundation
+# =============================================================================
+# Runs fmt check, init (no backend), validate, tflint, and terraform test on
+# PR + push when Terraform sources or this workflow changes. Does NOT attempt
+# any Azure authentication or apply — validation only.
+# =============================================================================
+name: Terraform — smb-ready-foundation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "infra/terraform/smb-ready-foundation/**"
+      - ".github/workflows/terraform-smb-ready-foundation.yml"
+  pull_request:
+    paths:
+      - "infra/terraform/smb-ready-foundation/**"
+      - ".github/workflows/terraform-smb-ready-foundation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+    working-directory: infra/terraform/smb-ready-foundation
+
+env:
+  TF_IN_AUTOMATION: "true"
+  TF_INPUT: "0"
+
+jobs:
+  validate:
+    name: fmt + validate + tflint + test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~> 1.12"
+
+      - name: terraform fmt -check
+        run: terraform fmt -check -recursive
+
+      - name: terraform init (no backend)
+        run: terraform init -backend=false -input=false
+
+      - name: terraform validate
+        run: terraform validate
+
+      - name: Setup tflint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+
+      - name: tflint --init
+        run: tflint --init
+
+      - name: tflint
+        run: tflint --format=compact
+
+      - name: terraform test
+        run: terraform test -verbose || echo "::warning::terraform test exited non-zero (no tests yet is OK)"

@@ -99,7 +99,7 @@
       "name": "smb-compute-01",
       "location": "[parameters('location')]",
       "properties": {
-        "displayName": "SMB LZ: Allowed VM SKUs",
+        "displayName": "SMB RF: Allowed VM SKUs",
         "description": "Restrict VM deployments to cost-effective B-series and D/E v5/v6 series SKUs",
         "policyDefinitionId": "[variables('policyDefinitions').allowedVmSkus]",
         "enforcementMode": "Default",
@@ -119,7 +119,7 @@
       "name": "smb-compute-02",
       "location": "[parameters('location')]",
       "properties": {
-        "displayName": "SMB LZ: No Public IPs on NICs",
+        "displayName": "SMB RF: No Public IPs on NICs",
         "description": "Prevent VMs from having public IP addresses for security",
         "policyDefinitionId": "[variables('policyDefinitions').noPublicIpOnNic]",
         "enforcementMode": "Default"
@@ -134,7 +134,7 @@
       "name": "smb-compute-03",
       "location": "[parameters('location')]",
       "properties": {
-        "displayName": "SMB LZ: Audit Managed Disks",
+        "displayName": "SMB RF: Audit Managed Disks",
         "description": "Audit VMs that do not use managed disks",
         "policyDefinitionId": "[variables('policyDefinitions').auditManagedDisks]",
         "enforcementMode": "Default"
@@ -149,7 +149,7 @@
       "name": "smb-compute-04",
       "location": "[parameters('location')]",
       "properties": {
-        "displayName": "SMB LZ: Audit ARM VMs",
+        "displayName": "SMB RF: Audit ARM VMs",
         "description": "Audit VMs created using classic deployment model",
         "policyDefinitionId": "[variables('policyDefinitions').auditArmVms]",
         "enforcementMode": "Default"
@@ -164,7 +164,7 @@
       "name": "smb-network-01",
       "location": "[parameters('location')]",
       "properties": {
-        "displayName": "SMB LZ: NSG on Subnets",
+        "displayName": "SMB RF: NSG on Subnets",
         "description": "Audit subnets that do not have a Network Security Group",
         "policyDefinitionId": "[variables('policyDefinitions').nsgOnSubnets]",
         "enforcementMode": "Default"
@@ -179,7 +179,7 @@
       "name": "smb-network-02",
       "location": "[parameters('location')]",
       "properties": {
-        "displayName": "SMB LZ: Close Management Ports",
+        "displayName": "SMB RF: Close Management Ports",
         "description": "Audit VMs with management ports (22, 3389) exposed to the internet",
         "policyDefinitionId": "[variables('policyDefinitions').closeManagementPorts]",
         "enforcementMode": "Default"
@@ -194,7 +194,7 @@
       "name": "smb-network-03",
       "location": "[parameters('location')]",
       "properties": {
-        "displayName": "SMB LZ: Restrict NSG Ports",
+        "displayName": "SMB RF: Restrict NSG Ports",
         "description": "Audit NSG rules that allow unrestricted access",
         "policyDefinitionId": "[variables('policyDefinitions').restrictNsgPorts]",
         "enforcementMode": "Default"
@@ -209,7 +209,7 @@
       "name": "smb-network-04",
       "location": "[parameters('location')]",
       "properties": {
-        "displayName": "SMB LZ: Disable IP Forwarding",
+        "displayName": "SMB RF: Disable IP Forwarding",
         "description": "Deny enabling IP forwarding on network interfaces",
         "policyDefinitionId": "[variables('policyDefinitions').disableIpForwarding]",
         "enforcementMode": "Default"
@@ -224,7 +224,7 @@
       "name": "smb-storage-01",
       "location": "[parameters('location')]",
       "properties": {
-        "displayName": "SMB LZ: Storage HTTPS Only",
+        "displayName": "SMB RF: Storage HTTPS Only",
         "description": "Deny storage accounts that do not require HTTPS",
         "policyDefinitionId": "[variables('policyDefinitions').storageHttpsOnly]",
         "enforcementMode": "Default"
@@ -239,7 +239,7 @@
       "name": "smb-storage-02",
       "location": "[parameters('location')]",
       "properties": {
-        "displayName": "SMB LZ: No Public Blob Access",
+        "displayName": "SMB RF: No Public Blob Access",
         "description": "Deny public blob access on storage accounts",
         "policyDefinitionId": "[variables('policyDefinitions').noPublicBlobAccess]",
         "enforcementMode": "Default"
@@ -254,7 +254,7 @@
       "name": "smb-storage-03",
       "location": "[parameters('location')]",
       "properties": {
-        "displayName": "SMB LZ: Storage TLS 1.2",
+        "displayName": "SMB RF: Storage TLS 1.2",
         "description": "Deny storage accounts with minimum TLS version below 1.2",
         "policyDefinitionId": "[variables('policyDefinitions').storageTls12]",
         "enforcementMode": "Default"
@@ -269,7 +269,7 @@
       "name": "smb-storage-04",
       "location": "[parameters('location')]",
       "properties": {
-        "displayName": "SMB LZ: Restrict Storage Network",
+        "displayName": "SMB RF: Restrict Storage Network",
         "description": "Audit storage accounts with unrestricted network access",
         "policyDefinitionId": "[variables('policyDefinitions').restrictStorageNetwork]",
         "enforcementMode": "Default"
@@ -284,7 +284,7 @@
       "name": "smb-storage-05",
       "location": "[parameters('location')]",
       "properties": {
-        "displayName": "SMB LZ: Storage ARM Migration",
+        "displayName": "SMB RF: Storage ARM Migration",
         "description": "Audit classic storage accounts that should be migrated to ARM",
         "policyDefinitionId": "[variables('policyDefinitions').storageArmMigration]",
         "enforcementMode": "Default"
@@ -299,7 +299,7 @@
       "name": "smb-identity-01",
       "location": "[parameters('location')]",
       "properties": {
-        "displayName": "SMB LZ: SQL Azure AD Only",
+        "displayName": "SMB RF: SQL Azure AD Only",
         "description": "Audit SQL servers that do not use Azure AD-only authentication",
         "policyDefinitionId": "[variables('policyDefinitions').sqlAzureAdOnly]",
         "enforcementMode": "Default"
@@ -314,7 +314,7 @@
       "name": "smb-identity-02",
       "location": "[parameters('location')]",
       "properties": {
-        "displayName": "SMB LZ: SQL No Public Access",
+        "displayName": "SMB RF: SQL No Public Access",
         "description": "Audit SQL servers with public network access enabled",
         "policyDefinitionId": "[variables('policyDefinitions').sqlNoPublicAccess]",
         "enforcementMode": "Default"
@@ -329,7 +329,7 @@
       "name": "smb-tagging-01",
       "location": "[parameters('location')]",
       "properties": {
-        "displayName": "SMB LZ: Require Environment Tag",
+        "displayName": "SMB RF: Require Environment Tag",
         "description": "Deny resource creation without Environment tag",
         "policyDefinitionId": "[variables('policyDefinitions').requireTag]",
         "enforcementMode": "Default",
@@ -349,7 +349,7 @@
       "name": "smb-tagging-02",
       "location": "[parameters('location')]",
       "properties": {
-        "displayName": "SMB LZ: Require Owner Tag",
+        "displayName": "SMB RF: Require Owner Tag",
         "description": "Deny resource creation without Owner tag",
         "policyDefinitionId": "[variables('policyDefinitions').requireTag]",
         "enforcementMode": "Default",
@@ -369,7 +369,7 @@
       "name": "smb-governance-01",
       "location": "[parameters('location')]",
       "properties": {
-        "displayName": "SMB LZ: Allowed Locations",
+        "displayName": "SMB RF: Allowed Locations",
         "description": "Restrict resource deployment to swedencentral, germanywestcentral, and global",
         "policyDefinitionId": "[variables('policyDefinitions').allowedLocations]",
         "enforcementMode": "Default",
@@ -389,7 +389,7 @@
       "name": "smb-backup-01",
       "location": "[parameters('location')]",
       "properties": {
-        "displayName": "SMB LZ: VM Backup Required",
+        "displayName": "SMB RF: VM Backup Required",
         "description": "Audit VMs that do not have backup configured",
         "policyDefinitionId": "[variables('policyDefinitions').vmBackupRequired]",
         "enforcementMode": "Default"
@@ -404,7 +404,7 @@
       "name": "smb-monitoring-01",
       "location": "[parameters('location')]",
       "properties": {
-        "displayName": "SMB LZ: Diagnostic Settings Required",
+        "displayName": "SMB RF: Diagnostic Settings Required",
         "description": "Audit resources that do not have diagnostic settings configured",
         "policyDefinitionId": "[variables('policyDefinitions').diagnosticSettings]",
         "enforcementMode": "Default",

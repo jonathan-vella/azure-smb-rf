@@ -69,7 +69,7 @@ MG-scoped policies are defined in `modules/policy-assignments-mg.bicep`. To add 
      name: 'smb-your-01'
      location: location
      properties: {
-       displayName: 'SMB LZ: Your Policy Name'
+       displayName: 'SMB RF: Your Policy Name'
        description: 'Your policy description'
        policyDefinitionId: policyDefinitions.yourPolicy
        enforcementMode: 'Default'
@@ -82,6 +82,7 @@ MG-scoped policies are defined in `modules/policy-assignments-mg.bicep`. To add 
 Resource names follow the [Azure Cloud Adoption Framework (CAF)](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/azure-best-practices/naming-and-tagging) convention. The naming pattern is defined in variables within each module.
 
 Key naming components:
+
 - **`regionShort`**: Derived from location (`swedencentral` → `swc`)
 - **`environment`**: From parameter (`prod`, `dev`, `staging`)
 - **`uniqueSuffix`**: From `uniqueString(subscription().subscriptionId)` — deterministic per subscription

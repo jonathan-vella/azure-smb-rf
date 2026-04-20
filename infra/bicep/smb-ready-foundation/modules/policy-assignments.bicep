@@ -126,7 +126,7 @@ resource policyCompute01 'Microsoft.Authorization/policyAssignments@2024-04-01' 
   name: 'smb-compute-01'
   location: location
   properties: {
-    displayName: 'SMB LZ: Allowed VM SKUs'
+    displayName: 'SMB RF: Allowed VM SKUs'
     description: 'Restrict VM deployments to cost-effective B-series and D/E v5/v6 series SKUs'
     policyDefinitionId: policyDefinitions.allowedVmSkus
     enforcementMode: 'Default'
@@ -143,7 +143,7 @@ resource policyCompute02 'Microsoft.Authorization/policyAssignments@2024-04-01' 
   name: 'smb-compute-02'
   location: location
   properties: {
-    displayName: 'SMB LZ: No Public IPs on NICs'
+    displayName: 'SMB RF: No Public IPs on NICs'
     description: 'Prevent VMs from having public IP addresses for security'
     policyDefinitionId: policyDefinitions.noPublicIpOnNic
     enforcementMode: 'Default'
@@ -155,7 +155,7 @@ resource policyCompute03 'Microsoft.Authorization/policyAssignments@2024-04-01' 
   name: 'smb-compute-03'
   location: location
   properties: {
-    displayName: 'SMB LZ: Audit Managed Disks'
+    displayName: 'SMB RF: Audit Managed Disks'
     description: 'Audit VMs that do not use managed disks'
     policyDefinitionId: policyDefinitions.auditManagedDisks
     enforcementMode: 'Default'
@@ -167,7 +167,7 @@ resource policyCompute04 'Microsoft.Authorization/policyAssignments@2024-04-01' 
   name: 'smb-compute-04'
   location: location
   properties: {
-    displayName: 'SMB LZ: Audit ARM VMs'
+    displayName: 'SMB RF: Audit ARM VMs'
     description: 'Audit VMs created using classic deployment model'
     policyDefinitionId: policyDefinitions.auditArmVms
     enforcementMode: 'Default'
@@ -183,7 +183,7 @@ resource policyNetwork01 'Microsoft.Authorization/policyAssignments@2024-04-01' 
   name: 'smb-network-01'
   location: location
   properties: {
-    displayName: 'SMB LZ: NSG on Subnets'
+    displayName: 'SMB RF: NSG on Subnets'
     description: 'Audit subnets that do not have a Network Security Group'
     policyDefinitionId: policyDefinitions.nsgOnSubnets
     enforcementMode: 'Default'
@@ -195,7 +195,7 @@ resource policyNetwork02 'Microsoft.Authorization/policyAssignments@2024-04-01' 
   name: 'smb-network-02'
   location: location
   properties: {
-    displayName: 'SMB LZ: Close Management Ports'
+    displayName: 'SMB RF: Close Management Ports'
     description: 'Audit VMs with management ports (22, 3389) exposed to the internet'
     policyDefinitionId: policyDefinitions.closeManagementPorts
     enforcementMode: 'Default'
@@ -207,7 +207,7 @@ resource policyNetwork03 'Microsoft.Authorization/policyAssignments@2024-04-01' 
   name: 'smb-network-03'
   location: location
   properties: {
-    displayName: 'SMB LZ: Restrict NSG Ports'
+    displayName: 'SMB RF: Restrict NSG Ports'
     description: 'Audit NSG rules that allow unrestricted access'
     policyDefinitionId: policyDefinitions.restrictNsgPorts
     enforcementMode: 'Default'
@@ -219,7 +219,7 @@ resource policyNetwork04 'Microsoft.Authorization/policyAssignments@2024-04-01' 
   name: 'smb-network-04'
   location: location
   properties: {
-    displayName: 'SMB LZ: Disable IP Forwarding'
+    displayName: 'SMB RF: Disable IP Forwarding'
     description: 'Deny enabling IP forwarding on network interfaces'
     policyDefinitionId: policyDefinitions.disableIpForwarding
     enforcementMode: 'Default'
@@ -235,7 +235,7 @@ resource policyStorage01 'Microsoft.Authorization/policyAssignments@2024-04-01' 
   name: 'smb-storage-01'
   location: location
   properties: {
-    displayName: 'SMB LZ: Storage HTTPS Only'
+    displayName: 'SMB RF: Storage HTTPS Only'
     description: 'Deny storage accounts that do not require HTTPS'
     policyDefinitionId: policyDefinitions.storageHttpsOnly
     enforcementMode: 'Default'
@@ -247,7 +247,7 @@ resource policyStorage02 'Microsoft.Authorization/policyAssignments@2024-04-01' 
   name: 'smb-storage-02'
   location: location
   properties: {
-    displayName: 'SMB LZ: No Public Blob Access'
+    displayName: 'SMB RF: No Public Blob Access'
     description: 'Deny public blob access on storage accounts'
     policyDefinitionId: policyDefinitions.noPublicBlobAccess
     enforcementMode: 'Default'
@@ -259,7 +259,7 @@ resource policyStorage03 'Microsoft.Authorization/policyAssignments@2024-04-01' 
   name: 'smb-storage-03'
   location: location
   properties: {
-    displayName: 'SMB LZ: Storage TLS 1.2'
+    displayName: 'SMB RF: Storage TLS 1.2'
     description: 'Deny storage accounts with minimum TLS version below 1.2'
     policyDefinitionId: policyDefinitions.storageTls12
     enforcementMode: 'Default'
@@ -271,7 +271,7 @@ resource policyStorage04 'Microsoft.Authorization/policyAssignments@2024-04-01' 
   name: 'smb-storage-04'
   location: location
   properties: {
-    displayName: 'SMB LZ: Restrict Storage Network'
+    displayName: 'SMB RF: Restrict Storage Network'
     description: 'Audit storage accounts with unrestricted network access'
     policyDefinitionId: policyDefinitions.restrictStorageNetwork
     enforcementMode: 'Default'
@@ -283,7 +283,7 @@ resource policyStorage05 'Microsoft.Authorization/policyAssignments@2024-04-01' 
   name: 'smb-storage-05'
   location: location
   properties: {
-    displayName: 'SMB LZ: Storage ARM Migration'
+    displayName: 'SMB RF: Storage ARM Migration'
     description: 'Audit classic storage accounts that should be migrated to ARM'
     policyDefinitionId: policyDefinitions.storageArmMigration
     enforcementMode: 'Default'
@@ -299,7 +299,7 @@ resource policyIdentity01 'Microsoft.Authorization/policyAssignments@2024-04-01'
   name: 'smb-identity-01'
   location: location
   properties: {
-    displayName: 'SMB LZ: SQL Azure AD Only'
+    displayName: 'SMB RF: SQL Azure AD Only'
     description: 'Audit SQL servers that do not use Azure AD-only authentication'
     policyDefinitionId: policyDefinitions.sqlAzureAdOnly
     enforcementMode: 'Default'
@@ -311,7 +311,7 @@ resource policyIdentity02 'Microsoft.Authorization/policyAssignments@2024-04-01'
   name: 'smb-identity-02'
   location: location
   properties: {
-    displayName: 'SMB LZ: SQL No Public Access'
+    displayName: 'SMB RF: SQL No Public Access'
     description: 'Audit SQL servers with public network access enabled'
     policyDefinitionId: policyDefinitions.sqlNoPublicAccess
     enforcementMode: 'Default'
@@ -327,7 +327,7 @@ resource policyTagging01 'Microsoft.Authorization/policyAssignments@2024-04-01' 
   name: 'smb-tagging-01'
   location: location
   properties: {
-    displayName: 'SMB LZ: Require Environment Tag'
+    displayName: 'SMB RF: Require Environment Tag'
     description: 'Deny resource creation without Environment tag'
     policyDefinitionId: policyDefinitions.requireTag
     enforcementMode: 'Default'
@@ -344,7 +344,7 @@ resource policyTagging02 'Microsoft.Authorization/policyAssignments@2024-04-01' 
   name: 'smb-tagging-02'
   location: location
   properties: {
-    displayName: 'SMB LZ: Require Owner Tag'
+    displayName: 'SMB RF: Require Owner Tag'
     description: 'Deny resource creation without Owner tag'
     policyDefinitionId: policyDefinitions.requireTag
     enforcementMode: 'Default'
@@ -361,7 +361,7 @@ resource policyGovernance01 'Microsoft.Authorization/policyAssignments@2024-04-0
   name: 'smb-governance-01'
   location: location
   properties: {
-    displayName: 'SMB LZ: Allowed Locations'
+    displayName: 'SMB RF: Allowed Locations'
     description: 'Restrict resource deployment to swedencentral, germanywestcentral, and global'
     policyDefinitionId: policyDefinitions.allowedLocations
     enforcementMode: 'Default'
@@ -382,7 +382,7 @@ resource policyBackup01 'Microsoft.Authorization/policyAssignments@2024-04-01' =
   name: 'smb-backup-01'
   location: location
   properties: {
-    displayName: 'SMB LZ: VM Backup Required'
+    displayName: 'SMB RF: VM Backup Required'
     description: 'Audit VMs that do not have backup configured'
     policyDefinitionId: policyDefinitions.vmBackupRequired
     enforcementMode: 'Default'
@@ -394,7 +394,7 @@ resource policyMonitoring01 'Microsoft.Authorization/policyAssignments@2024-04-0
   name: 'smb-monitoring-01'
   location: location
   properties: {
-    displayName: 'SMB LZ: Diagnostic Settings Required'
+    displayName: 'SMB RF: Diagnostic Settings Required'
     description: 'Audit resources that do not have diagnostic settings configured'
     policyDefinitionId: policyDefinitions.diagnosticSettings
     enforcementMode: 'Default'
@@ -424,7 +424,7 @@ resource policyKv01 'Microsoft.Authorization/policyAssignments@2024-04-01' = {
   name: 'smb-kv-01'
   location: location
   properties: {
-    displayName: 'SMB LZ: Key Vault Soft Delete'
+    displayName: 'SMB RF: Key Vault Soft Delete'
     description: 'Audit Key Vaults that do not have soft delete enabled'
     policyDefinitionId: policyDefinitions.kvSoftDelete
     enforcementMode: 'Default'
@@ -441,7 +441,7 @@ resource policyKv02 'Microsoft.Authorization/policyAssignments@2024-04-01' = {
   name: 'smb-kv-02'
   location: location
   properties: {
-    displayName: 'SMB LZ: Key Vault Deletion Protection'
+    displayName: 'SMB RF: Key Vault Deletion Protection'
     description: 'Audit Key Vaults without purge protection and soft delete for data recovery'
     policyDefinitionId: policyDefinitions.kvDeletionProtection
     enforcementMode: 'Default'
@@ -458,7 +458,7 @@ resource policyKv03 'Microsoft.Authorization/policyAssignments@2024-04-01' = {
   name: 'smb-kv-03'
   location: location
   properties: {
-    displayName: 'SMB LZ: Key Vault RBAC Model'
+    displayName: 'SMB RF: Key Vault RBAC Model'
     description: 'Audit Key Vaults that do not use RBAC permission model'
     policyDefinitionId: policyDefinitions.kvRbacModel
     enforcementMode: 'Default'
@@ -475,7 +475,7 @@ resource policyKv04 'Microsoft.Authorization/policyAssignments@2024-04-01' = {
   name: 'smb-kv-04'
   location: location
   properties: {
-    displayName: 'SMB LZ: Key Vault No Public Network'
+    displayName: 'SMB RF: Key Vault No Public Network'
     description: 'Audit Key Vaults that have public network access enabled'
     policyDefinitionId: policyDefinitions.kvNoPublicNetwork
     enforcementMode: 'Default'
@@ -492,7 +492,7 @@ resource policyKv05 'Microsoft.Authorization/policyAssignments@2024-04-01' = {
   name: 'smb-kv-05'
   location: location
   properties: {
-    displayName: 'SMB LZ: Key Vault Secrets Expiration'
+    displayName: 'SMB RF: Key Vault Secrets Expiration'
     description: 'Audit secrets that do not have an expiration date set'
     policyDefinitionId: policyDefinitions.kvSecretsExpiration
     enforcementMode: 'Default'
@@ -509,7 +509,7 @@ resource policyKv06 'Microsoft.Authorization/policyAssignments@2024-04-01' = {
   name: 'smb-kv-06'
   location: location
   properties: {
-    displayName: 'SMB LZ: Key Vault Keys Expiration'
+    displayName: 'SMB RF: Key Vault Keys Expiration'
     description: 'Audit keys that do not have an expiration date set'
     policyDefinitionId: policyDefinitions.kvKeysExpiration
     enforcementMode: 'Default'
@@ -526,7 +526,7 @@ resource policyKv07 'Microsoft.Authorization/policyAssignments@2024-04-01' = {
   name: 'smb-kv-07'
   location: location
   properties: {
-    displayName: 'SMB LZ: Key Vault Resource Logs'
+    displayName: 'SMB RF: Key Vault Resource Logs'
     description: 'Audit Key Vaults that do not have resource logs enabled'
     policyDefinitionId: policyDefinitions.kvResourceLogs
     enforcementMode: 'Default'
@@ -542,7 +542,7 @@ resource policyNetwork05 'Microsoft.Authorization/policyAssignments@2024-04-01' 
   name: 'smb-network-05'
   location: location
   properties: {
-    displayName: 'SMB LZ: Audit NSG Flow Logs'
+    displayName: 'SMB RF: Audit NSG Flow Logs'
     description: 'Audit Network Security Groups that do not have flow logs configured'
     policyDefinitionId: policyDefinitions.nsgFlowLogs
     enforcementMode: 'Default'
@@ -554,7 +554,7 @@ resource policyCompute05 'Microsoft.Authorization/policyAssignments@2024-04-01' 
   name: 'smb-compute-05'
   location: location
   properties: {
-    displayName: 'SMB LZ: Audit System Updates on VMs'
+    displayName: 'SMB RF: Audit System Updates on VMs'
     description: 'Audit VMs that are missing system updates'
     policyDefinitionId: policyDefinitions.auditSystemUpdates
     enforcementMode: 'Default'
@@ -566,7 +566,7 @@ resource policyCompute06 'Microsoft.Authorization/policyAssignments@2024-04-01' 
   name: 'smb-compute-06'
   location: location
   properties: {
-    displayName: 'SMB LZ: Audit Endpoint Protection'
+    displayName: 'SMB RF: Audit Endpoint Protection'
     description: 'Audit VMs that do not have endpoint protection installed'
     policyDefinitionId: policyDefinitions.auditEndpointProtection
     enforcementMode: 'Default'
@@ -578,7 +578,7 @@ resource policyIdentity03 'Microsoft.Authorization/policyAssignments@2024-04-01'
   name: 'smb-identity-03'
   location: location
   properties: {
-    displayName: 'SMB LZ: Audit MFA for Owners'
+    displayName: 'SMB RF: Audit MFA for Owners'
     description: 'Audit accounts with owner permissions that do not have MFA enabled'
     policyDefinitionId: policyDefinitions.auditMfaOwners
     enforcementMode: 'Default'
@@ -590,7 +590,7 @@ resource policyIdentity04 'Microsoft.Authorization/policyAssignments@2024-04-01'
   name: 'smb-identity-04'
   location: location
   properties: {
-    displayName: 'SMB LZ: Audit Blocked Accounts'
+    displayName: 'SMB RF: Audit Blocked Accounts'
     description: 'Audit blocked accounts with read and write permissions on Azure resources'
     policyDefinitionId: policyDefinitions.auditDeprecatedAccounts
     enforcementMode: 'Default'
@@ -602,7 +602,7 @@ resource policyBackup03 'Microsoft.Authorization/policyAssignments@2024-04-01' =
   name: 'smb-backup-03'
   location: location
   properties: {
-    displayName: 'SMB LZ: Audit Storage Geo-Redundancy'
+    displayName: 'SMB RF: Audit Storage Geo-Redundancy'
     description: 'Audit storage accounts that do not use geo-redundant storage'
     policyDefinitionId: policyDefinitions.auditStorageGeoRedundancy
     enforcementMode: 'Default'

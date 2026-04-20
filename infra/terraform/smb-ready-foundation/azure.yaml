@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+# SMB Ready Foundation — azd project manifest (Terraform variant)
+# Parallel to infra/bicep/smb-ready-foundation/azure.yaml; independent state.
+#
+# azd Terraform support is ALPHA. The preprovision hook enables it via
+#   azd config set alpha.terraform on
+# before invoking any `azd` sub-command that touches TF.
+#
+# Partners configure via:
+#   azd env set OWNER partner@contoso.com
+#   azd env set SCENARIO baseline|firewall|vpn|full   # optional partner UX shim
+#   azd env set DEPLOY_FIREWALL true|false            # authoritative
+#   azd env set DEPLOY_VPN true|false                 # authoritative
+name: smb-ready-foundation
+metadata:
+  template: smb-ready-foundation-terraform@1.0.0
+infra:
+  provider: terraform
+  path: .
+hooks:
+  preprovision:
+    posix:
+      shell: sh
+      run: ./hooks/pre-provision.sh
+    windows:
+      shell: pwsh
+      run: ./hooks/pre-provision.ps1
+  postprovision:
+    posix:
+      shell: sh
+      run: ./hooks/post-provision.sh
+    windows:
+      shell: pwsh
+      run: ./hooks/post-provision.ps1

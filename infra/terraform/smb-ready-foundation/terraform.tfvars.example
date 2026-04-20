@@ -1,0 +1,42 @@
+# ============================================================================
+# SMB Ready Foundation — Terraform variable example
+# ============================================================================
+# The azd preprovision hook normally exports these as TF_VAR_* environment
+# variables from azd env state. Use this file only for non-azd workflows
+# (e.g., direct `terraform apply` during module development).
+# ============================================================================
+
+subscription_id = "00000000-0000-0000-0000-000000000000"
+owner           = "partner@contoso.com"
+location        = "swedencentral"
+environment     = "prod"
+
+hub_vnet_address_space    = "10.0.0.0/16"
+spoke_vnet_address_space  = "10.1.0.0/16"
+on_premises_address_space = ""
+
+log_analytics_daily_cap_gb = 0.5
+
+budget_amount      = 500
+budget_alert_email = ""           # empty => owner
+budget_start_date  = "2026-04-01" # YYYY-MM-01; hook regenerates to current month
+
+# ---------------------------------------------------------------------------
+# Scenario → booleans translation (for partner reference)
+# ---------------------------------------------------------------------------
+#   baseline  → deploy_firewall = false, deploy_vpn = false
+#   firewall  → deploy_firewall = true,  deploy_vpn = false
+#   vpn       → deploy_firewall = false, deploy_vpn = true
+#   full      → deploy_firewall = true,  deploy_vpn = true
+# ---------------------------------------------------------------------------
+
+deploy_firewall = false
+deploy_vpn      = false
+
+# ---------------------------------------------------------------------------
+# Management group (optional — defaults usually suffice)
+# ---------------------------------------------------------------------------
+
+management_group_name         = "smb-rf"
+management_group_display_name = "SMB Ready Foundation"
+assignment_location           = "swedencentral"

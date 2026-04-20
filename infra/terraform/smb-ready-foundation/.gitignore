@@ -1,0 +1,21 @@
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+crash.log
+crash.*.log
+
+# Local backend config written by preprovision hook
+backend.hcl
+
+# Auto-generated backend override (written when TF_BACKEND=local, e.g. test runs)
+backend_override.tf
+
+# Ignore partner-specific tfvars; keep the example
+*.tfvars
+!terraform.tfvars.example
+
+# azd env state (mirrors Bicep project's gitignore)
+.azure/
