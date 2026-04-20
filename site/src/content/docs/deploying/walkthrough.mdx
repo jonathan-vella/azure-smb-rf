@@ -6,6 +6,7 @@ sidebar:
 ---
 
 import { Tabs, TabItem, Steps, Aside } from "@astrojs/starlight/components";
+import ThemedImage from "../../../components/ThemedImage.astro";
 
 This walkthrough takes you from an empty subscription to a fully deployed SMB Ready Foundation environment. Choose the **Bicep** or **Terraform** tab for your preferred IaC track.
 
@@ -169,7 +170,11 @@ Before starting, ensure you have:
 
 ## What Gets Deployed
 
-![Baseline architecture diagram](/azure-smb-rf/images/architecture-baseline.png "Baseline scenario architecture showing hub-spoke topology with NAT Gateway")
+<ThemedImage
+  src="/images/architecture-baseline.png"
+  alt="Baseline architecture — hub-spoke with NAT Gateway"
+  caption="Baseline scenario — hub-spoke topology with NAT Gateway"
+/>
 
 See [Deployment Scenarios](/azure-smb-rf/deploying/scenarios/) for the full resource matrix per scenario.
 

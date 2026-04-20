@@ -8,7 +8,25 @@ export default defineConfig({
   base: "/azure-smb-rf",
   trailingSlash: "always",
   markdown: {
-    rehypePlugins: [rehypeMermaid],
+    rehypePlugins: [
+      [
+        rehypeMermaid,
+        {
+          mermaidConfig: {
+            theme: "base",
+            themeVariables: {
+              primaryColor: "#0078d4",
+              primaryTextColor: "#0a1a2e",
+              primaryBorderColor: "#0a2540",
+              lineColor: "#4a5a6e",
+              secondaryColor: "#d1e7f7",
+              tertiaryColor: "#f3f6fa",
+              fontFamily: '"Space Grotesk", "Segoe UI", system-ui, sans-serif',
+            },
+          },
+        },
+      ],
+    ],
   },
   integrations: [
     starlight({
@@ -66,7 +84,7 @@ export default defineConfig({
       sidebar: [
         {
           label: "Getting Started",
-          collapsed: true,
+          collapsed: false,
           items: [
             {
               label: "What Is SMB Ready Foundation?",
@@ -151,42 +169,42 @@ export default defineConfig({
               slug: "reference/partner-quick-reference",
             },
             { label: "FAQ", slug: "reference/faq" },
+            {
+              label: "Architecture Decision Records",
+              collapsed: true,
+              items: [
+                {
+                  label: "ADR-0001 · Cost-Optimized Architecture",
+                  slug: "reference/adr/adr-0001",
+                },
+                {
+                  label: "ADR-0002 · Bicep Implementation",
+                  slug: "reference/adr/adr-0002",
+                },
+                {
+                  label: "ADR-0003 · AVM Firewall Migration",
+                  slug: "reference/adr/adr-0003",
+                },
+                {
+                  label: "ADR-0004 · Deployment Ordering",
+                  slug: "reference/adr/adr-0004",
+                },
+                {
+                  label: "ADR-0005 · Terraform Dual-Track",
+                  slug: "reference/adr/adr-0005",
+                },
+                {
+                  label: "ADR-0006 · Single-Root Composition",
+                  slug: "reference/adr/adr-0006",
+                },
+              ],
+            },
           ],
         },
         {
-          label: "Reference — ADRs",
+          label: "Automation",
           collapsed: true,
-          items: [
-            {
-              label: "ADR-0001: Cost-Optimized Architecture",
-              slug: "reference/adr/adr-0001",
-            },
-            {
-              label: "ADR-0002: Bicep Implementation",
-              slug: "reference/adr/adr-0002",
-            },
-            {
-              label: "ADR-0003: AVM Firewall Migration",
-              slug: "reference/adr/adr-0003",
-            },
-            {
-              label: "ADR-0004: Deployment Ordering",
-              slug: "reference/adr/adr-0004",
-            },
-            {
-              label: "ADR-0005: Terraform Dual-Track",
-              slug: "reference/adr/adr-0005",
-            },
-            {
-              label: "ADR-0006: Single-Root Composition",
-              slug: "reference/adr/adr-0006",
-            },
-          ],
-        },
-        {
-          label: "CI/CD",
-          collapsed: true,
-          items: [{ label: "Overview", slug: "cicd/overview" }],
+          items: [{ label: "CI/CD Overview", slug: "cicd/overview" }],
         },
         {
           label: "Project",

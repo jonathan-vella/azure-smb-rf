@@ -1,0 +1,80 @@
+---
+/**
+ * ThemedImage — renders a light/dark pair of images, swapping on data-theme.
+ * Falls back to `src` alone if no `dark` prop provided.
+ */
+interface Props {
+  src: string;
+  dark?: string;
+  alt: string;
+  width?: number | string;
+  height?: number | string;
+  loading?: "lazy" | "eager";
+  caption?: string;
+}
+const {
+  src,
+  dark,
+  alt,
+  width,
+  height,
+  loading = "lazy",
+  caption,
+} = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const lightUrl = src.startsWith("http") ? src : `${base}${src}`;
+const darkUrl = dark
+  ? dark.startsWith("http")
+    ? dark
+    : `${base}${dark}`
+  : null;
+---
+
+{caption ? (
+  <figure class="themed-image">
+    <img
+      class="tm-light"
+      src={lightUrl}
+      alt={alt}
+      width={width}
+      height={height}
+      loading={loading}
+      decoding="async"
+    />
+    {darkUrl && (
+      <img
+        class="tm-dark"
+        src={darkUrl}
+        alt={alt}
+        width={width}
+        height={height}
+        loading={loading}
+        decoding="async"
+      />
+    )}
+    <figcaption>{caption}</figcaption>
+  </figure>
+) : (
+  <span class="themed-image">
+    <img
+      class="tm-light"
+      src={lightUrl}
+      alt={alt}
+      width={width}
+      height={height}
+      loading={loading}
+      decoding="async"
+    />
+    {darkUrl && (
+      <img
+        class="tm-dark"
+        src={darkUrl}
+        alt={alt}
+        width={width}
+        height={height}
+        loading={loading}
+        decoding="async"
+      />
+    )}
+  </span>
+)}

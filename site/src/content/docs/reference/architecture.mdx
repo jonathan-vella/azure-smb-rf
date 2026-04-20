@@ -3,6 +3,8 @@ title: Architecture Diagrams
 description: Visual architecture for all 4 deployment scenarios
 ---
 
+import ThemedImage from "../../../components/ThemedImage.astro";
+
 ## Hub-Spoke Topology
 
 All scenarios share the same hub-spoke foundation. The hub contains shared services (DNS, optionally Firewall and VPN Gateway). The spoke hosts production workloads. Azure Bastion Developer is available as a portal capability for browser-based VM access — no dedicated Bastion resource is deployed.
@@ -11,7 +13,11 @@ All scenarios share the same hub-spoke foundation. The hub contains shared servi
 
 The simplest scenario — cloud-native with NAT Gateway for outbound internet. No hybrid connectivity, no centralized egress filtering.
 
-![Baseline architecture diagram](/azure-smb-rf/images/architecture-baseline.png "Baseline scenario — hub-spoke with NAT Gateway")
+<ThemedImage
+  src="/images/architecture-baseline.png"
+  alt="Baseline architecture — hub-spoke with NAT Gateway"
+  caption="Baseline scenario — hub-spoke with NAT Gateway"
+/>
 
 **Resources**: Hub VNet + NSG, Spoke VNet + NSG + NAT Gateway + PIP, Private DNS Zone, Key Vault + PE, Log Analytics, Automation Account, Recovery Vault, Migrate Project.
 
@@ -61,7 +67,11 @@ graph TB
 
 Adds Azure Firewall for centralized egress control. All spoke traffic is routed through the firewall via UDR. NAT Gateway is removed (Firewall handles outbound).
 
-![Firewall architecture diagram](/azure-smb-rf/images/architecture-firewall.png "Firewall scenario — centralized egress via Azure Firewall")
+<ThemedImage
+  src="/images/architecture-firewall.png"
+  alt="Firewall architecture — centralized egress via Azure Firewall"
+  caption="Firewall scenario — centralized egress via Azure Firewall"
+/>
 
 **Additional resources**: Azure Firewall + Firewall Policy + 2 PIPs, Route Tables (spoke + gateway), Hub↔Spoke peering.
 
@@ -69,7 +79,11 @@ Adds Azure Firewall for centralized egress control. All spoke traffic is routed 
 
 Adds VPN Gateway for site-to-site connectivity to on-premises. Uses gateway transit through hub↔spoke peering. NAT Gateway provides outbound internet (no firewall).
 
-![VPN architecture diagram](/azure-smb-rf/images/architecture-vpn.png "VPN scenario — site-to-site connectivity via VPN Gateway")
+<ThemedImage
+  src="/images/architecture-vpn.png"
+  alt="VPN architecture — site-to-site connectivity via VPN Gateway"
+  caption="VPN scenario — site-to-site connectivity via VPN Gateway"
+/>
 
 **Additional resources**: VPN Gateway + PIP, Hub↔Spoke peering with gateway transit.
 
@@ -79,7 +93,11 @@ Adds VPN Gateway for site-to-site connectivity to on-premises. Uses gateway tran
 
 Combines Firewall and VPN Gateway. Maximum protection with centralized egress and hybrid connectivity. All spoke and on-premises traffic routes through the firewall.
 
-![Full architecture diagram](/azure-smb-rf/images/architecture-full.png "Full scenario — Firewall + VPN Gateway combined")
+<ThemedImage
+  src="/images/architecture-full.png"
+  alt="Full architecture — Firewall + VPN Gateway combined"
+  caption="Full scenario — Firewall + VPN Gateway combined"
+/>
 
 **Additional resources**: Azure Firewall + policy + PIPs, VPN Gateway + PIP, Route Tables, Hub↔Spoke peering with gateway transit.
 

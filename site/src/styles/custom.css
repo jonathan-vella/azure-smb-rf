@@ -1,14 +1,436 @@
-/* SMB Ready Foundation — Custom Styles */
+/* SMB Ready Foundation — Custom Styles
+ * Layered on top of tokens.css. Keep this file focused on:
+ *   1. Starlight selector overrides
+ *   2. Landing-page utility classes (.lp-band, .persona-grid, .metric, ...)
+ *   3. Component polish (cards, asides, code blocks)
+ */
 
-:root {
-  --sl-font: "Space Grotesk", sans-serif;
-  --sl-font-system: "Manrope", sans-serif;
-  --sl-font-mono: "IBM Plex Mono", monospace;
+@import "./tokens.css";
+
+/* ---------- Global polish ---------- */
+
+body {
+  font-feature-settings: "ss01", "ss02", "cv11";
 }
 
-/* Azure blue accent */
-:root {
-  --sl-color-accent-low: #1a3a5c;
-  --sl-color-accent: #0078d4;
-  --sl-color-accent-high: #4da6ff;
+.sl-markdown-content {
+  line-height: var(--lh-normal);
+}
+
+/* Heading rhythm */
+.sl-markdown-content h1 {
+  font-size: var(--fs-2xl);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.01em;
+}
+.sl-markdown-content h2 {
+  font-size: var(--fs-xl);
+  line-height: var(--lh-snug);
+  letter-spacing: -0.005em;
+  margin-top: 2.5rem;
+}
+.sl-markdown-content h3 {
+  font-size: var(--fs-lg);
+  line-height: var(--lh-snug);
+}
+
+/* ---------- Splash hero refinement ---------- */
+
+.hero h1 {
+  font-size: clamp(2.25rem, 5vw, var(--fs-hero));
+  line-height: var(--lh-tight);
+  letter-spacing: -0.02em;
+  background: linear-gradient(
+    135deg,
+    var(--text-strong) 30%,
+    var(--sl-color-accent) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero .tagline {
+  font-size: var(--fs-md);
+  max-width: 60ch;
+  color: var(--text-muted);
+}
+
+/* ---------- Card grid refinement (Starlight Card component) ---------- */
+
+.sl-markdown-content .card {
+  border: 1px solid var(--sl-color-hairline);
+  background: var(--surface-1);
+  border-radius: var(--radius-lg);
+  transition: transform var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out),
+    border-color var(--dur) var(--ease-out);
+}
+
+.sl-markdown-content .card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+  border-color: var(--sl-color-accent);
+}
+
+/* ---------- Aside / callout refinement ---------- */
+
+.sl-markdown-content .starlight-aside {
+  border-radius: var(--radius);
+  border-width: 1px;
+  border-left-width: 4px;
+}
+
+/* ---------- Code block refinement ---------- */
+
+.sl-markdown-content .expressive-code {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---------- Figure / image polish ---------- *
+ * Architecture diagrams were authored on a light canvas; keep a light-ish
+ * backdrop in dark mode so icon colors stay readable.
+ */
+
+.sl-markdown-content img {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  background: #ffffff;
+}
+
+:root[data-theme="dark"] .sl-markdown-content img {
+  background: #f3f6fa;
+  box-shadow: 0 0 0 1px rgb(80 169 239 / 0.12), var(--shadow);
+}
+
+.sl-markdown-content figure {
+  margin-block: 2rem;
+}
+
+.sl-markdown-content figure figcaption {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+/* ---------- Themed image swap (ThemedImage.astro) ---------- *
+ * Only perform the swap when both light + dark variants are present.
+ * If a page provides only the light src, leave it visible in dark mode too.
+ */
+
+.themed-image .tm-dark {
+  display: none;
+}
+:root[data-theme="dark"] .themed-image:has(.tm-dark) .tm-dark {
+  display: block;
+}
+:root[data-theme="dark"] .themed-image:has(.tm-dark) .tm-light {
+  display: none;
+}
+
+/* ==================================================================
+   LANDING PAGE UTILITIES
+   ================================================================== */
+
+.lp-band {
+  padding-block: clamp(2rem, 5vw, 3.5rem);
+}
+
+.lp-band + .lp-band {
+  border-top: 1px solid var(--sl-color-hairline-light);
+}
+
+.lp-eyebrow {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sl-color-accent);
+  margin-bottom: 0.5rem;
+}
+
+.lp-heading {
+  font-size: clamp(1.5rem, 3vw, var(--fs-xl));
+  line-height: var(--lh-snug);
+  letter-spacing: -0.01em;
+  margin: 0 0 0.75rem;
+}
+
+.lp-intro {
+  color: var(--text-muted);
+  max-width: 60ch;
+  margin-bottom: 1.75rem;
+}
+
+/* --- Persona pathway cards --- */
+.persona-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.persona-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  background: var(--surface-1);
+  border: 1px solid var(--sl-color-hairline);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  color: inherit;
+  transition: transform var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out),
+    border-color var(--dur) var(--ease-out);
+  position: relative;
+  overflow: hidden;
+}
+
+.persona-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--sl-color-accent),
+    var(--azure-glow)
+  );
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease-out);
+}
+
+.persona-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--sl-color-accent);
+}
+
+.persona-card:hover::before {
+  opacity: 1;
+}
+
+.persona-card .pc-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-3);
+  color: var(--sl-color-accent);
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+}
+
+.persona-card .pc-title {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--text-strong);
+  margin: 0 0 0.25rem;
+}
+
+.persona-card .pc-body {
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  flex: 1;
+  margin: 0 0 1rem;
+}
+
+.persona-card .pc-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--sl-color-accent);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+}
+
+.persona-card .pc-cta::after {
+  content: "→";
+  transition: transform var(--dur) var(--ease-out);
+}
+
+.persona-card:hover .pc-cta::after {
+  transform: translateX(3px);
+}
+
+/* --- Proof / metric strip --- */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.metric {
+  padding: 1.25rem 1.5rem;
+  background: var(--surface-2);
+  border: 1px solid var(--sl-color-hairline);
+  border-radius: var(--radius);
+}
+
+.metric .m-value {
+  display: block;
+  font-size: var(--fs-xl);
+  line-height: var(--lh-tight);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--sl-color-accent);
+  margin-bottom: 0.25rem;
+}
+
+.metric .m-label {
+  display: block;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  line-height: var(--lh-snug);
+}
+
+/* --- Scenario cards --- */
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+.scenario-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-1);
+  border: 1px solid var(--sl-color-hairline);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: transform var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out),
+    border-color var(--dur) var(--ease-out);
+}
+
+.scenario-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--sl-color-accent);
+}
+
+.scenario-card .sc-thumb {
+  aspect-ratio: 16 / 9;
+  background: var(--surface-2);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+
+.scenario-card .sc-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.scenario-card .sc-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.scenario-card .sc-title {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--text-strong);
+  margin: 0;
+}
+
+.scenario-card .sc-cost {
+  font-family: var(--sl-font-mono);
+  font-size: var(--fs-sm);
+  color: var(--sl-color-accent);
+  font-weight: 600;
+}
+
+.scenario-card .sc-desc {
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  margin: 0;
+  flex: 1;
+}
+
+/* --- Next-steps rail --- */
+.next-rail {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background: var(--surface-2);
+  border: 1px solid var(--sl-color-hairline);
+  border-radius: var(--radius-lg);
+}
+
+.next-rail a {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface-elevated);
+  border: 1px solid var(--sl-color-hairline);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--text-strong);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  transition: border-color var(--dur) var(--ease-out),
+    color var(--dur) var(--ease-out);
+}
+
+.next-rail a:hover {
+  border-color: var(--sl-color-accent);
+  color: var(--sl-color-accent);
+}
+
+.next-rail a::before {
+  content: "→";
+  color: var(--sl-color-accent);
+  font-weight: 700;
+}
+
+/* --- Architecture hero frame ---
+ * Architecture diagrams were authored on a light canvas. Preserve that canvas
+ * in both themes via a fixed near-white frame surface — otherwise diagram
+ * icon colors clash with a dark background.
+ */
+.arch-frame {
+  padding: 0.75rem;
+  background: #ffffff;
+  border: 1px solid var(--sl-color-hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+
+:root[data-theme="dark"] .arch-frame {
+  background: #f3f6fa;
+  border-color: #2a3a54;
+  box-shadow: 0 0 0 1px rgb(80 169 239 / 0.15), var(--shadow-lg);
+}
+
+.arch-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: none;
+  background: transparent;
+}
+
+@media (max-width: 640px) {
+  .persona-card,
+  .scenario-card .sc-body {
+    padding: 1.25rem;
+  }
+  .lp-band {
+    padding-block: 1.75rem;
+  }
 }

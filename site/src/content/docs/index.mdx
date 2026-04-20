@@ -1,38 +1,151 @@
 ---
 title: SMB Ready Foundation
-description: Repeatable Azure infrastructure for SMB VMware-to-Azure migrations
+description: Deploy a compliant, cost-optimized Azure landing zone for SMB VMware-to-Azure migrations — one command, dual IaC tracks, governance built in.
 template: splash
 hero:
-  tagline: "v0.10.0 — Repeatable Azure infrastructure for SMB customers — hub-spoke networking, governance policies, and 4 deployment scenarios, deployable with a single command."
+  tagline: "Deploy a compliant Azure landing zone for SMB customers in under an hour — hub-spoke networking, governance policies, and four cost-tiered scenarios, all from a single command."
   actions:
     - text: Quick Start
       link: /azure-smb-rf/getting-started/quick-start/
       icon: right-arrow
       variant: primary
+    - text: Partner Onboarding
+      link: /azure-smb-rf/getting-started/partner-onboarding/
+      icon: right-arrow
+      variant: secondary
     - text: View on GitHub
       link: https://github.com/jonathan-vella/azure-smb-rf
       icon: external
+      variant: minimal
 ---
 
-import { Card, CardGrid } from "@astrojs/starlight/components";
+import PersonaCard from "../../components/PersonaCard.astro";
+import ScenarioCard from "../../components/ScenarioCard.astro";
+import MetricTile from "../../components/MetricTile.astro";
+import ThemedImage from "../../components/ThemedImage.astro";
 
-<CardGrid stagger>
-  <Card title="4 Deployment Scenarios" icon="setting">
-    Choose **baseline** ($48/mo), **firewall** ($336/mo), **vpn** ($187/mo), or
-    **full** ($476/mo) — each tailored to different security and connectivity
-    needs.
-  </Card>
-  <Card title="Governance Policies" icon="approve-check-circle">
-    Management group and subscription-scoped Azure Policy assignments covering
-    compute, network, storage, identity, tagging, Key Vault, monitoring, and
-    backup.
-  </Card>
-  <Card title="azd-Powered Deployment" icon="rocket">
-    One command to deploy: `azd up`. Pre-provision hooks handle management group
-    creation, policy deployment, CIDR validation, and cleanup automatically.
-  </Card>
-  <Card title="Azure Verified Modules" icon="puzzle">
-    Built on 13 AVM Bicep modules — production-tested, Microsoft-maintained
-    infrastructure components.
-  </Card>
-</CardGrid>
+<div class="lp-band">
+  <p class="lp-eyebrow">For partner consultants</p>
+  <h2 class="lp-heading">Pick your path</h2>
+  <p class="lp-intro">
+    Three entry points depending on where you are with your SMB customer
+    engagement.
+  </p>
+  <div class="persona-grid">
+    <PersonaCard
+      title="New to SMB Ready Foundation"
+      href="/azure-smb-rf/getting-started/what-is-smb-rf/"
+      icon="?"
+      cta="Understand the pattern"
+    >
+      Learn what problem this repo solves for partners running VMware-to-Azure
+      migrations across many SMB customers.
+    </PersonaCard>
+    <PersonaCard
+      title="Deploying now"
+      href="/azure-smb-rf/deploying/scenarios/"
+      icon="↯"
+      cta="Compare scenarios"
+    >
+      Compare the four deployment scenarios, pick one, and run `azd up` against
+      a customer subscription.
+    </PersonaCard>
+    <PersonaCard
+      title="Operating an existing env"
+      href="/azure-smb-rf/operating/runbook/"
+      icon="⚙"
+      cta="Open runbook"
+    >
+      Post-deployment operations — monitoring, backup, compliance, cost,
+      teardown.
+    </PersonaCard>
+  </div>
+</div>
+
+<div class="lp-band">
+  <p class="lp-eyebrow">Why SMB Ready Foundation</p>
+  <h2 class="lp-heading">Engineered for repeatable SMB delivery</h2>
+  <div class="metric-grid">
+    <MetricTile value="Four" label="Cost-tiered deployment scenarios" />
+    <MetricTile value="Dual" label="Bicep and Terraform tracks" />
+    <MetricTile value="Policy" label="Governance built in at MG + subscription scope" />
+    <MetricTile value="One" label="Command to deploy: `azd up`" />
+  </div>
+</div>
+
+<div class="lp-band">
+  <p class="lp-eyebrow">Deployment scenarios</p>
+  <h2 class="lp-heading">Four sizes, one architecture</h2>
+  <p class="lp-intro">
+    Every scenario shares the same hub-spoke topology and governance baseline —
+    you only add what the customer actually needs.
+  </p>
+  <div class="scenario-grid">
+    <ScenarioCard
+      title="Baseline"
+      cost="~$48 / month"
+      href="/azure-smb-rf/deploying/scenarios/#baseline"
+      thumb="/images/architecture-baseline.png"
+      alt="Baseline architecture diagram"
+    >
+      Hub-spoke networking, Bastion, Private DNS, core ops. Minimum viable
+      landing zone.
+    </ScenarioCard>
+    <ScenarioCard
+      title="Firewall"
+      cost="~$336 / month"
+      href="/azure-smb-rf/deploying/scenarios/#firewall"
+      thumb="/images/architecture-firewall.png"
+      alt="Firewall architecture diagram"
+    >
+      Adds Azure Firewall Basic with availability-zone deployment for egress
+      filtering and threat intelligence alerts.
+    </ScenarioCard>
+    <ScenarioCard
+      title="VPN"
+      cost="~$187 / month"
+      href="/azure-smb-rf/deploying/scenarios/#vpn"
+      thumb="/images/architecture-vpn.png"
+      alt="VPN architecture diagram"
+    >
+      Adds VpnGw1AZ zone-redundant S2S VPN gateway for customer on-premises
+      hybrid connectivity.
+    </ScenarioCard>
+    <ScenarioCard
+      title="Full"
+      cost="~$476 / month"
+      href="/azure-smb-rf/deploying/scenarios/#full"
+      thumb="/images/architecture-full.png"
+      alt="Full architecture diagram"
+    >
+      Firewall + VPN together — the hardened scenario for customers with
+      compliance or hybrid requirements.
+    </ScenarioCard>
+  </div>
+</div>
+
+<div class="lp-band">
+  <p class="lp-eyebrow">Architecture at a glance</p>
+  <h2 class="lp-heading">Hub-spoke with governance built in</h2>
+  <div class="arch-frame">
+    <ThemedImage
+      src="/images/architecture-full.png"
+      alt="SMB Ready Foundation full architecture — hub-spoke with Firewall, VPN, Bastion, and shared operations"
+      loading="eager"
+    />
+  </div>
+  <p style="margin-top:1rem;font-size:var(--fs-sm);color:var(--text-muted);text-align:center;">
+    <a href="/azure-smb-rf/reference/architecture/">See all architecture diagrams →</a>
+  </p>
+</div>
+
+<div class="lp-band">
+  <p class="lp-eyebrow">Next steps</p>
+  <h2 class="lp-heading">Start from here</h2>
+  <nav class="next-rail" aria-label="Quick links">
+    <a href="/azure-smb-rf/getting-started/prerequisites/">Prerequisites</a>
+    <a href="/azure-smb-rf/getting-started/quick-start/">Quick Start</a>
+    <a href="/azure-smb-rf/reference/partner-quick-reference/">Partner Quick Reference</a>
+    <a href="/azure-smb-rf/reference/faq/">FAQ</a>
+  </nav>
+</div>

@@ -4,6 +4,7 @@ description: Complete list of resources deployed by each scenario with condition
 ---
 
 import { Tabs, TabItem, Aside } from "@astrojs/starlight/components";
+import ThemedImage from "../../../components/ThemedImage.astro";
 
 ## Conditional Resource Logic
 
@@ -109,4 +110,8 @@ Not every resource deploys in every scenario. The `SCENARIO` parameter controls 
 
 ## Management Group Hierarchy
 
-![Management group hierarchy showing smb-rf under tenant root](/azure-smb-rf/images/mg-hierarchy.png "Management group hierarchy: Tenant Root → smb-rf → target subscription")
+<ThemedImage
+  src="/images/mg-hierarchy.png"
+  alt="Management group hierarchy showing smb-rf under tenant root"
+  caption="Management group hierarchy: Tenant Root → smb-rf → target subscription"
+/>

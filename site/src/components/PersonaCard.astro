@@ -1,0 +1,16 @@
+---
+interface Props {
+  title: string;
+  href: string;
+  icon?: string;
+  cta?: string;
+}
+const { title, href, icon = "→", cta = "Start" } = Astro.props;
+---
+
+<a class="persona-card" href={href}>
+  <span class="pc-icon" aria-hidden="true">{icon}</span>
+  <h3 class="pc-title">{title}</h3>
+  <p class="pc-body"><slot /></p>
+  <span class="pc-cta">{cta}</span>
+</a>

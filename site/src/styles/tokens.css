@@ -1,0 +1,105 @@
+/* SMB Ready Foundation — Design Tokens
+ *
+ * Azure-tuned dual-mode token system layered on top of Starlight.
+ * All visual values live here; custom.css composes utilities from these.
+ */
+
+:root {
+  /* --- Typography --- */
+  --sl-font: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --sl-font-system: "Manrope", "Segoe UI", system-ui, sans-serif;
+  --sl-font-mono: "IBM Plex Mono", "Cascadia Code", Consolas, monospace;
+
+  /* Type scale — Major Third (1.25) */
+  --fs-xs: 0.8rem;
+  --fs-sm: 0.9rem;
+  --fs-base: 1rem;
+  --fs-md: 1.125rem;
+  --fs-lg: 1.375rem;
+  --fs-xl: 1.75rem;
+  --fs-2xl: 2.25rem;
+  --fs-3xl: 3rem;
+  --fs-hero: 3.5rem;
+
+  --lh-tight: 1.15;
+  --lh-snug: 1.35;
+  --lh-normal: 1.6;
+
+  /* Measured prose width */
+  --prose-max: 72ch;
+
+  /* --- Radii & elevation --- */
+  --radius-sm: 0.375rem;
+  --radius: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 10px 20px -5px rgb(0 0 0 / 0.12),
+    0 4px 8px -4px rgb(0 0 0 / 0.08);
+
+  /* --- Motion --- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 120ms;
+  --dur: 200ms;
+  --dur-slow: 320ms;
+
+  /* --- Accent: Azure blue, refined --- */
+  --sl-color-accent-low: #0a2540;
+  --sl-color-accent: #0078d4;
+  --sl-color-accent-high: #50a9ef;
+
+  /* Supplementary brand tones for landing page */
+  --azure-deep: #002850;
+  --azure-mid: #0078d4;
+  --azure-soft: #d1e7f7;
+  --azure-glow: #50a9ef;
+}
+
+/* Light theme surface refinement */
+:root[data-theme="light"] {
+  --sl-color-bg: #fbfcfd;
+  --sl-color-bg-nav: #f3f6fa;
+  --sl-color-bg-sidebar: #f7f9fc;
+  --sl-color-hairline: #e1e8f0;
+  --sl-color-hairline-light: #eef2f7;
+
+  /* Subtle blue-tinted surface for cards */
+  --surface-1: #ffffff;
+  --surface-2: #f3f6fa;
+  --surface-3: #e9eff6;
+  --surface-elevated: #ffffff;
+
+  --text-strong: #0a1a2e;
+  --text-muted: #4a5a6e;
+}
+
+/* Dark theme — Azure-tinted instead of default near-black */
+:root[data-theme="dark"] {
+  --sl-color-bg: #0b1424;
+  --sl-color-bg-nav: #0e1a2e;
+  --sl-color-bg-sidebar: #0d1828;
+  --sl-color-hairline: #1c2a40;
+  --sl-color-hairline-light: #162236;
+
+  --surface-1: #11203a;
+  --surface-2: #0e1a2e;
+  --surface-3: #162236;
+  --surface-elevated: #15233c;
+
+  --text-strong: #e8eef7;
+  --text-muted: #9eadc4;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

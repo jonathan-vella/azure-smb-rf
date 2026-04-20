@@ -1,0 +1,37 @@
+---
+title: Page Not Found
+description: The page you were looking for doesn't exist on the SMB Ready Foundation site.
+template: splash
+hero:
+  tagline: "That page doesn't exist — or it moved. Here's where to go next."
+  actions:
+    - text: Home
+      link: /azure-smb-rf/
+      icon: right-arrow
+      variant: primary
+    - text: Quick Start
+      link: /azure-smb-rf/getting-started/quick-start/
+      icon: right-arrow
+      variant: secondary
+    - text: Search on GitHub
+      link: https://github.com/jonathan-vella/azure-smb-rf
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from "@astrojs/starlight/components";
+
+<CardGrid>
+  <Card title="Getting Started" icon="open-book">
+    [What is SMB Ready Foundation?](/azure-smb-rf/getting-started/what-is-smb-rf/) · [Prerequisites](/azure-smb-rf/getting-started/prerequisites/) · [Quick Start](/azure-smb-rf/getting-started/quick-start/)
+  </Card>
+  <Card title="Deploying" icon="rocket">
+    [Scenarios & Costs](/azure-smb-rf/deploying/scenarios/) · [Walkthrough](/azure-smb-rf/deploying/walkthrough/) · [Terraform Track](/azure-smb-rf/deploying/terraform-track/)
+  </Card>
+  <Card title="Operating" icon="setting">
+    [Runbook](/azure-smb-rf/operating/runbook/) · [Monitoring](/azure-smb-rf/operating/monitoring/) · [Troubleshooting](/azure-smb-rf/operating/troubleshooting/)
+  </Card>
+  <Card title="Reference" icon="information">
+    [Architecture](/azure-smb-rf/reference/architecture/) · [Policies](/azure-smb-rf/reference/policies/) · [FAQ](/azure-smb-rf/reference/faq/)
+  </Card>
+</CardGrid>
