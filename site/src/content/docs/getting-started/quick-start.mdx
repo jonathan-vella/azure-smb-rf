@@ -59,7 +59,7 @@ Deploy a complete Azure environment with hub-spoke networking, governance polici
    - Validates CIDR address spaces for overlaps
    - Checks Azure CLI authentication and resource providers
    - Creates the management group and associates the target subscription
-   - Deploys 34 governance policies (30 MG-scoped + 4 subscription-scoped)
+   - Deploys governance policies (MG-scoped and subscription-scoped)
    - Cleans up stale budgets and faulted resources
 
 5. **Verify**
@@ -87,7 +87,7 @@ The baseline scenario creates:
 | `rg-security-smb-swc` | Key Vault (with Private Endpoint)                       |
 | `rg-migrate-smb-swc`  | Azure Migrate Project                                   |
 
-Plus: Monthly budget ($500), Defender for Cloud (free CSPM), and 34 governance policies.
+Plus: Monthly budget ($500), Defender for Cloud (free CSPM), and governance policies at MG and subscription scope.
 
 ## Next Steps
 

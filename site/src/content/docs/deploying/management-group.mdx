@@ -1,6 +1,6 @@
 ---
 title: Management Group & Policies
-description: Management group setup and 34 governance policy assignments
+description: Management group setup and governance policy assignments
 ---
 
 import { Aside, Steps } from "@astrojs/starlight/components";
@@ -12,7 +12,7 @@ SMB Ready Foundation deploys governance at the management group scope — ensuri
 ```
 Tenant Root Group
 └── smb-rf (SMB Ready Foundation)
-    ├── 34 Azure Policy assignments (30 MG + 4 subscription)
+    ├── Azure Policy assignments (MG + subscription scope)
     └── Subscription: customer-subscription
         ├── rg-hub-smb-swc
         ├── rg-spoke-prod-swc
@@ -61,7 +61,7 @@ Tenant Root Group
 The pre-provision hook (`hooks/pre-provision.ps1`) deploys policies in two steps:
 
 1. **Step 5a**: Deploys `deploy-mg.bicep` to the **parent** management group — creates the `smb-rf` MG and associates the subscription (idempotent)
-2. **Step 5b**: Deploys `modules/policy-assignments-mg.bicep` to the `smb-rf` MG — creates 30 MG-scoped policy assignments (3 additional policies are deployed at subscription scope by `main.bicep`)
+2. **Step 5b**: Deploys `modules/policy-assignments-mg.bicep` to the `smb-rf` MG — creates MG-scoped policy assignments (additional policies are deployed at subscription scope by `main.bicep`)
 
 Both steps run a `what-if` preview before deploying.
 
@@ -79,15 +79,15 @@ Both steps run a `what-if` preview before deploying.
 | Backup     | 2     | 2 Audit          | VMs should be backed up, storage geo-redundancy                   |
 | Governance | 1     | 1 Deny           | Allowed resource locations                                        |
 
-**Total: 34 policy assignments** (9 Deny + 24 Audit + 1 DeployIfNotExists)
+**Total: 9 Deny + 24 Audit + 1 DeployIfNotExists policy assignments**
 
-The 30 MG-scoped policies are listed above. The remaining 4 are deployed at subscription scope by `main.bicep`: auto-backup enrollment (DINE), VM backup required (Audit), storage geo-redundancy (Audit), and allowed locations (Deny).
+The MG-scoped policies are listed above. Additional policies are deployed at subscription scope by `main.bicep`: auto-backup enrollment (DINE), VM backup required (Audit), storage geo-redundancy (Audit), and allowed locations (Deny).
 
 For the complete policy catalog with policy definition IDs, see [Policy Catalog](/azure-smb-rf/reference/policies/).
 
 ## Persistence Across Deployments
 
-Management group resources (the MG itself and its 30 MG-scoped policies) persist across `azd up` re-deployments. They are **not** torn down between scenario changes. This is by design:
+Management group resources (the MG itself and its MG-scoped policies) persist across `azd up` re-deployments. They are **not** torn down between scenario changes. This is by design:
 
 - Policies apply to the subscription regardless of which scenario is deployed
 - Re-deploying policies is idempotent (ARM update-in-place)

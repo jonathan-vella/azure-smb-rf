@@ -66,7 +66,7 @@ azd up
 | `rg-security-smb-swc` | Key Vault + Private Endpoint |
 | `rg-migrate-smb-swc` | Azure Migrate Project |
 
-Plus: 34 governance policies (33 MG-scoped + 1 subscription-scoped), monthly budget ($500), Defender for Cloud (free CSPM).
+Plus: Governance policies (MG + subscription scoped), monthly budget ($500), Defender for Cloud (free CSPM).
 
 ## Verification
 
@@ -76,7 +76,7 @@ az group list \
   --query "[?starts_with(name,'rg-')].{Name:name, State:properties.provisioningState}" \
   -o table
 
-# 33 MG policies + 1 sub-scoped = 34 total
+# Check MG policies
 az policy assignment list \
   --scope "/providers/Microsoft.Management/managementGroups/smb-rf" \
   --query "length(@)"

@@ -14,7 +14,7 @@ export default defineConfig({
     starlight({
       title: "SMB Ready Foundation",
       description:
-        "Cost-optimized Azure landing zone for SMB VMware-to-Azure migrations. Hub-spoke networking, 34 governance policies, 4 deployment scenarios.",
+        "Cost-optimized Azure landing zone for SMB VMware-to-Azure migrations. Hub-spoke networking, governance policies, 4 deployment scenarios.",
       favicon: "/images/favicon.svg",
       head: [
         {

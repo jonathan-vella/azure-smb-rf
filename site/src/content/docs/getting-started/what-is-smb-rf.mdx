@@ -20,14 +20,14 @@ Partners managing 1,000+ SMB customers need identical Azure environments that ar
 
 ## The Solution
 
-A single `azd up` command deploys a hub-spoke network topology with 34 governance policies, conditional networking (Firewall, VPN Gateway), and core operations services — all using Azure Verified Modules.
+A single `azd up` command deploys a hub-spoke network topology with governance policies, conditional networking (Firewall, VPN Gateway), and core operations services — all using Azure Verified Modules.
 
 <CardGrid>
   <Card title="4 Deployment Scenarios" icon="setting">
     **baseline** ($48/mo), **firewall** ($336/mo), **vpn** ($187/mo), or **full** ($476/mo) — each tailored to different security and connectivity needs.
   </Card>
-  <Card title="34 Governance Policies" icon="approve-check-circle">
-    30 management group-scoped + 4 subscription-scoped Azure Policy assignments covering compute, network, storage, identity, tagging, Key Vault, monitoring, and backup.
+  <Card title="Governance Policies" icon="approve-check-circle">
+    MG-scoped and subscription-scoped Azure Policy assignments covering compute, network, storage, identity, tagging, Key Vault, monitoring, and backup.
   </Card>
   <Card title="Dual IaC Tracks" icon="puzzle">
     Choose **Bicep** (AVM-first, 13 modules) or **Terraform** (raw azurerm, 17 modules) — both produce identical infrastructure.

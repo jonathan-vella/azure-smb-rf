@@ -56,7 +56,7 @@ This guide helps Microsoft partners operationalize SMB Ready Foundation for mult
    # 6 resource groups
    az group list --query "[?starts_with(name,'rg-')].name" -o tsv
 
-   # 33 MG policies + 1 subscription-scoped = 34 total
+   # Check MG policies
    az policy assignment list \
      --scope "/providers/Microsoft.Management/managementGroups/smb-rf" \
      --query "length(@)"
