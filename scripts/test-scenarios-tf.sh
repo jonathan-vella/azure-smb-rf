@@ -57,12 +57,22 @@ teardown() {
 
   log "TEARDOWN [$scenario]: Selecting azd env smb-rf-tf-${scenario}..."
   if azd env select "smb-rf-tf-${scenario}" 2>/dev/null; then
-    log "TEARDOWN [$scenario]: Running azd down --force --purge..."
-    set +e
-    azd down --force --purge 2>&1 | tee -a "$LOG_FILE"
-    local azd_exit=$?
-    set -e
-    log "TEARDOWN [$scenario]: azd down exit=$azd_exit"
+    # Only invoke `azd down` if the env has a subscription id — otherwise azd
+    # will drop into an interactive prompt ("Select an Azure Subscription…")
+    # which hangs background runs. Incomplete envs have nothing to destroy,
+    # so we fall through to the `az group delete` safety net below.
+    # Note: `azd env get-value` prints its ERROR text to stdout on missing
+    # keys, so we check exit code rather than capturing output.
+    if azd env get-value AZURE_SUBSCRIPTION_ID >/dev/null 2>&1; then
+      log "TEARDOWN [$scenario]: Running azd down --force --purge..."
+      set +e
+      azd down --force --purge 2>&1 | tee -a "$LOG_FILE"
+      local azd_exit=$?
+      set -e
+      log "TEARDOWN [$scenario]: azd down exit=$azd_exit"
+    else
+      log "TEARDOWN [$scenario]: env has no AZURE_SUBSCRIPTION_ID — skipping azd down (nothing to destroy)"
+    fi
   else
     log "TEARDOWN [$scenario]: env not found — skipping azd down (will use az group delete fallback)"
   fi
