@@ -21,7 +21,7 @@ infra/terraform/smb-ready-foundation/
 ├── outputs.tf              # Wired to module outputs
 ├── modules/
 │   ├── management-group/        # MG + subscription association
-│   ├── policy-assignments-mg/   # 33 MG-scoped policies
+│   ├── policy-assignments-mg/   # 33 MG-scoped policy assignments
 │   ├── resource-groups/         # 6 resource groups
 │   ├── budget/                  # Consumption budget (sub scope)
 │   ├── defender/                # Defender for Cloud Free
@@ -60,7 +60,7 @@ Unlike the Bicep track, the Terraform track uses raw `azurerm_*` / `azapi_resour
 | Module | Resources | Conditional |
 |---|---|---|
 | `management-group` | MG + subscription association | No |
-| `policy-assignments-mg` | 33 policy assignments | No |
+| `policy-assignments-mg` | 33 MG-scoped policy assignments | No |
 | `resource-groups` | 6 resource groups | No |
 | `budget` | Consumption budget | No |
 | `defender` | 4 pricing tiers + auto-provisioning | No |

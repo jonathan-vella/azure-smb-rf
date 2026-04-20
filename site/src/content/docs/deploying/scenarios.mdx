@@ -14,14 +14,12 @@ SMB Ready Foundation offers four deployment scenarios, each adding network secur
 | **Monthly cost**             | ~$48     | ~$336    | ~$187 | ~$476 |
 | Hub-spoke VNets              | ✅       | ✅       | ✅    | ✅    |
 | NSGs + Private DNS           | ✅       | ✅       | ✅    | ✅    |
-| Bastion Developer            | ✅       | ✅       | ✅    | ✅    |
-
-> **Note**: Bastion Developer is an Azure portal capability — no infrastructure is deployed. It provides browser-based SSH/RDP to VMs via the portal without a dedicated Bastion host resource.
+| Bastion Developer ¹          | ✅       | ✅       | ✅    | ✅    |
 | Key Vault + PE               | ✅       | ✅       | ✅    | ✅    |
 | Log Analytics + Automation   | ✅       | ✅       | ✅    | ✅    |
 | Recovery Services Vault      | ✅       | ✅       | ✅    | ✅    |
 | Azure Migrate                | ✅       | ✅       | ✅    | ✅    |
-| 33 MG Policies               | ✅       | ✅       | ✅    | ✅    |
+| 34 MG + Sub Policies         | ✅       | ✅       | ✅    | ✅    |
 | Budget + Defender (free)     | ✅       | ✅       | ✅    | ✅    |
 | **NAT Gateway**              | ✅       | —        | ✅    | —     |
 | **Azure Firewall + Policy**  | —        | ✅       | —     | ✅    |
@@ -29,6 +27,8 @@ SMB Ready Foundation offers four deployment scenarios, each adding network secur
 | **VPN Gateway**              | —        | —        | ✅    | ✅    |
 | **Hub↔Spoke Peering**        | —        | ✅       | ✅    | ✅    |
 | **On-premises connectivity** | —        | —        | ✅    | ✅    |
+
+¹ Bastion Developer is an Azure portal capability — no infrastructure is deployed. It provides browser-based SSH/RDP to VMs via the portal without a dedicated Bastion host resource.
 
 ## When to Use Each Scenario
 
@@ -86,7 +86,7 @@ SMB Ready Foundation offers four deployment scenarios, each adding network secur
 | NAT Gateway + data        | ~$35         | baseline, vpn               |
 | Azure Firewall (Basic)    | ~$275        | firewall, full              |
 | Firewall Public IPs (×2)  | ~$7          | firewall, full              |
-| VPN Gateway (VpnGw1)      | ~$140        | vpn, full                   |
+| VPN Gateway (VpnGw1AZ)    | ~$140        | vpn, full                   |
 | VPN Public IP             | ~$4          | vpn, full                   |
 | Log Analytics (500MB/day) | ~$0          | all (free tier)             |
 | Key Vault (PE)            | ~$5          | all                         |

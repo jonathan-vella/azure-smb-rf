@@ -58,8 +58,8 @@ Deploy a complete Azure environment with hub-spoke networking, governance polici
    The pre-provision hook automatically:
    - Validates CIDR address spaces for overlaps
    - Checks Azure CLI authentication and resource providers
-   - Creates the management group and associates your subscription
-   - Deploys 33 management group-scoped governance policies
+   - Creates the management group and associates the target subscription
+   - Deploys 34 governance policies (30 MG-scoped + 4 subscription-scoped)
    - Cleans up stale budgets and faulted resources
 
 5. **Verify**
@@ -68,7 +68,7 @@ Deploy a complete Azure environment with hub-spoke networking, governance polici
    # Check resource groups (expect 6)
    az group list --query "[?starts_with(name,'rg-')].{name:name, state:properties.provisioningState}" -o table
 
-   # Check policies (expect 33)
+   # Check MG policies (expect 33 at MG scope; 1 additional at subscription scope)
    az policy assignment list --scope "/providers/Microsoft.Management/managementGroups/smb-rf" --query "length(@)"
    ```
 
@@ -87,7 +87,7 @@ The baseline scenario creates:
 | `rg-security-smb-swc` | Key Vault (with Private Endpoint)                       |
 | `rg-migrate-smb-swc`  | Azure Migrate Project                                   |
 
-Plus: Monthly budget ($500), Defender for Cloud (free CSPM), and 33 MG-scoped policies.
+Plus: Monthly budget ($500), Defender for Cloud (free CSPM), and 34 governance policies.
 
 ## Next Steps
 

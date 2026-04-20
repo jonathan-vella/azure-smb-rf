@@ -44,7 +44,7 @@ infra/terraform/smb-ready-foundation/
 ├── outputs.tf
 ├── modules/
 │   ├── management-group/        # MG + subscription association
-│   ├── policy-assignments-mg/   # 33 MG-scoped policies
+│   ├── policy-assignments-mg/   # 33 MG-scoped policy assignments
 │   ├── resource-groups/         # 6 resource groups
 │   ├── network-hub/             # Hub VNet, NSG, 4 subnets, PDZ
 │   ├── network-spoke/           # Spoke VNet, NSG, optional NAT
@@ -79,7 +79,7 @@ azd provision
   │    6. terraform init -reconfigure
   ├─ terraform apply
   │    - MG + subscription association (with import block)
-  │    - 33 MG-scoped policy assignments
+  │    - 33 MG-scoped + 1 sub-scoped policy assignments (34 total)
   │    - 6 resource groups, budget, Defender pricings
   │    - Hub/spoke VNets, NSGs, subnets, PDZ
   │    - Conditional: NAT gateway OR firewall + route tables

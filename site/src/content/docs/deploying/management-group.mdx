@@ -1,6 +1,6 @@
 ---
 title: Management Group & Policies
-description: Management group setup and 33 governance policy assignments
+description: Management group setup and 34 governance policy assignments
 ---
 
 import { Aside, Steps } from "@astrojs/starlight/components";
@@ -12,8 +12,8 @@ SMB Ready Foundation deploys governance at the management group scope — ensuri
 ```
 Tenant Root Group
 └── smb-rf (SMB Ready Foundation)
-    ├── 33 Azure Policy assignments
-    └── Subscription: your-subscription
+    ├── 34 Azure Policy assignments (30 MG + 4 subscription)
+    └── Subscription: customer-subscription
         ├── rg-hub-smb-swc
         ├── rg-spoke-prod-swc
         ├── rg-monitor-smb-swc
@@ -33,7 +33,7 @@ Tenant Root Group
    pwsh ./Setup-ManagementGroupPermissions.ps1
    ```
 
-   This elevates your account to create management groups at the tenant root level. Only needed once per tenant.
+   This elevates your account to create management groups at the tenant root level. Only needed once per customer tenant.
 
 2. **Create the management group**
 
@@ -41,7 +41,7 @@ Tenant Root Group
    az account management-group create --name smb-rf --display-name "SMB Ready Foundation"
    ```
 
-3. **Associate your subscription**
+3. **Associate the customer subscription**
 
    ```bash
    SUBSCRIPTION_ID=$(az account show --query id -o tsv)
@@ -79,13 +79,15 @@ Both steps run a `what-if` preview before deploying.
 | Backup     | 2     | 2 Audit          | VMs should be backed up, storage geo-redundancy                   |
 | Governance | 1     | 1 Deny           | Allowed resource locations                                        |
 
-**Total: 33 policy assignments** (9 Deny + 24 Audit)
+**Total: 34 policy assignments** (9 Deny + 24 Audit + 1 DeployIfNotExists)
+
+The 30 MG-scoped policies are listed above. The remaining 4 are deployed at subscription scope by `main.bicep`: auto-backup enrollment (DINE), VM backup required (Audit), storage geo-redundancy (Audit), and allowed locations (Deny).
 
 For the complete policy catalog with policy definition IDs, see [Policy Catalog](/azure-smb-rf/reference/policies/).
 
 ## Persistence Across Deployments
 
-Management group resources (the MG itself and its 33 policies) persist across `azd up` re-deployments. They are **not** torn down between scenario changes. This is by design:
+Management group resources (the MG itself and its 30 MG-scoped policies) persist across `azd up` re-deployments. They are **not** torn down between scenario changes. This is by design:
 
 - Policies apply to the subscription regardless of which scenario is deployed
 - Re-deploying policies is idempotent (ARM update-in-place)
