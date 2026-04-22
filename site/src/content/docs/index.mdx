@@ -88,41 +88,30 @@ import ThemedImage from "../../components/ThemedImage.astro";
       title="Baseline"
       cost="~$48 / month"
       href="/azure-smb-rf/deploying/scenarios/#baseline"
-      thumb="/images/architecture-baseline.png"
-      alt="Baseline architecture diagram"
     >
-      Hub-spoke networking, Bastion, Private DNS, core ops. Minimum viable
-      foundation.
+      Core hub-spoke baseline with Bastion, Private DNS, and shared operations.
     </ScenarioCard>
     <ScenarioCard
       title="Firewall"
       cost="~$336 / month"
       href="/azure-smb-rf/deploying/scenarios/#firewall"
-      thumb="/images/architecture-firewall.png"
-      alt="Firewall architecture diagram"
     >
-      Adds Azure Firewall Basic with availability-zone deployment for egress
-      filtering and threat intelligence alerts.
+      Adds Azure Firewall Basic for managed egress filtering and policy-led
+      traffic control.
     </ScenarioCard>
     <ScenarioCard
       title="VPN"
       cost="~$187 / month"
       href="/azure-smb-rf/deploying/scenarios/#vpn"
-      thumb="/images/architecture-vpn.png"
-      alt="VPN architecture diagram"
     >
-      Adds VpnGw1AZ zone-redundant S2S VPN gateway for customer on-premises
-      hybrid connectivity.
+      Adds site-to-site VPN connectivity for customers that need hybrid access.
     </ScenarioCard>
     <ScenarioCard
       title="Full"
       cost="~$476 / month"
       href="/azure-smb-rf/deploying/scenarios/#full"
-      thumb="/images/architecture-full.png"
-      alt="Full architecture diagram"
     >
-      Firewall + VPN together — the hardened scenario for customers with
-      compliance or hybrid requirements.
+      Combines Firewall and VPN for the highest-control deployment option.
     </ScenarioCard>
   </div>
 </div>

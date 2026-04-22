@@ -11,7 +11,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const thumbUrl = thumb ? `${base}${thumb}` : null;
 ---
 
-<a class="scenario-card" href={href}>
+<a class:list={["scenario-card", !thumbUrl && "scenario-card--compact"]} href={href}>
   {thumbUrl && (
     <div class="sc-thumb">
       <img src={thumbUrl} alt={alt} loading="lazy" decoding="async" />
