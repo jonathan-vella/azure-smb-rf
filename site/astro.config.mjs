@@ -40,7 +40,7 @@ export default defineConfig({
           attrs: {
             property: "og:image",
             content:
-              "https://jonathan-vella.github.io/azure-smb-rf/images/architecture-baseline.png",
+              "https://jonathan-vella.github.io/azure-smb-rf/images/Azure-SMB-RF.png",
           },
         },
         {

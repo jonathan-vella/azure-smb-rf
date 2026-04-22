@@ -17,7 +17,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/jonathan-vella/azure-smb-rf">
-    <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Rocket/3D/rocket_3d.png" alt="Logo" width="120" height="120">
+    <img src="site/public/images/Azure-SMB-RF.png" alt="Azure SMB Ready Foundations" width="520">
   </a>
 
   <h1 align="center">Azure SMB Ready Foundations</h1>
