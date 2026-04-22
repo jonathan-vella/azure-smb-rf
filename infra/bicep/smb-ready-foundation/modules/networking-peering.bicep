@@ -1,5 +1,5 @@
 // ============================================================================
-// SMB Ready Foundation - VNet Peering (Consolidated)
+// SMB Ready Foundations - VNet Peering (Consolidated)
 // ============================================================================
 // Purpose: Configure bi-directional hub-spoke VNet peering
 // Version: v0.3

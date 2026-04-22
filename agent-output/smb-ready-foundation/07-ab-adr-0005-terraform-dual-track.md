@@ -18,7 +18,7 @@ alongside the canonical Bicep at `infra/bicep/smb-ready-foundation/`.
 
 ## Context
 
-The SMB Ready Foundation was originally delivered in Bicep (ADR-0001, ADR-0002). Partner
+The SMB Ready Foundations was originally delivered in Bicep (ADR-0001, ADR-0002). Partner
 adoption data showed that a subset of SMB operators standardise on Terraform across their
 multi-cloud estate and are unwilling to add Bicep to their toolchain. Options considered:
 
@@ -115,7 +115,7 @@ the entire reason partners ask for Terraform in the first place.
 
 ## References
 
-- [ADR-0001: Cost-Optimized SMB Ready Foundation Architecture](./03-des-adr-0001-cost-optimized-landing-zone-architecture.md)
+- [ADR-0001: Cost-Optimized SMB Ready Foundations Architecture](./03-des-adr-0001-cost-optimized-landing-zone-architecture.md)
 - [ADR-0002: Bicep Infrastructure Implementation Architecture](./07-ab-adr-0002-bicep-infrastructure-implementation.md)
 - [Terraform patterns skill](../../.github/skills/terraform-patterns/SKILL.md)
 - [Terraform best-practices instruction](../../.github/instructions/iac-terraform-best-practices.instructions.md)

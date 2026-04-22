@@ -1,20 +1,20 @@
 <#
 .SYNOPSIS
-    Removes all SMB Ready Foundation resources from an Azure subscription.
+    Removes all SMB Ready Foundations resources from an Azure subscription.
 
 .DESCRIPTION
-    This script completely tears down all resources deployed by the SMB Ready Foundation,
+    This script completely tears down all resources deployed by the SMB Ready Foundations,
     including resource groups, policy assignments, role assignments, and budgets.
 
     Use this script to:
     - Clean up after a failed deployment
-    - Remove a SMB Ready Foundation before redeployment
-    - Decommission a customer's SMB Ready Foundation
+    - Remove a SMB Ready Foundations before redeployment
+    - Decommission a customer's SMB Ready Foundations
 
     Resources are deleted in proper dependency order to avoid conflicts.
 
 .PARAMETER Location
-    Azure region where the SMB Ready Foundation was deployed. Used to derive resource names.
+    Azure region where the SMB Ready Foundations was deployed. Used to derive resource names.
     Valid values: swedencentral, germanywestcentral
 
 .PARAMETER Environment
@@ -111,7 +111,7 @@ function Remove-ResourceIfExists {
 # Banner
 Write-Host ""
 Write-Host "╔═══════════════════════════════════════════════════════════════════╗" -ForegroundColor Red
-Write-Host "║  SMB READY FOUNDATION REMOVAL                                         ║" -ForegroundColor Red
+Write-Host "║  SMB Ready Foundations REMOVAL                                         ║" -ForegroundColor Red
 Write-Host "╚═══════════════════════════════════════════════════════════════════╝" -ForegroundColor Red
 Write-Host ""
 
@@ -348,7 +348,7 @@ if ($deletedRgs.Count -gt 0 -and -not $WaitForCompletion) {
     Write-Host ""
 }
 
-Write-Host "  Subscription is ready for a new SMB Ready Foundation deployment." -ForegroundColor Green
+Write-Host "  Subscription is ready for a new SMB Ready Foundations deployment." -ForegroundColor Green
 Write-Host ""
 
 #endregion

@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Post-provision hook for SMB Ready Foundation azd deployment.
+    Post-provision hook for SMB Ready Foundations azd deployment.
 .DESCRIPTION
     Runs after azd provision. Performs:
     1. Deployment result verification
@@ -107,7 +107,7 @@ function Invoke-DeploymentRetry {
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  SMB Ready Foundation — Post-Provision" -ForegroundColor Cyan
+Write-Host "  SMB Ready Foundations — Post-Provision" -ForegroundColor Cyan
 Write-Host "  Scenario: $scenario" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""

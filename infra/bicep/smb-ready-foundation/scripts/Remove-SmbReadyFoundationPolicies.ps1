@@ -1,11 +1,11 @@
 <#
 .SYNOPSIS
-    Removes all SMB Ready Foundation policy assignments from the subscription.
+    Removes all SMB Ready Foundations policy assignments from the subscription.
 
 .DESCRIPTION
-    This script removes all 20 Azure Policy assignments created by the SMB Ready Foundation
+    This script removes all 20 Azure Policy assignments created by the SMB Ready Foundations
     deployment. Use this script to clean up policies before redeploying or when
-    decommissioning the SMB Ready Foundation.
+    decommissioning the SMB Ready Foundations.
 
 .PARAMETER WhatIf
     Shows what policies would be removed without actually removing them.
@@ -58,7 +58,7 @@ $policyAssignments = @(
 
 Write-Host ""
 Write-Host "═══════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host "  SMB Ready Foundation - Policy Cleanup Script" -ForegroundColor Cyan
+Write-Host "  SMB Ready Foundations - Policy Cleanup Script" -ForegroundColor Cyan
 Write-Host "═══════════════════════════════════════════════════════════════════" -ForegroundColor Cyan
 Write-Host ""
 

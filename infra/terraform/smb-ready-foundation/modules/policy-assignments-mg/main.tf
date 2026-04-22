@@ -114,11 +114,11 @@ resource "azurerm_management_group_policy_set_definition" "smb_baseline" {
   name                = "smb-baseline"
   policy_type         = "Custom"
   display_name        = "SMB RF: Baseline Compliance Initiative"
-  description         = "Aggregates all SMB Ready Foundation governance policies into a single initiative. Replaces 33 individual MG-scoped assignments."
+  description         = "Aggregates all SMB Ready Foundations governance policies into a single initiative. Replaces 33 individual MG-scoped assignments."
   management_group_id = var.management_group_id
 
   metadata = jsonencode({
-    category = "SMB Ready Foundation"
+    category = "SMB Ready Foundations"
     version  = "1.0.0"
   })
 

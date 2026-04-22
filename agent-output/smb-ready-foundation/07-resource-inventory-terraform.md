@@ -1,5 +1,5 @@
 ---
-title: "As-Built Resource Inventory - SMB Ready Foundation (Terraform)"
+title: "As-Built Resource Inventory - SMB Ready Foundations (Terraform)"
 status: "Implemented"
 date: "2026-04-17"
 artifact_version: "1.0"
@@ -10,7 +10,7 @@ superseded_by: ""
 companion: "07-resource-inventory.md"
 ---
 
-# As-Built Resource Inventory — SMB Ready Foundation (Terraform)
+# As-Built Resource Inventory — SMB Ready Foundations (Terraform)
 
 > Terraform-track companion to [`07-resource-inventory.md`](./07-resource-inventory.md).
 > Resource names, counts, and scenarios match the Bicep track 1:1, except for the
@@ -55,7 +55,7 @@ against the target subscription produces the authoritative count).
 
 ```text
 Tenant Root
-└── smb-rf  (display name: "SMB Ready Foundation")
+└── smb-rf  (display name: "SMB Ready Foundations")
     └── <target subscription>
 ```
 

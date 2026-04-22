@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Pre-provision hook for SMB Ready Foundation (Terraform variant).
+    Pre-provision hook for SMB Ready Foundations (Terraform variant).
 .DESCRIPTION
     Mirrors hooks/pre-provision.sh for Windows PowerShell environments.
     Jobs: parameter + CIDR validation, Azure preflight, enable
@@ -30,7 +30,7 @@ $flags = Resolve-ScenarioFlags -Scenario $scenario
 
 Write-Host ''
 Write-Host '========================================' -ForegroundColor Cyan
-Write-Host '  SMB Ready Foundation (Terraform) — Pre-Provision' -ForegroundColor Cyan
+Write-Host '  SMB Ready Foundations (Terraform) — Pre-Provision' -ForegroundColor Cyan
 Write-Host "  Scenario: $scenario" -ForegroundColor Cyan
 Write-Host '========================================' -ForegroundColor Cyan
 Write-Host ''

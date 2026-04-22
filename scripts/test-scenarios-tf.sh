@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================================
-# SMB Ready Foundation (Terraform) — Automated Scenario Test Runner
+# SMB Ready Foundations (Terraform) — Automated Scenario Test Runner
 # ============================================================================
 # Parallel to scripts/test-scenarios.sh (Bicep variant).
 # Runs: teardown (baseline) → firewall → vpn → full
@@ -116,7 +116,7 @@ configure_env() {
   # fails with "Cannot import non-existent remote object".
   if ! az account management-group show --name "$MG_ID" >/dev/null 2>&1; then
     log "CONFIGURE [$scenario]: Creating management group $MG_ID..."
-    az account management-group create --name "$MG_ID" --display-name "SMB Ready Foundation" 2>&1 | tee -a "$LOG_FILE" || true
+    az account management-group create --name "$MG_ID" --display-name "SMB Ready Foundations" 2>&1 | tee -a "$LOG_FILE" || true
     # MG creation is eventually consistent — give ARM a few seconds
     sleep 10
   fi
@@ -326,7 +326,7 @@ validate() {
 mkdir -p "$(dirname "$LOG_FILE")"
 echo "" > "$LOG_FILE"
 hr
-log "SMB Ready Foundation (Terraform) — Scenario Test Runner"
+log "SMB Ready Foundations (Terraform) — Scenario Test Runner"
 log "Scenarios: ${SCENARIOS[*]}"
 hr
 

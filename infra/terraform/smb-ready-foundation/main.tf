@@ -1,5 +1,5 @@
 // ============================================================================
-// SMB Ready Foundation — Root composition
+// SMB Ready Foundations — Root composition
 // ============================================================================
 // Each domain lives under ./modules/<name>/. This file wires them together.
 // Deployment order is enforced by variable references between modules;

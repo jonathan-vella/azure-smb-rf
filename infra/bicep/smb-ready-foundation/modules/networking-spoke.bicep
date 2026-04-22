@@ -1,5 +1,5 @@
 // ============================================================================
-// SMB Ready Foundation - Spoke Networking (AVM)
+// SMB Ready Foundations - Spoke Networking (AVM)
 // ============================================================================
 // Purpose: Deploy spoke VNet with conditional NAT Gateway or UDR for firewall
 // Version: v0.3 (AVM Migration)

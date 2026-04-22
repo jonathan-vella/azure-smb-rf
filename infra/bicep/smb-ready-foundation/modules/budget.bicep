@@ -1,5 +1,5 @@
 // ============================================================================
-// SMB Ready Foundation - Budget
+// SMB Ready Foundations - Budget
 // ============================================================================
 // Purpose: Deploy Cost Management Budget with alerts
 // Version: v0.3

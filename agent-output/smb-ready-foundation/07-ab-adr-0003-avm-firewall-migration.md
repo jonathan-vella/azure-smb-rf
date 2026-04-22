@@ -8,7 +8,7 @@
 
 ## Context
 
-During deployment testing of the SMB Ready Foundation `full` scenario (Firewall + VPN Gateway),
+During deployment testing of the SMB Ready Foundations `full` scenario (Firewall + VPN Gateway),
 Azure Firewall Basic experienced intermittent `InternalServerError` failures during provisioning.
 
 ### Symptoms Observed

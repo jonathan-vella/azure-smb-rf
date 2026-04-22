@@ -1,4 +1,4 @@
-# SMB Ready Foundation - Requirements
+# SMB Ready Foundations - Requirements
 
 > **APEX** - Azure infrastructure engineered by agents. Verified. Well-Architected. Deployable.
 >
@@ -200,7 +200,7 @@ All Bicep implementations MUST use Azure Verified Modules where available.
 | Deployment method | **Bicep** - `Microsoft.Authorization/policyAssignments` |
 | Policy type       | Built-in definitions only (no custom policies)          |
 | Assignment scope  | Management group (30 policies) + Subscription (3+1)     |
-| Management group  | `smb-rf` (SMB Ready Foundation) under tenant root       |
+| Management group  | `smb-rf` (SMB Ready Foundations) under tenant root       |
 | Naming convention | `smb-{category}-{number}` (e.g., `smb-compute-01`)      |
 | Metadata tags     | `Project: smb-ready-foundation`, `ManagedBy: Bicep`     |
 | Cleanup script    | `scripts/Remove-SmbReadyFoundationPolicies.ps1`         |
@@ -351,7 +351,7 @@ All Bicep implementations MUST use Azure Verified Modules where available.
 
 ### Out of Scope
 
-The following items are explicitly excluded from this SMB Ready Foundation:
+The following items are explicitly excluded from this SMB Ready Foundations:
 
 | Item                       | Reason                                         |
 | -------------------------- | ---------------------------------------------- |
@@ -366,7 +366,7 @@ The following items are explicitly excluded from this SMB Ready Foundation:
 
 ## Summary for Architecture Assessment
 
-This requirements document defines a **cost-optimized, repeatable SMB SMB Ready Foundation** for VMware-to-Azure migrations with the following characteristics:
+This requirements document defines a **cost-optimized, repeatable SMB SMB Ready Foundations** for VMware-to-Azure migrations with the following characteristics:
 
 - **6 Resource Groups**: Hub, Spoke, Migrate, Monitor, Backup, Security
 - **Hub-Spoke Network**: Configurable address spaces, pre-provisioned subnets, NAT Gateway for outbound

@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
-# SMB Ready Foundation — azd project manifest (Terraform variant)
+# SMB Ready Foundations — azd project manifest (Terraform variant)
 # Parallel to infra/bicep/smb-ready-foundation/azure.yaml; independent state.
 #
 # azd Terraform support is ALPHA. The preprovision hook enables it via

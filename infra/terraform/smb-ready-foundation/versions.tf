@@ -1,5 +1,5 @@
 // ============================================================================
-// SMB Ready Foundation — Terraform Version & Provider Constraints
+// SMB Ready Foundations — Terraform Version & Provider Constraints
 // ============================================================================
 // Mirrors Bicep project at infra/bicep/smb-ready-foundation/.
 // Keep provider pins in sync with .github/skills/terraform-patterns/SKILL.md

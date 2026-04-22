@@ -1,6 +1,6 @@
-# SMB Ready Foundation
+# SMB Ready Foundations
 
-Azure SMB Ready Foundation pattern optimized for VMware-to-Azure migrations for SMB customers.
+Azure SMB Ready Foundations pattern optimized for VMware-to-Azure migrations for SMB customers.
 
 ## Project Type
 
@@ -28,7 +28,7 @@ Infrastructure/Platform (not application)
 ## Quick Start
 
 ```bash
-# Use the SMB Ready Foundation prompt with Requirements agent
+# Use the SMB Ready Foundations prompt with Requirements agent
 # Ctrl+Shift+A → Requirements → paste prompt from:
 # .github/prompts/plan-smb-ready-foundation.prompt.md
 ```

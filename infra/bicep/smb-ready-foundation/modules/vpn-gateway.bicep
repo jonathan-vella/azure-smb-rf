@@ -1,5 +1,5 @@
 // ============================================================================
-// SMB Ready Foundation - VPN Gateway (AVM - Optional)
+// SMB Ready Foundations - VPN Gateway (AVM - Optional)
 // ============================================================================
 // Purpose: Deploy VPN Gateway VpnGw1AZ for hybrid connectivity
 // Version: v0.3 (AVM Migration)

@@ -18,7 +18,7 @@
     },
     "managementGroupDisplayName": {
       "type": "string",
-      "defaultValue": "SMB Ready Foundation",
+      "defaultValue": "SMB Ready Foundations",
       "metadata": {
         "description": "Display name for the management group"
       }

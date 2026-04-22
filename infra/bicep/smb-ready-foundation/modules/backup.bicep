@@ -1,5 +1,5 @@
 // ============================================================================
-// SMB Ready Foundation - Backup (AVM-based)
+// SMB Ready Foundations - Backup (AVM-based)
 // ============================================================================
 // Purpose: Deploy Recovery Services Vault for VM backup using AVM
 // Version: v0.2 (AVM Migration)

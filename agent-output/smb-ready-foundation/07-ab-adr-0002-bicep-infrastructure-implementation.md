@@ -25,7 +25,7 @@ superseded_by: ""
 
 ## Context
 
-Following the approval of ADR-0001 (Cost-Optimized SMB Ready Foundation Architecture), the implementation
+Following the approval of ADR-0001 (Cost-Optimized SMB Ready Foundations Architecture), the implementation
 phase required decisions about how to structure, organize, and deploy the Azure infrastructure
 using Bicep templates. These decisions impact maintainability, reusability, and operational
 efficiency across 1000+ SMB customer deployments.
@@ -199,7 +199,7 @@ azd up    # Deploys MG policies (preprovision hook) + subscription infra
 
 ## References
 
-- **REF-001**: [ADR-0001: Cost-Optimized SMB Ready Foundation Architecture](03-des-adr-0001-cost-optimized-landing-zone-architecture.md)
+- **REF-001**: [ADR-0001: Cost-Optimized SMB Ready Foundations Architecture](03-des-adr-0001-cost-optimized-landing-zone-architecture.md)
 - **REF-002**: [Implementation Plan](04-implementation-plan.md)
 - **REF-003**: [Implementation Reference](05-implementation-reference.md)
 - **REF-004**: [Azure Bicep Documentation](https://learn.microsoft.com/azure/azure-resource-manager/bicep/)

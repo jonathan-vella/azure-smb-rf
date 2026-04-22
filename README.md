@@ -20,10 +20,10 @@
     <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Rocket/3D/rocket_3d.png" alt="Logo" width="120" height="120">
   </a>
 
-  <h1 align="center">Azure SMB Ready Foundation</h1>
+  <h1 align="center">Azure SMB Ready Foundations</h1>
 
   <p align="center">
-    <strong>Repeatable Azure infrastructure for SMB VMware-to-Azure migrations.</strong>
+    <strong>A repeatable, easy-to-deploy, and well-managed Azure platform built for SMB customers.</strong>
     <br />
     Hub-spoke networking • 33 governance policies • 4 deployment scenarios • From $48/month
     <br />
@@ -56,11 +56,11 @@
 
 ## 🚀 About
 
-Azure SMB Ready Foundation deploys a complete, production-ready Azure environment using a
+Azure SMB Ready Foundations deploys a complete, production-ready Azure environment using a
 **hub-spoke** topology within a single subscription. Built on 13
 [Azure Verified Modules](https://aka.ms/avm) and deployable with a single `azd up` command.
 
-**Designed for** Microsoft Partners migrating SMB customers from VMware to Azure.
+**Designed for** Microsoft Partners delivering repeatable Azure environments for SMB customers.
 
 ### Key Features
 
@@ -116,7 +116,7 @@ git clone https://github.com/jonathan-vella/azure-smb-rf.git
 cd azure-smb-rf/infra/bicep/smb-ready-foundation
 
 # 2. Create management group (one-time)
-az account management-group create --name smb-rf --display-name "SMB Ready Foundation"
+az account management-group create --name smb-rf --display-name "SMB Ready Foundations"
 SUBSCRIPTION_ID=$(az account show --query id -o tsv)
 az account management-group subscription add --name smb-rf --subscription $SUBSCRIPTION_ID
 

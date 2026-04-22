@@ -1,5 +1,5 @@
 // ============================================================================
-// SMB Ready Foundation - Auto-Backup Policy Assignment
+// SMB Ready Foundations - Auto-Backup Policy Assignment
 // ============================================================================
 // Purpose: Deploy DeployIfNotExists policy to auto-configure VM backup
 // Policy: Configure backup on VMs with a given tag to an existing RSV

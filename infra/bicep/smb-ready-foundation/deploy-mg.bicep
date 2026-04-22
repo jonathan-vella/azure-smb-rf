@@ -1,5 +1,5 @@
 // ============================================================================
-// SMB Ready Foundation - Management Group Creation
+// SMB Ready Foundations - Management Group Creation
 // ============================================================================
 // Purpose: Create the smb-rf intermediate management group and associate
 //          the target subscription under it.
@@ -10,7 +10,7 @@
 // ============================================================================
 // Hierarchy:
 //   Tenant Root Management Group
-//   └── smb-rf (SMB Ready Foundation)
+//   └── smb-rf (SMB Ready Foundations)
 //       └── Customer Subscription
 // ============================================================================
 
@@ -24,7 +24,7 @@ targetScope = 'managementGroup'
 param managementGroupName string = 'smb-rf'
 
 @description('Display name for the management group')
-param managementGroupDisplayName string = 'SMB Ready Foundation'
+param managementGroupDisplayName string = 'SMB Ready Foundations'
 
 @description('Subscription ID to move under the management group')
 param subscriptionId string

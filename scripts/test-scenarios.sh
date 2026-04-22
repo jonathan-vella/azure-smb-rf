@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================================
-# SMB Ready Foundation — Automated Scenario Test Runner
+# SMB Ready Foundations — Automated Scenario Test Runner
 # ============================================================================
 # Runs: teardown (baseline) → firewall → vpn → full
 # Each scenario: configure → deploy → validate → teardown → log
@@ -258,7 +258,7 @@ validate() {
 
 echo "" > "$LOG_FILE"
 hr
-log "SMB Ready Foundation — Scenario Test Runner"
+log "SMB Ready Foundations — Scenario Test Runner"
 log "Scenarios: ${SCENARIOS[*]}"
 hr
 

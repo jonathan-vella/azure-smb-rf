@@ -1,7 +1,7 @@
 // ============================================================================
-// SMB Ready Foundation - Resource Groups
+// SMB Ready Foundations - Resource Groups
 // ============================================================================
-// Purpose: Create 5 resource groups for SMB Ready Foundation workloads
+// Purpose: Create 5 resource groups for SMB Ready Foundations workloads
 // Version: v0.1
 // ============================================================================
 

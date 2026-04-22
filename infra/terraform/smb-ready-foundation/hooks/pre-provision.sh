@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# SMB Ready Foundation — Terraform pre-provision hook
+# SMB Ready Foundations — Terraform pre-provision hook
 # =============================================================================
 # Runs before `azd provision`. Jobs:
 #   1. Parameter validation (owner, CIDRs)
@@ -39,7 +39,7 @@ BUDGET_ALERT_EMAIL="${BUDGET_ALERT_EMAIL:-}"
 eval "$(resolve_scenario_flags "$SCENARIO")"
 
 printf '\n========================================\n'
-printf '  SMB Ready Foundation (Terraform) — Pre-Provision\n'
+printf '  SMB Ready Foundations (Terraform) — Pre-Provision\n'
 printf '  Scenario: %s\n' "$SCENARIO"
 printf '========================================\n\n'
 

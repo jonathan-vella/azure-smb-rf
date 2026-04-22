@@ -494,7 +494,7 @@
         "[subscriptionResourceId('Microsoft.Resources/deployments', format('budget-{0}', variables('uniqueSuffix')))]"
       ],
       "metadata": {
-        "description": "Create resource groups for SMB Ready Foundation workloads"
+        "description": "Create resource groups for SMB Ready Foundations workloads"
       }
     },
     {

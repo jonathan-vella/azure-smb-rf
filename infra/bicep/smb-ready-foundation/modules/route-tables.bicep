@@ -1,5 +1,5 @@
 // ============================================================================
-// SMB Ready Foundation - Route Tables (AVM-based)
+// SMB Ready Foundations - Route Tables (AVM-based)
 // ============================================================================
 // Purpose: Deploy route tables for forced tunneling through Azure Firewall
 // Version: v0.2 (AVM Migration)

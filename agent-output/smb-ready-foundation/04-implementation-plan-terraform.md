@@ -1,5 +1,5 @@
 ---
-title: "Step 4: Implementation Plan - SMB Ready Foundation (Terraform)"
+title: "Step 4: Implementation Plan - SMB Ready Foundations (Terraform)"
 status: "Implemented"
 date: "2026-04-17"
 artifact_version: "1.0"
@@ -11,16 +11,16 @@ superseded_by: ""
 companion: "04-implementation-plan.md"
 ---
 
-# Step 4: Implementation Plan — SMB Ready Foundation (Terraform track)
+# Step 4: Implementation Plan — SMB Ready Foundations (Terraform track)
 
-> This plan is the **Terraform track** for the SMB Ready Foundation. It is a delta
+> This plan is the **Terraform track** for the SMB Ready Foundations. It is a delta
 > document — the authoritative Azure design, policies, scenario matrix, WAF analysis,
 > and cost estimate live in [`04-implementation-plan.md`](./04-implementation-plan.md).
 > Only items that diverge from the Bicep plan are captured here.
 
 ## Scope
 
-- Deliver a Terraform Infrastructure as Code variant of the SMB Ready Foundation that
+- Deliver a Terraform Infrastructure as Code variant of the SMB Ready Foundations that
   is functionally equivalent to the Bicep track (`infra/bicep/smb-ready-foundation/`).
 - Preserve all CAF naming, required tags, scenario matrix (baseline / firewall / vpn /
   full), governance (33 MG policies + 1 sub-scope policy), and security baseline.
@@ -28,7 +28,7 @@ companion: "04-implementation-plan.md"
 
 ## Out of scope
 
-- Any change to the SMB Ready Foundation architecture, WAF pillar scoring, cost envelope,
+- Any change to the SMB Ready Foundations architecture, WAF pillar scoring, cost envelope,
   or policy inventory. Those decisions remain governed by `04-implementation-plan.md`.
 - Parallel Bicep/Terraform deployment into the same subscription — see ADR-0005 for the
   mutual-exclusion rationale.

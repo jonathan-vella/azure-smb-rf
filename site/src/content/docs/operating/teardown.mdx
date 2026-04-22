@@ -126,7 +126,7 @@ azd env list
 If you're cleaning up a deployment you didn't create, discover the deployed resources first:
 
 ```bash
-# Find SMB Ready Foundation resource groups
+# Find SMB Ready Foundations resource groups
 az group list --query "[?starts_with(name,'rg-') && (contains(name,'smb') || contains(name,'spoke'))].{name:name, location:location}" -o table
 
 # Check if the management group exists

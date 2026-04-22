@@ -1,13 +1,13 @@
 ---
-title: What Is SMB Ready Foundation?
-description: A repeatable, cost-optimized Azure landing zone for SMB VMware-to-Azure migrations
+title: What Is SMB Ready Foundations?
+description: A repeatable, easy-to-deploy, and well-managed Azure platform built for SMB customers.
 sidebar:
   order: 1
 ---
 
 import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
 
-SMB Ready Foundation is a **repeatable, single-subscription Azure environment** designed for Microsoft partners managing VMware-to-Azure migrations for small and medium business (SMB) customers.
+SMB Ready Foundations is a **repeatable, easy-to-deploy, and well-managed Azure platform** for Microsoft partners delivering standardized Azure environments to small and medium business (SMB) customers.
 
 ## The Problem
 
@@ -24,16 +24,21 @@ A single `azd up` command deploys a hub-spoke network topology with governance p
 
 <CardGrid>
   <Card title="4 Deployment Scenarios" icon="setting">
-    **baseline** ($48/mo), **firewall** ($336/mo), **vpn** ($187/mo), or **full** ($476/mo) — each tailored to different security and connectivity needs.
+    **baseline** ($48/mo), **firewall** ($336/mo), **vpn** ($187/mo), or
+    **full** ($476/mo) — each tailored to different security and connectivity
+    needs.
   </Card>
   <Card title="Governance Policies" icon="approve-check-circle">
-    MG-scoped and subscription-scoped Azure Policy assignments covering compute, network, storage, identity, tagging, Key Vault, monitoring, and backup.
+    MG-scoped and subscription-scoped Azure Policy assignments covering compute,
+    network, storage, identity, tagging, Key Vault, monitoring, and backup.
   </Card>
   <Card title="Dual IaC Tracks" icon="puzzle">
-    Choose **Bicep** (AVM-first, 13 modules) or **Terraform** (raw azurerm, 17 modules) — both produce identical infrastructure.
+    Choose **Bicep** (AVM-first, 13 modules) or **Terraform** (raw azurerm, 17
+    modules) — both produce identical infrastructure.
   </Card>
   <Card title="azd-Powered" icon="rocket">
-    Pre-provision hooks handle management group creation, policy deployment, CIDR validation, and cleanup automatically.
+    Pre-provision hooks handle management group creation, policy deployment,
+    CIDR validation, and cleanup automatically.
   </Card>
 </CardGrid>
 
@@ -41,31 +46,43 @@ A single `azd up` command deploys a hub-spoke network topology with governance p
 
 Every deployment creates a hub-spoke topology with shared services:
 
-| Resource Group | Contents |
-|---|---|
-| `rg-hub-smb-{region}` | Hub VNet, NSG, Private DNS, Bastion, Firewall*, VPN GW* |
-| `rg-spoke-prod-{region}` | Spoke VNet, NSG, NAT GW* |
-| `rg-monitor-smb-{region}` | Log Analytics, Automation Account |
-| `rg-backup-smb-{region}` | Recovery Services Vault |
-| `rg-security-smb-{region}` | Key Vault + Private Endpoint |
-| `rg-migrate-smb-{region}` | Azure Migrate Project |
+| Resource Group             | Contents                                                |
+| -------------------------- | ------------------------------------------------------- |
+| `rg-hub-smb-{region}`      | Hub VNet, NSG, Private DNS, Bastion, Firewall*, VPN GW* |
+| `rg-spoke-prod-{region}`   | Spoke VNet, NSG, NAT GW\*                               |
+| `rg-monitor-smb-{region}`  | Log Analytics, Automation Account                       |
+| `rg-backup-smb-{region}`   | Recovery Services Vault                                 |
+| `rg-security-smb-{region}` | Key Vault + Private Endpoint                            |
+| `rg-migrate-smb-{region}`  | Azure Migrate Project                                   |
 
-*Conditional — depends on the chosen scenario.
+\*Conditional — depends on the chosen scenario.
 
 ## WAF Pillar Alignment
 
-| Pillar | Score | Trade-off |
-|---|---|---|
-| Security | 8/10 | Policy-enforced, no public IPs, Bastion-only access |
-| Reliability | 4/10 | Intentionally low — single-zone, rebuild-from-IaC DR |
-| Performance | 6/10 | B/D/E VM series restriction may limit specialized workloads |
-| Cost Optimization | 9/10 | Primary pillar — free tiers, caps, budget alerts |
-| Operational Excellence | 7/10 | IaC, Log Analytics, policy-driven automation |
+| Pillar                 | Score | Trade-off                                                   |
+| ---------------------- | ----- | ----------------------------------------------------------- |
+| Security               | 8/10  | Policy-enforced, no public IPs, Bastion-only access         |
+| Reliability            | 4/10  | Intentionally low — single-zone, rebuild-from-IaC DR        |
+| Performance            | 6/10  | B/D/E VM series restriction may limit specialized workloads |
+| Cost Optimization      | 9/10  | Primary pillar — free tiers, caps, budget alerts            |
+| Operational Excellence | 7/10  | IaC, Log Analytics, policy-driven automation                |
 
 ## Next Steps
 
 <CardGrid>
-  <LinkCard title="Prerequisites" href="/azure-smb-rf/getting-started/prerequisites/" description="Tools and access needed before deploying" />
-  <LinkCard title="Quick Start" href="/azure-smb-rf/getting-started/quick-start/" description="Deploy your first environment in minutes" />
-  <LinkCard title="Partner Onboarding" href="/azure-smb-rf/getting-started/partner-onboarding/" description="Scale across your customer base" />
+  <LinkCard
+    title="Prerequisites"
+    href="/azure-smb-rf/getting-started/prerequisites/"
+    description="Tools and access needed before deploying"
+  />
+  <LinkCard
+    title="Quick Start"
+    href="/azure-smb-rf/getting-started/quick-start/"
+    description="Deploy your first environment in minutes"
+  />
+  <LinkCard
+    title="Partner Onboarding"
+    href="/azure-smb-rf/getting-started/partner-onboarding/"
+    description="Scale across your customer base"
+  />
 </CardGrid>

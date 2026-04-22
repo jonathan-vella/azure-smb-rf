@@ -1,6 +1,6 @@
 ---
 title: Quick Start
-description: Deploy your first SMB Ready Foundation in 5 minutes
+description: Deploy your first SMB Ready Foundations in 5 minutes
 ---
 
 import { Steps, Aside } from "@astrojs/starlight/components";
@@ -24,7 +24,7 @@ Deploy a complete Azure environment with hub-spoke networking, governance polici
 2. **Create a management group** (one-time setup)
 
    ```bash
-   az account management-group create --name smb-rf --display-name "SMB Ready Foundation"
+   az account management-group create --name smb-rf --display-name "SMB Ready Foundations"
    SUBSCRIPTION_ID=$(az account show --query id -o tsv)
    az account management-group subscription add --name smb-rf --subscription $SUBSCRIPTION_ID
    ```

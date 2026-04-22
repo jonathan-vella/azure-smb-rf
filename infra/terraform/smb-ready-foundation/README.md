@@ -1,7 +1,8 @@
-# SMB Ready Foundation — Terraform port
+# SMB Ready Foundations — Terraform port
 
 Terraform variant of `infra/bicep/smb-ready-foundation/`, delivering the same
-Azure landing zone (MG + 33 policies + hub/spoke networking + optional firewall
+A repeatable, easy-to-deploy, and well-managed Azure platform for SMB customers
+(MG + 33 policies + hub/spoke networking + optional firewall
 / VPN + monitoring, backup, migrate, Key Vault, automation) via
 `azurerm ~> 4.0` + `azapi ~> 2.0`.
 

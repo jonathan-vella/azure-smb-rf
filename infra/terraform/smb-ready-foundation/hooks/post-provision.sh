@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# SMB Ready Foundation — Terraform post-provision hook
+# SMB Ready Foundations — Terraform post-provision hook
 # =============================================================================
 # Runs after `azd provision` (whether Terraform apply succeeded or failed).
 # Prints deployment summary + next-steps guidance. Non-blocking on failure so
@@ -18,7 +18,7 @@ AZURE_LOCATION="${AZURE_LOCATION:-swedencentral}"
 eval "$(resolve_scenario_flags "$SCENARIO")"
 
 printf '\n========================================\n'
-printf '  SMB Ready Foundation (Terraform) — Post-Provision\n'
+printf '  SMB Ready Foundations (Terraform) — Post-Provision\n'
 printf '  Scenario: %s\n' "$SCENARIO"
 printf '========================================\n\n'
 

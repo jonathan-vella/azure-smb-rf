@@ -138,7 +138,7 @@ settings. This closes the `smb-monitoring-01` audit gap at apply time.
 | `deploy_firewall`               | bool         | `false`                                           | —                                   |
 | `deploy_vpn`                    | bool         | `false`                                           | —                                   |
 | `management_group_name`         | string       | `"smb-rf"`                                        | —                                   |
-| `management_group_display_name` | string       | `"SMB Ready Foundation"`                          | —                                   |
+| `management_group_display_name` | string       | `"SMB Ready Foundations"`                          | —                                   |
 | `assignment_location`           | string       | `"swedencentral"`                                 | —                                   |
 | `allowed_vm_skus`               | list(string) | 33 SKUs                                           | non-empty                           |
 | `allowed_locations`             | list(string) | `["swedencentral","germanywestcentral","global"]` | non-empty                           |
@@ -205,8 +205,7 @@ MG scope, one assignment at sub scope.
 
 ### Initiative parameters
 
-The initiative exposes only the two parameters that legitimately vary per
-landing zone:
+The initiative exposes only the two parameters that legitimately vary:
 
 - `allowedLocations` (Array) — wired to `var.allowed_locations`
 - `allowedVmSkus` (Array) — wired to `var.allowed_vm_skus`

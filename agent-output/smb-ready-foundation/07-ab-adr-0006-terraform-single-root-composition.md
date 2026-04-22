@@ -28,7 +28,7 @@ one `apply` via 17 child modules under `modules/`.
 
 ## Context
 
-Bicep's SMB Ready Foundation is delivered as two separate templates:
+Bicep's SMB Ready Foundations is delivered as two separate templates:
 
 - `deploy-mg.bicep` (`targetScope = 'managementGroup'`) — MG creation + 33 policy
   assignments.

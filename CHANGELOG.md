@@ -64,7 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Initial SMB Ready Foundation implementation
+- Initial SMB Ready Foundations implementation
 - Hub-spoke network topology with Azure Bastion
 - 4 deployment scenarios: baseline, firewall, vpn, full
 - 21 Azure Policy assignments for governance

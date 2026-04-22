@@ -1,5 +1,5 @@
 // ============================================================================
-// SMB Ready Foundation - Hub Networking (AVM)
+// SMB Ready Foundations - Hub Networking (AVM)
 // ============================================================================
 // Purpose: Deploy hub VNet with NSG and Private DNS Zone using Azure Verified Modules
 // Version: v0.3 (AVM Migration)

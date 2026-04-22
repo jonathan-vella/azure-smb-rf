@@ -1,4 +1,4 @@
-# Azure Cost Estimate: SMB Ready Foundation
+# Azure Cost Estimate: SMB Ready Foundations
 
 **Generated**: 2026-01-27
 **Artifact Version**: 0.1

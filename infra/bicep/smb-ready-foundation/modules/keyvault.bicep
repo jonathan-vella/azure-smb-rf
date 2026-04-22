@@ -1,5 +1,5 @@
 // ============================================================================
-// SMB Ready Foundation - Key Vault with Private Endpoint
+// SMB Ready Foundations - Key Vault with Private Endpoint
 // ============================================================================
 // Purpose: Deploy Azure Key Vault (Standard) with RBAC, soft delete,
 //          purge protection, private endpoint in spoke VNet, and

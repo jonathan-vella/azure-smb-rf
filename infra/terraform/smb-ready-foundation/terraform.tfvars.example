@@ -1,5 +1,5 @@
 # ============================================================================
-# SMB Ready Foundation — Terraform variable example
+# SMB Ready Foundations — Terraform variable example
 # ============================================================================
 # The azd preprovision hook normally exports these as TF_VAR_* environment
 # variables from azd env state. Use this file only for non-azd workflows
@@ -38,5 +38,5 @@ deploy_vpn      = false
 # ---------------------------------------------------------------------------
 
 management_group_name         = "smb-rf"
-management_group_display_name = "SMB Ready Foundation"
+management_group_display_name = "SMB Ready Foundations"
 assignment_location           = "swedencentral"

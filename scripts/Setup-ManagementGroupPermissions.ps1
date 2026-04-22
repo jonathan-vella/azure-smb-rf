@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Sets up management group permissions for SMB Ready Foundation deployment.
+    Sets up management group permissions for SMB Ready Foundations deployment.
 
 .DESCRIPTION
     This script configures the required RBAC permissions at the tenant root

@@ -5,13 +5,13 @@ description: Management group setup and governance policy assignments
 
 import { Aside, Steps } from "@astrojs/starlight/components";
 
-SMB Ready Foundation deploys governance at the management group scope — ensuring policies apply to all resources in the subscription, even those created outside of this deployment.
+SMB Ready Foundations deploys governance at the management group scope — ensuring policies apply to all resources in the subscription, even those created outside of this deployment.
 
 ## Architecture
 
 ```
 Tenant Root Group
-└── smb-rf (SMB Ready Foundation)
+└── smb-rf (SMB Ready Foundations)
     ├── Azure Policy assignments (MG + subscription scope)
     └── Subscription: customer-subscription
         ├── rg-hub-smb-swc
@@ -38,7 +38,7 @@ Tenant Root Group
 2. **Create the management group**
 
    ```bash
-   az account management-group create --name smb-rf --display-name "SMB Ready Foundation"
+   az account management-group create --name smb-rf --display-name "SMB Ready Foundations"
    ```
 
 3. **Associate the customer subscription**

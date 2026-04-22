@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Pre-provision hook for SMB Ready Foundation azd deployment.
+    Pre-provision hook for SMB Ready Foundations azd deployment.
 .DESCRIPTION
     Runs before azd provision. Performs:
     1. CIDR validation (hub/spoke/on-prem overlap detection)
@@ -180,7 +180,7 @@ function Remove-OrphanedRoleAssignments {
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  SMB Ready Foundation — Pre-Provision" -ForegroundColor Cyan
+Write-Host "  SMB Ready Foundations — Pre-Provision" -ForegroundColor Cyan
 Write-Host "  Scenario: $scenario" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""

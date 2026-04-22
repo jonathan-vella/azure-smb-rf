@@ -1,5 +1,5 @@
 // ============================================================================
-// SMB Ready Foundation - Azure Policy Assignments
+// SMB Ready Foundations - Azure Policy Assignments
 // ============================================================================
 // Purpose: Deploy 20 Azure Policy assignments at subscription scope
 // Note: Auto-backup policy (smb-backup-02) is deployed separately via

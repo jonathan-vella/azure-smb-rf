@@ -1,8 +1,11 @@
 <!-- markdownlint-disable MD013 -->
 
-# Azure SMB Ready Foundation — Partner Quick Reference
+# Azure SMB Ready Foundations — Partner Quick Reference
 
 > **Version**: v0.10.0 | **Deployment**: `azd up` | **Cleanup**: `Remove-SmbReadyFoundation.ps1`
+
+SMB Ready Foundations gives Microsoft Partners a repeatable, easy-to-deploy,
+and well-managed Azure platform for SMB customers.
 
 ## Prerequisites
 
@@ -20,7 +23,7 @@
 cd infra/bicep/smb-ready-foundation
 
 # One-time: create management group
-az account management-group create --name smb-rf --display-name "SMB Ready Foundation"
+az account management-group create --name smb-rf --display-name "SMB Ready Foundations"
 az account management-group subscription add --name smb-rf \
   --subscription $(az account show --query id -o tsv)
 
@@ -106,7 +109,7 @@ pwsh scripts/Remove-SmbReadyFoundation.ps1 -Force -RemoveManagementGroup
 
 # Partner Quick Reference Card
 
-> **Azure SMB Ready Foundation v0.10.0** | Single-page deployment guide for Microsoft Partners
+> **Azure SMB Ready Foundations v0.10.0** | Single-page deployment guide for Microsoft Partners standardizing Azure delivery for SMB customers
 
 ---
 

@@ -1,7 +1,7 @@
 // ============================================================================
-// SMB Ready Foundation - Main Orchestration Template
+// SMB Ready Foundations - Main Orchestration Template
 // ============================================================================
-// Purpose: Cost-optimized Azure SMB Ready Foundation for VMware-to-Azure migrations
+// Purpose: Cost-optimized Azure SMB Ready Foundations for VMware-to-Azure migrations
 // Version: v0.4
 // Generated: 2026-04-15
 // Deployment Order: MG Policies (via preprovision hook) → Sub Resources → Firewall → VPN → Peering
@@ -146,7 +146,7 @@ module budget 'modules/budget.bicep' = {
 // Phase 2: Resource Groups
 // ----------------------------------------------------------------------------
 
-@description('Create resource groups for SMB Ready Foundation workloads')
+@description('Create resource groups for SMB Ready Foundations workloads')
 module resourceGroups 'modules/resource-groups.bicep' = {
   name: 'resource-groups-${uniqueSuffix}'
   params: {

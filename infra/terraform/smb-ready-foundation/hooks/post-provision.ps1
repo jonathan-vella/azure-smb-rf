@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Post-provision hook for SMB Ready Foundation (Terraform variant).
+    Post-provision hook for SMB Ready Foundations (Terraform variant).
 .DESCRIPTION
     Prints deployment summary and next-steps guidance after azd provision.
     Non-blocking on failure so partners can inspect the terraform output.
@@ -17,7 +17,7 @@ $flags    = Resolve-ScenarioFlags -Scenario $scenario
 
 Write-Host ''
 Write-Host '========================================' -ForegroundColor Cyan
-Write-Host '  SMB Ready Foundation (Terraform) — Post-Provision' -ForegroundColor Cyan
+Write-Host '  SMB Ready Foundations (Terraform) — Post-Provision' -ForegroundColor Cyan
 Write-Host "  Scenario: $scenario" -ForegroundColor Cyan
 Write-Host '========================================' -ForegroundColor Cyan
 Write-Host ''

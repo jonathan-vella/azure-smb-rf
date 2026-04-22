@@ -1,5 +1,5 @@
 ---
-title: "Step 5: Implementation Reference - SMB Ready Foundation (Terraform)"
+title: "Step 5: Implementation Reference - SMB Ready Foundations (Terraform)"
 status: "Implemented"
 date: "2026-04-17"
 artifact_version: "1.0"
@@ -10,7 +10,7 @@ superseded_by: ""
 companion: "05-implementation-reference.md"
 ---
 
-# Step 5: Implementation Reference — SMB Ready Foundation (Terraform)
+# Step 5: Implementation Reference — SMB Ready Foundations (Terraform)
 
 > Terraform-track companion to [`05-implementation-reference.md`](./05-implementation-reference.md).
 

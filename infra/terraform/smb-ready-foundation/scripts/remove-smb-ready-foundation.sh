@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# SMB Ready Foundation — Terraform teardown
+# SMB Ready Foundations — Terraform teardown
 # =============================================================================
 # Runs `terraform destroy` for the smb-ready-foundation stack, then optionally
 # deletes the management group (Terraform keeps it because of the import block).
@@ -32,7 +32,7 @@ USAGE
 done
 
 printf '\n========================================\n'
-printf '  SMB Ready Foundation — Teardown\n'
+printf '  SMB Ready Foundations — Teardown\n'
 printf '========================================\n\n'
 
 SUB_ID="$(az account show --query id -o tsv 2>/dev/null || true)"
@@ -41,7 +41,7 @@ SUB_NAME="$(az account show --query name -o tsv)"
 printf '  Subscription: %s (%s)\n\n' "$SUB_NAME" "$SUB_ID"
 
 if [[ "$AUTO_APPROVE" != 'true' ]]; then
-  printf '  This will DESTROY all SMB Ready Foundation resources managed by Terraform.\n'
+  printf '  This will DESTROY all SMB Ready Foundations resources managed by Terraform.\n'
   printf '  Type the subscription id to confirm: '
   read -r confirm
   if [[ "$confirm" != "$SUB_ID" ]]; then

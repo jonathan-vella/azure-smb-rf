@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Teardown SMB Ready Foundation Terraform deployment.
+    Teardown SMB Ready Foundations Terraform deployment.
 .DESCRIPTION
     Runs terraform destroy, then optionally deletes the management group
     and/or the state backend storage account.
@@ -24,7 +24,7 @@ $iacDir    = Split-Path -Parent $scriptDir
 
 Write-Host ''
 Write-Host '========================================' -ForegroundColor Cyan
-Write-Host '  SMB Ready Foundation — Teardown' -ForegroundColor Cyan
+Write-Host '  SMB Ready Foundations — Teardown' -ForegroundColor Cyan
 Write-Host '========================================' -ForegroundColor Cyan
 Write-Host ''
 
@@ -35,7 +35,7 @@ Write-Host "  Subscription: $subName ($subId)"
 Write-Host ''
 
 if (-not $Yes) {
-    Write-Host '  This will DESTROY all SMB Ready Foundation resources managed by Terraform.' -ForegroundColor Yellow
+    Write-Host '  This will DESTROY all SMB Ready Foundations resources managed by Terraform.' -ForegroundColor Yellow
     $confirm = Read-Host '  Type the subscription id to confirm'
     if ($confirm -ne $subId) { Write-Host '  Aborted.'; exit 1 }
 }

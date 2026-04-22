@@ -1,5 +1,5 @@
 // ============================================================================
-// SMB Ready Foundation - Azure Migrate
+// SMB Ready Foundations - Azure Migrate
 // ============================================================================
 // Purpose: Deploy Azure Migrate Project for VMware assessment
 // Version: v0.1

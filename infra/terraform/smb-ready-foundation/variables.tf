@@ -145,7 +145,7 @@ variable "management_group_name" {
 variable "management_group_display_name" {
   description = "Display name of the management group."
   type        = string
-  default     = "SMB Ready Foundation"
+  default     = "SMB Ready Foundations"
 }
 
 variable "assignment_location" {

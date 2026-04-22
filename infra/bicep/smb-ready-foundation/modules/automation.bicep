@@ -1,5 +1,5 @@
 // ============================================================================
-// SMB Ready Foundation - Azure Automation Account
+// SMB Ready Foundations - Azure Automation Account
 // ============================================================================
 // Purpose: Deploy Azure Automation Account for patch management and runbooks,
 //          linked to Log Analytics Workspace.

@@ -1,8 +1,8 @@
 <#
 .SYNOPSIS
-    Removes all SMB Ready Foundation resources from an Azure subscription.
+    Removes all SMB Ready Foundations resources from an Azure subscription.
 .DESCRIPTION
-    Full cleanup script for SMB Ready Foundation deployments. Deletes:
+    Full cleanup script for SMB Ready Foundations deployments. Deletes:
     - All 6 resource groups and their contents
     - Subscription-level budget
     - MG-scoped policy assignments (via Remove-SmbReadyFoundationPolicies.ps1)
@@ -82,7 +82,7 @@ $resourceGroups = @(
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  SMB Ready Foundation — Cleanup" -ForegroundColor Cyan
+Write-Host "  SMB Ready Foundations — Cleanup" -ForegroundColor Cyan
 Write-Host "  Region: $Location ($regionAbbr)" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""

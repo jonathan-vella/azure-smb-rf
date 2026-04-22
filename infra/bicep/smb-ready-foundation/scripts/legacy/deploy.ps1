@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-    Deploys the SMB Ready Foundation infrastructure to Azure.
+    Deploys the SMB Ready Foundations infrastructure to Azure.
 
 .DESCRIPTION
-    This script validates and deploys the SMB Ready Foundation Bicep templates
+    This script validates and deploys the SMB Ready Foundations Bicep templates
     to an Azure subscription. It performs pre-flight checks, validates templates,
     runs what-if analysis, and deploys the infrastructure.
 

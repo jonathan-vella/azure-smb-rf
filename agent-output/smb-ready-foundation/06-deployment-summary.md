@@ -1,4 +1,4 @@
-# Step 6: Deployment Summary - SMB Ready Foundation
+# Step 6: Deployment Summary - SMB Ready Foundations
 
 > Generated: 2026-02-02 | Artifact v0.2
 > Status: **SUCCEEDED** (All Scenarios Validated - Greenfield + Update Deployments)
@@ -7,7 +7,7 @@
 
 | Field                | Value                            |
 | -------------------- | -------------------------------- |
-| **Management Group** | `smb-rf` (SMB Ready Foundation)  |
+| **Management Group** | `smb-rf` (SMB Ready Foundations)  |
 | **Deployment Name**  | `smb-prod-20260202-143501`       |
 | **Resource Group**   | Multiple (see below)             |
 | **Location**         | swedencentral                    |
@@ -196,4 +196,4 @@ azd up
 
 ---
 
-_Deployment summary for SMB Ready Foundation infrastructure. All test scenarios validated._
+_Deployment summary for SMB Ready Foundations infrastructure. All test scenarios validated._

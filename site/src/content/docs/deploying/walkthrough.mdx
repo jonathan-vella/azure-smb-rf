@@ -1,6 +1,6 @@
 ---
 title: Step-by-Step Walkthrough
-description: Deploy SMB Ready Foundation from zero to running infrastructure
+description: Deploy SMB Ready Foundations from zero to running infrastructure
 sidebar:
   order: 2
 ---
@@ -8,7 +8,7 @@ sidebar:
 import { Tabs, TabItem, Steps, Aside } from "@astrojs/starlight/components";
 import ThemedImage from "../../../components/ThemedImage.astro";
 
-This walkthrough takes you from an empty subscription to a fully deployed SMB Ready Foundation environment. Choose the **Bicep** or **Terraform** tab for your preferred IaC track.
+This walkthrough takes you from an empty subscription to a fully deployed SMB Ready Foundations environment. Choose the **Bicep** or **Terraform** tab for your preferred IaC track.
 
 ## Prerequisites
 
@@ -30,7 +30,7 @@ Before starting, ensure you have:
 
    ```bash
    az account management-group create --name smb-rf \
-     --display-name "SMB Ready Foundation"
+     --display-name "SMB Ready Foundations"
    az account management-group subscription add --name smb-rf \
      --subscription $(az account show --query id -o tsv)
    ```

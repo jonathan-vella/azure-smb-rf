@@ -2,7 +2,7 @@
   "name": "azure-smb-ready-foundation-docs",
   "type": "module",
   "version": "0.10.0",
-  "description": "Documentation site for Azure SMB Ready Foundation",
+  "description": "Documentation site for Azure SMB Ready Foundations",
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",

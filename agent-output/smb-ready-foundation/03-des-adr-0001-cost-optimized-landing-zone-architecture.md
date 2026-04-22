@@ -1,5 +1,5 @@
 ---
-title: "ADR-0001: Cost-Optimized SMB Ready Foundation Architecture for On-Premises Workload Migrations"
+title: "ADR-0001: Cost-Optimized SMB Ready Foundations Architecture for On-Premises Workload Migrations"
 status: "Proposed"
 date: "2026-01-27"
 artifact_version: "0.1"
@@ -17,7 +17,7 @@ supersedes: ""
 superseded_by: ""
 ---
 
-# ADR-0001: Cost-Optimized SMB Ready Foundation Architecture for On-Premises Workload Migrations
+# ADR-0001: Cost-Optimized SMB Ready Foundations Architecture for On-Premises Workload Migrations
 
 ## Status
 

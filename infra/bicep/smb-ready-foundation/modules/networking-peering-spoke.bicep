@@ -1,5 +1,5 @@
 // ============================================================================
-// SMB Ready Foundation - Spoke to Hub Peering (Internal Module)
+// SMB Ready Foundations - Spoke to Hub Peering (Internal Module)
 // ============================================================================
 // Purpose: Deploy spoke-to-hub peering in spoke resource group scope
 // Version: v0.3

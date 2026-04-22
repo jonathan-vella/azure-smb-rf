@@ -1,5 +1,5 @@
 // ============================================================================
-// SMB Ready Foundation - Microsoft Defender for Cloud (Free Tier)
+// SMB Ready Foundations - Microsoft Defender for Cloud (Free Tier)
 // ============================================================================
 // Purpose: Enable Microsoft Defender for Cloud Free tier at subscription scope
 // Version: v0.1

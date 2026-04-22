@@ -30,9 +30,9 @@ export default defineConfig({
   },
   integrations: [
     starlight({
-      title: "SMB Ready Foundation",
+      title: "SMB Ready Foundations",
       description:
-        "Cost-optimized Azure landing zone for SMB VMware-to-Azure migrations. Hub-spoke networking, governance policies, 4 deployment scenarios.",
+        "A repeatable, easy-to-deploy, and well-managed Azure platform for SMB customers. Hub-spoke networking, governance policies, and four deployment scenarios.",
       favicon: "/images/favicon.svg",
       head: [
         {
@@ -87,7 +87,7 @@ export default defineConfig({
           collapsed: false,
           items: [
             {
-              label: "What Is SMB Ready Foundation?",
+              label: "What Is SMB Ready Foundations?",
               slug: "getting-started/what-is-smb-rf",
             },
             { label: "Prerequisites", slug: "getting-started/prerequisites" },

@@ -1,5 +1,5 @@
 // ============================================================================
-// SMB Ready Foundation - MG-Scoped Policy Set (Initiative)
+// SMB Ready Foundations - MG-Scoped Policy Set (Initiative)
 // ============================================================================
 // Purpose: Mirror of infra/terraform/.../modules/policy-assignments-mg/main.tf.
 //          Defines ONE custom Policy Set (Initiative) containing 33 built-in
@@ -142,9 +142,9 @@ resource smbBaseline 'Microsoft.Authorization/policySetDefinitions@2023-04-01' =
   properties: {
     policyType: 'Custom'
     displayName: 'SMB RF: Baseline Compliance Initiative'
-    description: 'Aggregates all SMB Ready Foundation governance policies into a single initiative. Replaces 33 individual MG-scoped assignments.'
+    description: 'Aggregates all SMB Ready Foundations governance policies into a single initiative. Replaces 33 individual MG-scoped assignments.'
     metadata: {
-      category: 'SMB Ready Foundation'
+      category: 'SMB Ready Foundations'
       version: '1.0.0'
     }
     parameters: {

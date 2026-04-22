@@ -1,5 +1,5 @@
 // ============================================================================
-// SMB Ready Foundation - Azure Firewall (Full AVM-based)
+// SMB Ready Foundations - Azure Firewall (Full AVM-based)
 // ============================================================================
 // Purpose: Deploy Azure Firewall Basic using Azure Verified Modules (AVM)
 // Version: v0.5 (Full AVM Migration)

@@ -132,7 +132,7 @@ if ($deployText -match 'provisioningState.*Succeeded' -or $LASTEXITCODE -eq 0) {
     Write-Host "  ✓ MANAGEMENT GROUP CREATED SUCCESSFULLY" -ForegroundColor Green
     Write-Host ""
     Write-Host "      • Name: $ManagementGroupName" -ForegroundColor White
-    Write-Host "      • Display: SMB Ready Foundation" -ForegroundColor White
+    Write-Host "      • Display: SMB Ready Foundations" -ForegroundColor White
     Write-Host "      • Subscription: $SubscriptionId (moved)" -ForegroundColor White
     Write-Host "      • Parent: $tenantRootMgId (Tenant Root)" -ForegroundColor White
     Write-Host ""

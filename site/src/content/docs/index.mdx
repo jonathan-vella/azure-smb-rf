@@ -1,9 +1,9 @@
 ---
-title: SMB Ready Foundation
-description: Deploy a compliant, cost-optimized Azure landing zone for SMB VMware-to-Azure migrations — one command, dual IaC tracks, governance built in.
+title: SMB Ready Foundations
+description: Deploy a repeatable, easy-to-deploy, and well-managed Azure platform for SMB customers — one command, dual IaC tracks, governance built in.
 template: splash
 hero:
-  tagline: "Deploy a compliant Azure landing zone for SMB customers in under an hour — hub-spoke networking, governance policies, and four cost-tiered scenarios, all from a single command."
+  tagline: "Deploy a repeatable, easy-to-deploy, and well-managed Azure platform for SMB customers in under an hour — hub-spoke networking, governance policies, and four cost-tiered scenarios, all from a single command."
   actions:
     - text: Quick Start
       link: /azure-smb-rf/getting-started/quick-start/
@@ -33,13 +33,13 @@ import ThemedImage from "../../components/ThemedImage.astro";
   </p>
   <div class="persona-grid">
     <PersonaCard
-      title="New to SMB Ready Foundation"
+      title="New to SMB Ready Foundations"
       href="/azure-smb-rf/getting-started/what-is-smb-rf/"
       icon="?"
       cta="Understand the pattern"
     >
-      Learn what problem this repo solves for partners running VMware-to-Azure
-      migrations across many SMB customers.
+      Learn what problem this repo solves for partners standardizing Azure
+      delivery across many SMB customers.
     </PersonaCard>
     <PersonaCard
       title="Deploying now"
@@ -63,12 +63,15 @@ import ThemedImage from "../../components/ThemedImage.astro";
 </div>
 
 <div class="lp-band">
-  <p class="lp-eyebrow">Why SMB Ready Foundation</p>
+  <p class="lp-eyebrow">Why SMB Ready Foundations</p>
   <h2 class="lp-heading">Engineered for repeatable SMB delivery</h2>
   <div class="metric-grid">
     <MetricTile value="Four" label="Cost-tiered deployment scenarios" />
     <MetricTile value="Dual" label="Bicep and Terraform tracks" />
-    <MetricTile value="Policy" label="Governance built in at MG + subscription scope" />
+    <MetricTile
+      value="Policy"
+      label="Governance built in at MG + subscription scope"
+    />
     <MetricTile value="One" label="Command to deploy: `azd up`" />
   </div>
 </div>
@@ -89,7 +92,7 @@ import ThemedImage from "../../components/ThemedImage.astro";
       alt="Baseline architecture diagram"
     >
       Hub-spoke networking, Bastion, Private DNS, core ops. Minimum viable
-      landing zone.
+      foundation.
     </ScenarioCard>
     <ScenarioCard
       title="Firewall"
@@ -130,12 +133,14 @@ import ThemedImage from "../../components/ThemedImage.astro";
   <div class="arch-frame">
     <ThemedImage
       src="/images/architecture-full.png"
-      alt="SMB Ready Foundation full architecture — hub-spoke with Firewall, VPN, Bastion, and shared operations"
+      alt="SMB Ready Foundations full architecture — hub-spoke with Firewall, VPN, Bastion, and shared operations"
       loading="eager"
     />
   </div>
   <p style="margin-top:1rem;font-size:var(--fs-sm);color:var(--text-muted);text-align:center;">
-    <a href="/azure-smb-rf/reference/architecture/">See all architecture diagrams →</a>
+    <a href="/azure-smb-rf/reference/architecture/">
+      See all architecture diagrams →
+    </a>
   </p>
 </div>
 
@@ -145,7 +150,9 @@ import ThemedImage from "../../components/ThemedImage.astro";
   <nav class="next-rail" aria-label="Quick links">
     <a href="/azure-smb-rf/getting-started/prerequisites/">Prerequisites</a>
     <a href="/azure-smb-rf/getting-started/quick-start/">Quick Start</a>
-    <a href="/azure-smb-rf/reference/partner-quick-reference/">Partner Quick Reference</a>
+    <a href="/azure-smb-rf/reference/partner-quick-reference/">
+      Partner Quick Reference
+    </a>
     <a href="/azure-smb-rf/reference/faq/">FAQ</a>
   </nav>
 </div>

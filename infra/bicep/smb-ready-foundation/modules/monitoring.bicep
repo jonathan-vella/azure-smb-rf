@@ -1,5 +1,5 @@
 // ============================================================================
-// SMB Ready Foundation - Monitoring (AVM-based)
+// SMB Ready Foundations - Monitoring (AVM-based)
 // ============================================================================
 // Purpose: Deploy Log Analytics Workspace with daily cap using AVM
 // Version: v0.2 (AVM Migration)

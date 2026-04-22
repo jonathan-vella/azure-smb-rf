@@ -1,5 +1,5 @@
 // ============================================================================
-// SMB Ready Foundation - MG-Scoped Azure Policy Assignments
+// SMB Ready Foundations - MG-Scoped Azure Policy Assignments
 // ============================================================================
 // Purpose: Deploy 30 Azure Policy assignments at management group scope.
 //          These policies inherit to all subscriptions under the smb-rf MG.

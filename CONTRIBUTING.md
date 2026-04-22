@@ -1,6 +1,6 @@
-# Contributing to Azure SMB Ready Foundation
+# Contributing to Azure SMB Ready Foundations
 
-Thank you for your interest in contributing to the Azure SMB Ready Foundation! This document provides
+Thank you for your interest in contributing to the Azure SMB Ready Foundations! This document provides
 guidelines and instructions for contributing.
 
 ## 📜 Code of Conduct

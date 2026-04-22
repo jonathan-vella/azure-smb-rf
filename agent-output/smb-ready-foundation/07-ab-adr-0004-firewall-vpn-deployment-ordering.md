@@ -5,7 +5,7 @@
 
 ## Context
 
-During validation of the SMB Ready Foundation `full` scenario (Firewall + VPN Gateway), we observed intermittent deployment failures with `InternalServerError` on the Azure Firewall resource. The deployment would fail on the first attempt but succeed on retry.
+During validation of the SMB Ready Foundations `full` scenario (Firewall + VPN Gateway), we observed intermittent deployment failures with `InternalServerError` on the Azure Firewall resource. The deployment would fail on the first attempt but succeed on retry.
 
 ### Observed Behavior
 

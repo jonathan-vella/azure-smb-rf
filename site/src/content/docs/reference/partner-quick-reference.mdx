@@ -24,7 +24,7 @@ cd infra/bicep/smb-ready-foundation
 
 # One-time: create management group
 az account management-group create --name smb-rf \
-  --display-name "SMB Ready Foundation"
+  --display-name "SMB Ready Foundations"
 az account management-group subscription add --name smb-rf \
   --subscription $(az account show --query id -o tsv)
 
