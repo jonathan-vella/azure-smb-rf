@@ -1,0 +1,14 @@
+bin
+obj
+.vs
+.vscode
+.idea
+*.user
+*.suo
+.git
+.gitignore
+.env
+.env.*
+*.log
+TestResults
+coverage

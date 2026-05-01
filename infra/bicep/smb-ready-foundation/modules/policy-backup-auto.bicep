@@ -19,6 +19,9 @@ param location string
 @description('Default VM Backup Policy ID (full resource ID)')
 param defaultVmBackupPolicyId string
 
+@description('Optional resource id of a pre-created User-Assigned Managed Identity (UAMI) with Backup Contributor + Virtual Machine Contributor at subscription scope. When provided, the policy assignment uses this UAMI instead of a SystemAssigned identity, and the in-template role assignments are skipped. Used by the partner management console (Lighthouse-delegated UAA cannot grant roles to a customer-tenant SystemAssigned MI). Leave empty for direct customer-admin deployments — the original SystemAssigned + role-assignment behavior is preserved.')
+param policyMiResourceId string = ''
+
 // ============================================================================
 // Variables
 // ============================================================================
@@ -30,6 +33,10 @@ var policyDefinitionId = '/providers/Microsoft.Authorization/policyDefinitions/3
 var backupContributorRoleId = '5e467623-bb1f-42f4-a55d-6e525e11384b'
 var vmContributorRoleId = '9980e02c-c2be-4d73-94e8-173b1dc7cf3c'
 
+// True when the caller pre-created a UAMI for the policy. Selects between
+// UserAssigned (partner-managed-console flow) and SystemAssigned (default).
+var useUserAssignedMi = !empty(policyMiResourceId)
+
 // ============================================================================
 // Policy Assignment
 // ============================================================================
@@ -38,7 +45,12 @@ var vmContributorRoleId = '9980e02c-c2be-4d73-94e8-173b1dc7cf3c'
 resource policyBackupAutoEnroll 'Microsoft.Authorization/policyAssignments@2024-04-01' = {
   name: 'smb-backup-02'
   location: location
-  identity: {
+  identity: useUserAssignedMi ? {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${policyMiResourceId}': {}
+    }
+  } : {
     type: 'SystemAssigned'
   }
   properties: {
@@ -75,8 +87,11 @@ resource policyBackupAutoEnroll 'Microsoft.Authorization/policyAssignments@2024-
 // Role Assignments for Policy Managed Identity
 // ============================================================================
 
-@description('Backup Contributor role for policy managed identity')
-resource backupContributorRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+// Role assignments only when using SystemAssigned. The UserAssigned path
+// expects the caller to have pre-granted these roles to the UAMI (see
+// management-console/infra/onboarding/policy-mi.bicep).
+@description('Backup Contributor role for policy managed identity (SystemAssigned only)')
+resource backupContributorRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!useUserAssignedMi) {
   name: guid(subscription().id, 'smb-backup-02', 'Backup Contributor')
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', backupContributorRoleId)
@@ -85,8 +100,8 @@ resource backupContributorRole 'Microsoft.Authorization/roleAssignments@2022-04-
   }
 }
 
-@description('Virtual Machine Contributor role for policy managed identity')
-resource vmContributorRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+@description('Virtual Machine Contributor role for policy managed identity (SystemAssigned only)')
+resource vmContributorRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!useUserAssignedMi) {
   name: guid(subscription().id, 'smb-backup-02', 'VM Contributor')
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', vmContributorRoleId)
@@ -102,5 +117,5 @@ resource vmContributorRole 'Microsoft.Authorization/roleAssignments@2022-04-01' 
 @description('Auto-backup policy assignment name')
 output policyAssignmentName string = policyBackupAutoEnroll.name
 
-@description('Auto-backup policy managed identity principal ID')
-output managedIdentityPrincipalId string = policyBackupAutoEnroll.identity.principalId
+@description('Auto-backup policy managed identity principal ID (SystemAssigned only; empty when a pre-created UAMI is used)')
+output managedIdentityPrincipalId string = useUserAssignedMi ? '' : policyBackupAutoEnroll.identity.principalId

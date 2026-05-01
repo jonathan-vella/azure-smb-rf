@@ -1,0 +1,86 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-08-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "mspOfferName": {
+      "type": "string",
+      "defaultValue": "smb-ready-foundation-partner",
+      "metadata": {
+        "description": "Name shown in customer's Service Providers blade."
+      }
+    },
+    "mspOfferDescription": {
+      "type": "string",
+      "defaultValue": "Partner management console for SMB Ready Foundation deployments"
+    },
+    "managedByTenantId": {
+      "type": "string",
+      "metadata": {
+        "description": "Partner tenant ID that will manage this subscription."
+      }
+    },
+    "partnerPrincipalId": {
+      "type": "string",
+      "metadata": {
+        "description": "Object ID of the partner UAMI (or AAD group) to grant access to."
+      }
+    }
+  },
+  "variables": {
+    "contributorRoleId": "[concat('/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+    "uaaRoleId": "[concat('/providers/Microsoft.Authorization/roleDefinitions/', '18d7d88d-d35e-4fb5-a5c3-7773c20a72d9')]",
+    "mspRegistrationName": "[guid(parameters('mspOfferName'))]",
+    "authorizations": [
+      {
+        "principalId": "[parameters('partnerPrincipalId')]",
+        "principalIdDisplayName": "Partner Console (Contributor)",
+        "roleDefinitionId": "b24988ac-6180-42a0-ab88-20f7382dd24c"
+      },
+      {
+        "principalId": "[parameters('partnerPrincipalId')]",
+        "principalIdDisplayName": "Partner Console (User Access Administrator)",
+        "roleDefinitionId": "18d7d88d-d35e-4fb5-a5c3-7773c20a72d9",
+        "delegatedRoleDefinitionIds": [
+          "5e467623-bb1f-42f4-a55d-6e525e11384b",
+          "9980e02c-c2be-4d73-94e8-173b1dc7cf3c",
+          "b24988ac-6180-42a0-ab88-20f7382dd24c",
+          "acdd72a7-3385-48ef-bd42-f606fba81ae7"
+        ]
+      }
+    ]
+  },
+  "resources": [
+    {
+      "type": "Microsoft.ManagedServices/registrationDefinitions",
+      "apiVersion": "2022-10-01",
+      "name": "[variables('mspRegistrationName')]",
+      "properties": {
+        "registrationDefinitionName": "[parameters('mspOfferName')]",
+        "description": "[parameters('mspOfferDescription')]",
+        "managedByTenantId": "[parameters('managedByTenantId')]",
+        "authorizations": "[variables('authorizations')]"
+      }
+    },
+    {
+      "type": "Microsoft.ManagedServices/registrationAssignments",
+      "apiVersion": "2022-10-01",
+      "name": "[variables('mspRegistrationName')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ManagedServices/registrationDefinitions', variables('mspRegistrationName'))]"
+      ],
+      "properties": {
+        "registrationDefinitionId": "[resourceId('Microsoft.ManagedServices/registrationDefinitions', variables('mspRegistrationName'))]"
+      }
+    }
+  ],
+  "outputs": {
+    "mspOfferName": {
+      "type": "string",
+      "value": "[parameters('mspOfferName')]"
+    },
+    "registrationName": {
+      "type": "string",
+      "value": "[variables('mspRegistrationName')]"
+    }
+  }
+}

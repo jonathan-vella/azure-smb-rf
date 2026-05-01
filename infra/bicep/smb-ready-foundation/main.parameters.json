@@ -25,6 +25,12 @@
     },
     "logAnalyticsDailyCapGb": {
       "value": "${LOG_ANALYTICS_DAILY_CAP_GB}"
+    },
+    "budgetAmount": {
+      "value": ${BUDGET_AMOUNT}
+    },
+    "policyMiResourceId": {
+      "value": "${POLICY_MI_RESOURCE_ID}"
     }
   }
 }

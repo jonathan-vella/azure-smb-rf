@@ -1,0 +1,62 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+# Partner Management Console — azd project manifest
+name: management-console
+metadata:
+  template: management-console@0.1.0
+infra:
+  provider: bicep
+  path: infra
+  module: main
+hooks:
+  preprovision:
+    posix:
+      shell: pwsh
+      run: hooks/preprovision.ps1
+      continueOnError: false
+      interactive: true
+    windows:
+      shell: pwsh
+      run: hooks/preprovision.ps1
+      continueOnError: false
+      interactive: true
+  postprovision:
+    posix:
+      shell: pwsh
+      run: hooks/postprovision.ps1
+      continueOnError: false
+      interactive: true
+    windows:
+      shell: pwsh
+      run: hooks/postprovision.ps1
+      continueOnError: false
+      interactive: true
+services:
+  api:
+    project: api
+    language: dotnet
+    host: containerapp
+    docker:
+      path: Dockerfile
+      context: .
+      remoteBuild: true
+  web:
+    project: web
+    language: js
+    host: containerapp
+    docker:
+      path: Dockerfile
+      context: .
+      remoteBuild: true
+    hooks:
+      # Must run as predeploy (not prepackage): the script depends on env
+      # vars set by preprovision (Entra app IDs) and Bicep outputs from
+      # provision (API_FQDN). `azd up` order is package -> provision ->
+      # deploy, so prepackage runs too early. With remoteBuild: true the
+      # Docker context is uploaded at deploy time, so predeploy is in time.
+      predeploy:
+        posix:
+          shell: pwsh
+          run: ../hooks/web-prepackage.ps1
+        windows:
+          shell: pwsh
+          run: ../hooks/web-prepackage.ps1

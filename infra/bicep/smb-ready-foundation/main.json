@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.42.1.51946",
-      "templateHash": "10535753837689301444"
+      "templateHash": "2282187482566933078"
     }
   },
   "parameters": {
@@ -100,6 +100,13 @@
       "defaultValue": "[utcNow('yyyy-MM-01')]",
       "metadata": {
         "description": "Budget start date - uses current month. Azure Budgets cannot update start date after creation, so the preprovision hook deletes existing budget before redeployment."
+      }
+    },
+    "policyMiResourceId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Optional resource id of a pre-created User-Assigned Managed Identity (UAMI) to use for the smb-backup-02 DINE policy. When set, the policy assignment uses this UAMI instead of a SystemAssigned MI and the in-template Backup/VM Contributor role assignments are skipped (caller must have pre-granted them). Used by the partner management console flow where Lighthouse-delegated UAA cannot grant roles to a customer-tenant SystemAssigned MI. Leave empty for direct customer-admin deployments."
       }
     }
   },
@@ -19517,6 +19524,9 @@
           },
           "defaultVmBackupPolicyId": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('rgNames').backup), 'Microsoft.Resources/deployments', format('backup-{0}', variables('uniqueSuffix'))), '2025-04-01').outputs.defaultVmPolicyId.value]"
+          },
+          "policyMiResourceId": {
+            "value": "[parameters('policyMiResourceId')]"
           }
         },
         "template": {
@@ -19526,7 +19536,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.42.1.51946",
-              "templateHash": "590072583443103143"
+              "templateHash": "8653352252331578489"
             }
           },
           "parameters": {
@@ -19541,12 +19551,20 @@
               "metadata": {
                 "description": "Default VM Backup Policy ID (full resource ID)"
               }
+            },
+            "policyMiResourceId": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Optional resource id of a pre-created User-Assigned Managed Identity (UAMI) with Backup Contributor + Virtual Machine Contributor at subscription scope. When provided, the policy assignment uses this UAMI instead of a SystemAssigned identity, and the in-template role assignments are skipped. Used by the partner management console (Lighthouse-delegated UAA cannot grant roles to a customer-tenant SystemAssigned MI). Leave empty for direct customer-admin deployments — the original SystemAssigned + role-assignment behavior is preserved."
+              }
             }
           },
           "variables": {
             "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/345fa903-145c-4fe1-8bcd-93ec2adccde8",
             "backupContributorRoleId": "5e467623-bb1f-42f4-a55d-6e525e11384b",
-            "vmContributorRoleId": "9980e02c-c2be-4d73-94e8-173b1dc7cf3c"
+            "vmContributorRoleId": "9980e02c-c2be-4d73-94e8-173b1dc7cf3c",
+            "useUserAssignedMi": "[not(empty(parameters('policyMiResourceId')))]"
           },
           "resources": [
             {
@@ -19554,9 +19572,7 @@
               "apiVersion": "2024-04-01",
               "name": "smb-backup-02",
               "location": "[parameters('location')]",
-              "identity": {
-                "type": "SystemAssigned"
-              },
+              "identity": "[if(variables('useUserAssignedMi'), createObject('type', 'UserAssigned', 'userAssignedIdentities', createObject(format('{0}', parameters('policyMiResourceId')), createObject())), createObject('type', 'SystemAssigned'))]",
               "properties": {
                 "displayName": "SMB RF: Auto-Backup VMs with Backup Tag",
                 "description": "Automatically configure backup on VMs tagged with Backup:true to the central Recovery Services Vault using DefaultVMPolicy (30d daily, 12w weekly, 12m monthly retention)",
@@ -19590,6 +19606,7 @@
               }
             },
             {
+              "condition": "[not(variables('useUserAssignedMi'))]",
               "type": "Microsoft.Authorization/roleAssignments",
               "apiVersion": "2022-04-01",
               "name": "[guid(subscription().id, 'smb-backup-02', 'Backup Contributor')]",
@@ -19602,10 +19619,11 @@
                 "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', 'smb-backup-02')]"
               ],
               "metadata": {
-                "description": "Backup Contributor role for policy managed identity"
+                "description": "Backup Contributor role for policy managed identity (SystemAssigned only)"
               }
             },
             {
+              "condition": "[not(variables('useUserAssignedMi'))]",
               "type": "Microsoft.Authorization/roleAssignments",
               "apiVersion": "2022-04-01",
               "name": "[guid(subscription().id, 'smb-backup-02', 'VM Contributor')]",
@@ -19618,7 +19636,7 @@
                 "[subscriptionResourceId('Microsoft.Authorization/policyAssignments', 'smb-backup-02')]"
               ],
               "metadata": {
-                "description": "Virtual Machine Contributor role for policy managed identity"
+                "description": "Virtual Machine Contributor role for policy managed identity (SystemAssigned only)"
               }
             }
           ],
@@ -19633,9 +19651,9 @@
             "managedIdentityPrincipalId": {
               "type": "string",
               "metadata": {
-                "description": "Auto-backup policy managed identity principal ID"
+                "description": "Auto-backup policy managed identity principal ID (SystemAssigned only; empty when a pre-created UAMI is used)"
               },
-              "value": "[reference(subscriptionResourceId('Microsoft.Authorization/policyAssignments', 'smb-backup-02'), '2024-04-01', 'full').identity.principalId]"
+              "value": "[if(variables('useUserAssignedMi'), '', reference(subscriptionResourceId('Microsoft.Authorization/policyAssignments', 'smb-backup-02'), '2024-04-01', 'full').identity.principalId)]"
             }
           }
         }
@@ -19678,7 +19696,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.42.1.51946",
-              "templateHash": "3494146808902755793"
+              "templateHash": "1418284066761301197"
             }
           },
           "parameters": {
@@ -19710,7 +19728,7 @@
             "tags": {
               "type": "object",
               "metadata": {
-                "description": "Tags (not supported by Azure Migrate API, kept for interface consistency)"
+                "description": "Tags applied to the Azure Migrate project"
               }
             }
           },
@@ -19723,6 +19741,7 @@
               "apiVersion": "2020-05-01",
               "name": "[variables('projectName')]",
               "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
               "properties": {},
               "metadata": {
                 "description": "Azure Migrate Project for VMware discovery and assessment"

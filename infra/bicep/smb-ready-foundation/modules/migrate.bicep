@@ -25,8 +25,7 @@ param environment string
 @description('Region abbreviation for naming')
 param regionShort string
 
-@description('Tags (not supported by Azure Migrate API, kept for interface consistency)')
-#disable-next-line no-unused-params
+@description('Tags applied to the Azure Migrate project')
 param tags object
 
 // ============================================================================
@@ -44,7 +43,7 @@ var projectName = 'migrate-smbrf-${environment}-${regionShort}'
 resource migrateProject 'Microsoft.Migrate/migrateProjects@2020-05-01' = {
   name: projectName
   location: location
-  // Note: Azure Migrate projects do not support tags at this API version
+  tags: tags
   properties: {}
 }
 

@@ -30,6 +30,10 @@ $hubCidr = $env:HUB_VNET_ADDRESS_SPACE ?? '10.0.0.0/23'
 $spokeCidr = $env:SPOKE_VNET_ADDRESS_SPACE ?? '10.0.2.0/23'
 $onPremCidr = $env:ON_PREMISES_ADDRESS_SPACE ?? ''
 $managementGroupId = $env:MANAGEMENT_GROUP_ID ?? 'smb-rf'
+# When set to 'true' (e.g. by the management-console worker, which has no
+# rights at parent-MG / tenant-root scope), skip steps 5a (deploy-mg.bicep)
+# and 5b (policy-assignments-mg.bicep). Step 4 still verifies the MG exists.
+$skipMgDeploy = ($env:SKIP_MG_DEPLOY ?? '').ToLowerInvariant() -in @('true','1','yes')
 
 # Derived flags
 $deployFirewall = $scenario -eq 'firewall' -or $scenario -eq 'full'
@@ -264,14 +268,25 @@ Write-SubStep "All resource providers registered"
 
 # 4. Management group verification
 Write-Step "4" "Verifying management group '$managementGroupId'..."
-$mgExists = az account management-group show --name $managementGroupId 2>$null
-if (-not $mgExists -or $LASTEXITCODE -ne 0) {
-    Write-Host "  ERROR: Management group '$managementGroupId' not found." -ForegroundColor Red
-    Write-Host "  Run Phase 0 first: cd scripts && ./Setup-ManagementGroupPermissions.ps1" -ForegroundColor Yellow
-    Write-Host "  Then: az account management-group create --name $managementGroupId" -ForegroundColor Yellow
-    exit 1
+if ($skipMgDeploy) {
+    # Worker context: UAMI typically has no MG-scope read rights (Lighthouse
+    # delegates at subscription scope only). The customer admin already
+    # provisioned the MG out-of-band, so skip the existence check.
+    Write-SubStep "SKIP_MG_DEPLOY=true — skipping MG existence check"
+} else {
+    $mgExists = az account management-group show --name $managementGroupId 2>$null
+    if (-not $mgExists -or $LASTEXITCODE -ne 0) {
+        Write-Host "  ERROR: Management group '$managementGroupId' not found." -ForegroundColor Red
+        Write-Host "  Run Phase 0 first: cd scripts && ./Setup-ManagementGroupPermissions.ps1" -ForegroundColor Yellow
+        Write-Host "  Then: az account management-group create --name $managementGroupId" -ForegroundColor Yellow
+        exit 1
+    }
+    Write-SubStep "Management group '$managementGroupId' exists"
 }
-Write-SubStep "Management group '$managementGroupId' exists"
+
+if ($skipMgDeploy) {
+    Write-Step "5" "SKIP_MG_DEPLOY=true — skipping MG creation and MG-scope policies (foundation already installed)."
+} else {
 
 # 5a. Ensure MG exists and subscription is associated
 Write-Step "5a" "Ensuring management group and subscription association..."
@@ -342,6 +357,8 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 Write-SubStep "30 MG-scope policies deployed successfully"
+
+} # end skipMgDeploy guard
 
 # 6. Pre-deployment cleanup
 Write-Step "6" "Pre-deployment cleanup..."

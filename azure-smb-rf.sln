@@ -1,0 +1,32 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "management-console", "management-console", "{36DD46F3-7ADC-70C6-A18E-F58A14CFEC2A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "api", "api", "{15B8D76E-345C-1253-67D1-7EA054E010C8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagementConsole.Api", "management-console\api\ManagementConsole.Api.csproj", "{7C381F06-26F3-CB3B-C238-BB1A09D3E62F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7C381F06-26F3-CB3B-C238-BB1A09D3E62F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C381F06-26F3-CB3B-C238-BB1A09D3E62F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C381F06-26F3-CB3B-C238-BB1A09D3E62F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C381F06-26F3-CB3B-C238-BB1A09D3E62F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{15B8D76E-345C-1253-67D1-7EA054E010C8} = {36DD46F3-7ADC-70C6-A18E-F58A14CFEC2A}
+		{7C381F06-26F3-CB3B-C238-BB1A09D3E62F} = {15B8D76E-345C-1253-67D1-7EA054E010C8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E461B448-0805-43B0-810E-5FA515574998}
+	EndGlobalSection
+EndGlobal

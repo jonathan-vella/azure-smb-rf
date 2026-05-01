@@ -1,0 +1,20 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": { "value": "${AZURE_LOCATION}" },
+    "environment": { "value": "${ENVIRONMENT=prod}" },
+    "azdEnvName": { "value": "${AZURE_ENV_NAME}" },
+    "owner": { "value": "${OWNER=partner-ops}" },
+    "apiAppClientId": { "value": "${API_APP_CLIENT_ID}" },
+    "spaAppClientId": { "value": "${SPA_APP_CLIENT_ID}" },
+    "partnerAdminPrincipalIds": { "value": "${PARTNER_ADMIN_PRINCIPAL_IDS=}" },
+    "securityGroupObjectId": { "value": "${SECURITY_GROUP_OBJECT_ID=}" },
+    "deployerPrincipalId": { "value": "${DEPLOYER_PRINCIPAL_ID=}" },
+    "apiExists": { "value": "${SERVICE_API_RESOURCE_EXISTS=false}" },
+    "webExists": { "value": "${SERVICE_WEB_RESOURCE_EXISTS=false}" },
+    "workerExists": { "value": "${SERVICE_WORKER_RESOURCE_EXISTS=false}" },
+    "repoUrl": { "value": "${REPO_URL=https://github.com/jonathan-vella/azure-smb-rf.git}" },
+    "repoRef": { "value": "${REPO_REF=main}" }
+  }
+}

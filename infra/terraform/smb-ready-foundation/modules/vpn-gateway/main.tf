@@ -5,6 +5,12 @@
 locals {
   gw_name  = "vpng-hub-smb-${var.region_short}"
   pip_name = "pip-vpn-smb-${var.region_short}"
+
+  # Deterministic, globally-unique DNS label so the auto-generated FQDN
+  # (<label>.<region>.cloudapp.azure.com) does not collide with prior
+  # reservations. Mirrors the Bicep module which uses uniqueString(rg.id).
+  # 13-char hex suffix matches Bicep's uniqueString length.
+  pip_dns_label = "${local.pip_name}-${substr(sha1("${var.resource_group_name}/${local.pip_name}"), 0, 13)}"
 }
 
 resource "azurerm_public_ip" "vpn" {
@@ -17,6 +23,7 @@ resource "azurerm_public_ip" "vpn" {
   allocation_method   = "Static"
   sku                 = "Standard"
   zones               = ["1", "2", "3"]
+  domain_name_label   = local.pip_dns_label
 }
 
 resource "azurerm_virtual_network_gateway" "vpn" {

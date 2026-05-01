@@ -70,6 +70,9 @@ param budgetAlertEmail string = owner
 @description('Budget start date - uses current month. Azure Budgets cannot update start date after creation, so the preprovision hook deletes existing budget before redeployment.')
 param budgetStartDate string = utcNow('yyyy-MM-01')
 
+@description('Optional resource id of a pre-created User-Assigned Managed Identity (UAMI) to use for the smb-backup-02 DINE policy. When set, the policy assignment uses this UAMI instead of a SystemAssigned MI and the in-template Backup/VM Contributor role assignments are skipped (caller must have pre-granted them). Used by the partner management console flow where Lighthouse-delegated UAA cannot grant roles to a customer-tenant SystemAssigned MI. Leave empty for direct customer-admin deployments.')
+param policyMiResourceId string = ''
+
 // ============================================================================
 // Variables - Scenario-Derived Feature Flags
 // ============================================================================
@@ -241,6 +244,7 @@ module policyBackupAuto 'modules/policy-backup-auto.bicep' = {
   params: {
     location: location
     defaultVmBackupPolicyId: backup.outputs.defaultVmPolicyId
+    policyMiResourceId: policyMiResourceId
   }
 }
 
@@ -266,8 +270,11 @@ module keyVault 'modules/keyvault.bicep' = {
   params: {
     location: location
     regionShort: regionShort
+    environment: environment
     uniqueSuffix: uniqueSuffix
     pepSubnetId: networkingSpoke.outputs.pepSubnetId
+    spokeVnetId: networkingSpoke.outputs.vnetId
+    hubVnetId: networkingHub.outputs.vnetId
     logAnalyticsWorkspaceId: monitoring.outputs.workspaceId
     tags: sharedServicesTags
   }

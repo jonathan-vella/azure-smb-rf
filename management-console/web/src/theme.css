@@ -1,0 +1,240 @@
+/* Partner Console — visual theme
+ * Mirrors the SMB Ready Foundations docs site (azure-smb-rf/site).
+ * Tokens here drive both raw HTML and inline styles in the SPA;
+ * the Fluent UI v9 brand ramp lives in fluentTheme.ts.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap");
+
+:root {
+  --font-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Manrope", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "Cascadia Code", Consolas, monospace;
+
+  --radius-sm: 0.375rem;
+  --radius: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.08),
+    0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg:
+    0 10px 20px -5px rgb(0 0 0 / 0.12),
+    0 4px 8px -4px rgb(0 0 0 / 0.08);
+
+  --azure-deep: #002850;
+  --azure-mid: #0078d4;
+  --azure-soft: #d1e7f7;
+  --azure-glow: #50a9ef;
+
+  /* light defaults */
+  --bg: #fbfcfd;
+  --bg-nav: #f3f6fa;
+  --surface-1: #ffffff;
+  --surface-2: #f3f6fa;
+  --surface-3: #e9eff6;
+  --hairline: #e1e8f0;
+  --hairline-soft: #eef2f7;
+  --text-strong: #0a1a2e;
+  --text-muted: #4a5a6e;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0b1424;
+  --bg-nav: #0e1a2e;
+  --surface-1: #11203a;
+  --surface-2: #0e1a2e;
+  --surface-3: #162236;
+  --hairline: #1c2a40;
+  --hairline-soft: #162236;
+  --text-strong: #e8eef7;
+  --text-muted: #9eadc4;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-feature-settings: "ss01", "ss02", "cv11";
+  color: var(--text-strong);
+  background:
+    radial-gradient(circle at top left, rgb(80 169 239 / 0.08), transparent 28%),
+    radial-gradient(
+      circle at top right,
+      rgb(0 120 212 / 0.07),
+      transparent 24%
+    ),
+    var(--bg);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+}
+
+h1 {
+  font-size: 2rem;
+  line-height: 1.15;
+  background: linear-gradient(
+    135deg,
+    var(--text-strong) 30%,
+    var(--azure-mid) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+a {
+  color: var(--azure-mid);
+}
+a:hover {
+  color: var(--azure-glow);
+}
+
+code,
+pre {
+  font-family: var(--font-mono);
+}
+
+/* ---------- App shell ---------- */
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 24px;
+  background: var(--bg-nav);
+  border-bottom: 1px solid var(--hairline);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.app-bar__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--text-strong);
+  text-decoration: none;
+}
+
+.app-bar__brand-mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: block;
+}
+
+.app-bar__spacer {
+  flex: 1;
+}
+
+.app-bar__user {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.app-content {
+  flex: 1;
+  padding: 24px;
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* ---------- Surface card primitive ---------- */
+
+.surface-card {
+  background: var(--surface-1);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+}
+
+.surface-card + .surface-card {
+  margin-top: 16px;
+}
+
+/* ---------- Customer list rows ---------- */
+
+.list-row {
+  padding: 14px 16px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  background: var(--surface-1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition:
+    transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.list-row + .list-row {
+  margin-top: 10px;
+}
+
+.list-row:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+  border-color: var(--azure-mid);
+}
+
+/* Sign-in splash */
+
+.signin {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+}
+
+.signin__panel {
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  background: var(--surface-1);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  padding: 36px 32px;
+  box-shadow: var(--shadow-lg);
+}
+
+.signin__panel h1 {
+  margin-top: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
