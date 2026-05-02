@@ -48,12 +48,17 @@ services:
       context: .
       remoteBuild: true
     hooks:
-      # Must run as predeploy (not prepackage): the script depends on env
-      # vars set by preprovision (Entra app IDs) and Bicep outputs from
-      # provision (API_FQDN). `azd up` order is package -> provision ->
-      # deploy, so prepackage runs too early. With remoteBuild: true the
-      # Docker context is uploaded at deploy time, so predeploy is in time.
-      predeploy:
+      # MUST be `prepackage` (not `predeploy`): with `remoteBuild: true`, azd
+      # packages the source into a tarball during the `package` step and
+      # uploads it to ACR during `deploy`. `predeploy` runs AFTER `package`,
+      # so any files written by a `predeploy` hook never reach the ACR
+      # build context. `prepackage` runs first, after `preprovision` has
+      # already set Entra app IDs in the azd env (in both `azd up` and
+      # `azd deploy` flows), so the values are available here.
+      #
+      # nginx.conf is rendered at container startup by docker-entrypoint.sh
+      # from API_BASE_URL — see web/Dockerfile.
+      prepackage:
         posix:
           shell: pwsh
           run: ../hooks/web-prepackage.ps1

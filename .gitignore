@@ -102,3 +102,4 @@ crash.log
 crash.*.log
 .infracost/
 # DO NOT ignore .terraform.lock.hcl — it must be committed for reproducible provider versions
+management-console/PR.md

@@ -13,15 +13,22 @@ if (-not $tenantId -or -not $spaId -or -not $apiId) {
     Write-Error "Missing azd env vars (AZURE_TENANT_ID/SPA_APP_CLIENT_ID/API_APP_CLIENT_ID). Run 'azd provision' first."
     exit 1
 }
-if (-not $apiBaseUrl) {
-    Write-Error "Missing API_BASE_URL azd env var. Run 'azd provision' first."
-    exit 1
-}
+# API_BASE_URL is only used for an informational log line below — nginx
+# resolves it at container startup, not at build time. So a missing value
+# here is no longer fatal.
 
 $webDir = Join-Path $PSScriptRoot '..' 'web'
 
-# 1. Vite env: bake auth IDs into the SPA bundle. API base is same-origin
-# (/api), so VITE_API_BASE_URL is intentionally not set.
+# Vite env: bake auth IDs into the SPA bundle. API base is same-origin (/api),
+# so VITE_API_BASE_URL is intentionally not set.
+#
+# Note: nginx.conf is NOT rendered here anymore. It is rendered at container
+# startup by web/docker-entrypoint.sh from web/nginx.conf.template using the
+# API_BASE_URL env var injected by Container Apps. That avoids a hook-timing
+# bug: with `remoteBuild: true`, the docker build context is staged before
+# `predeploy` hooks run, so a hook-generated nginx.conf would not make it
+# into the ACR build. Keeping .env.production here is fine because it is
+# explicitly re-included via web/.dockerignore (`!.env.production`).
 $envFile = Join-Path $webDir '.env.production'
 @(
     "VITE_TENANT_ID=$tenantId",
@@ -29,16 +36,8 @@ $envFile = Join-Path $webDir '.env.production'
     "VITE_API_CLIENT_ID=$apiId"
 ) | Set-Content -Path $envFile -Encoding utf8
 
-# 2. Render nginx.conf from template with the upstream API URL substituted in.
-# nginx then proxies /api/* and /hubs/* to the API container, so the browser
-# only ever talks to the web origin (no CORS).
-$tmpl = Get-Content -Path (Join-Path $webDir 'nginx.conf.template') -Raw
-$apiHost = ([uri]$apiBaseUrl).Host
-$conf = $tmpl.Replace('__API_BASE_URL__', $apiBaseUrl).Replace('__API_HOST__', $apiHost)
-Set-Content -Path (Join-Path $webDir 'nginx.conf') -Value $conf -Encoding utf8 -NoNewline
-
 Write-Host "Wrote $envFile"
 Write-Host "  VITE_TENANT_ID=$tenantId"
 Write-Host "  VITE_SPA_CLIENT_ID=$spaId"
 Write-Host "  VITE_API_CLIENT_ID=$apiId"
-Write-Host "Rendered web/nginx.conf with upstream $apiBaseUrl"
+Write-Host "nginx.conf will be rendered at container startup from API_BASE_URL=$apiBaseUrl"
