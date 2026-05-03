@@ -42,6 +42,13 @@ param tags object
 var gatewayName = 'vpng-hub-${environment}-${regionShort}'
 var gatewayPublicIpName = 'pip-vpn-${environment}-${regionShort}'
 
+// AVM virtual-network-gateway 0.10.1 defaults the public IP's domainNameLabel to
+// the PIP name when none is supplied, which collides across deployments
+// (e.g. pip-vpn-smb-swc.swedencentral.cloudapp.azure.com already reserved).
+// Append a uniqueString tied to the resource group so the FQDN is globally unique
+// while remaining deterministic for repeat deployments into the same RG.
+var gatewayPublicIpDnsLabel = '${gatewayPublicIpName}-${uniqueString(resourceGroup().id, gatewayPublicIpName)}'
+
 // Extract VNet resource ID from Gateway Subnet ID
 var vnetResourceId = split(gatewaySubnetId, '/subnets/')[0]
 
@@ -68,6 +75,12 @@ module vpnGateway 'br/public:avm/res/network/virtual-network-gateway:0.10.1' = {
     }
     // Name for the auto-created public IP
     primaryPublicIPName: gatewayPublicIpName
+    // Globally unique DNS label so the auto-generated FQDN
+    // (<label>.<region>.cloudapp.azure.com) does not collide with prior
+    // reservations. Without this, AVM defaults the label to primaryPublicIPName.
+    domainNameLabel: [
+      gatewayPublicIpDnsLabel
+    ]
   }
 }
 

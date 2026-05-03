@@ -71,8 +71,7 @@ function Invoke-DeploymentRetry {
     Write-Host "  Transient error detected. Initiating retry sequence..." -ForegroundColor Yellow
 
     $scriptDir = Split-Path $PSScriptRoot
-    $templateFile = Join-Path $scriptDir 'main.bicep'
-    $paramFile = Join-Path $scriptDir 'main.parameters.json'
+    $paramFile = Join-Path $scriptDir 'main.bicepparam'
 
     for ($attempt = 1; $attempt -le $MaxRetries; $attempt++) {
         $delay = $BaseDelaySeconds * [math]::Pow(2, $attempt - 1)
@@ -82,7 +81,6 @@ function Invoke-DeploymentRetry {
         $result = az deployment sub create `
             --location $location `
             --name "$envName-retry-$attempt-$(Get-Date -Format 'HHmmss')" `
-            --template-file $templateFile `
             --parameters $paramFile 2>&1
 
         if ($LASTEXITCODE -eq 0) {

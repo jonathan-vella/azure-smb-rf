@@ -137,7 +137,20 @@ BUDGET_START_DATE="$(date -u +%Y-%m-01)"
 
 # Build allowed_vm_skus JSON array from azd env if set (comma-separated).
 if [[ -n "${ALLOWED_VM_SKUS:-}" ]]; then
-  ALLOWED_VM_SKUS_JSON="$(printf '%s' "$ALLOWED_VM_SKUS" | awk -v RS=, 'BEGIN{printf "["} NR>1{printf ","} {gsub(/[[:space:]]/,""); printf "\"%s\"", $0} END{printf "]"}')"
+  # Pure-bash CSV->JSON conversion; avoids awk dependency on minimal images.
+  ALLOWED_VM_SKUS_JSON='['
+  _first=1
+  IFS=',' read -ra _skus <<< "$ALLOWED_VM_SKUS"
+  for _sku in "${_skus[@]}"; do
+    # trim surrounding whitespace
+    _sku="${_sku#"${_sku%%[![:space:]]*}"}"
+    _sku="${_sku%"${_sku##*[![:space:]]}"}"
+    [[ -z "$_sku" ]] && continue
+    if [[ $_first -eq 1 ]]; then _first=0; else ALLOWED_VM_SKUS_JSON+=','; fi
+    ALLOWED_VM_SKUS_JSON+="\"$_sku\""
+  done
+  ALLOWED_VM_SKUS_JSON+=']'
+  unset _first _skus _sku
 else
   ALLOWED_VM_SKUS_JSON='null'  # Terraform uses the variable default.
 fi
@@ -211,11 +224,33 @@ JSON
 else
   log_step 8 'Writing provider.conf.json (azd backend template)'
   BACKEND_FILE="$IAC_DIR/.azure/${AZURE_ENV_NAME:-smb-ready-foundation}/backend.hcl"
-  # Extract values from backend.hcl (source of truth)
-  BACKEND_RG="$(awk -F'=' '/resource_group_name/ {gsub(/[" ]/,"",$2); print $2}' "$BACKEND_FILE")"
-  BACKEND_SA="$(awk -F'=' '/storage_account_name/ {gsub(/[" ]/,"",$2); print $2}' "$BACKEND_FILE")"
-  BACKEND_CT="$(awk -F'=' '/container_name/ {gsub(/[" ]/,"",$2); print $2}' "$BACKEND_FILE")"
-  BACKEND_KEY="$(awk -F'=' '/^key/ {gsub(/[" ]/,"",$2); print $2}' "$BACKEND_FILE")"
+  # Extract values from backend.hcl (source of truth) using bash regex —
+  # avoids depending on awk which is missing on minimal Mariner-based images
+  # (e.g. mcr.microsoft.com/azure-cli) where the Container Apps Job runs.
+  parse_hcl() {
+    # $1 = key, $2 = file. Matches `key = "value"` or `key=value`, ignoring whitespace.
+    local key="$1" file="$2" line value
+    while IFS= read -r line; do
+      # strip leading whitespace
+      line="${line#"${line%%[![:space:]]*}"}"
+      case "$line" in
+        "$key"=*|"$key "*)
+          value="${line#*=}"
+          # trim spaces and surrounding quotes
+          value="${value#"${value%%[![:space:]]*}"}"
+          value="${value%"${value##*[![:space:]]}"}"
+          value="${value%\"}"
+          value="${value#\"}"
+          printf '%s' "$value"
+          return 0
+          ;;
+      esac
+    done < "$file"
+  }
+  BACKEND_RG="$(parse_hcl resource_group_name "$BACKEND_FILE")"
+  BACKEND_SA="$(parse_hcl storage_account_name "$BACKEND_FILE")"
+  BACKEND_CT="$(parse_hcl container_name "$BACKEND_FILE")"
+  BACKEND_KEY="$(parse_hcl key "$BACKEND_FILE")"
 
   cat > "$IAC_DIR/provider.conf.json" <<JSON
 {

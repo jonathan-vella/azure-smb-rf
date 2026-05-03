@@ -1,0 +1,17 @@
+node_modules
+dist
+build
+.vite
+.cache
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+.env.*
+!.env.production
+.git
+.gitignore
+.vscode
+.idea
+*.log
+coverage

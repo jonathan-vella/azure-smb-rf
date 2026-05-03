@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Management Console**: New partner-facing web application for onboarding SMB customers
+  and deploying the smb-ready-foundation infrastructure
+  - React + Vite SPA with Azure MSAL authentication and cross-tenant login support
+  - .NET API backend with Foundation management endpoints and ARM template generation
+  - Deployment worker (Docker) with Azure CLI and Bicep for executing customer deployments
+  - Foundation template service that fetches and serves templates from GitHub releases
+  - Customer onboarding flow with tenant lookup via Microsoft Graph
+  - User-Assigned Managed Identity (UAMI) provisioning for `smb-backup-02` DINE policy
+  - Customer prerequisites page for ARM template deployment and settings management
+  - Reusable `RegionPicker` / `RegionMultiPicker` components with normalized region options
+  - Settings management backed by Cosmos DB (`SettingsRepository`,
+    `SystemTextJsonCosmosSerializer`)
+  - Lighthouse service with async methods and caching for delegated resource management
+  - Live deployment log streaming via per-deployment blob polling
+  - Private endpoint modules and spoke/hub VNet parameters on Key Vault for private
+    DNS resolution
+  - Custom Azure-branded theme, favicon, and nginx configuration with entrypoint script
+  - Heartbeat logging during long-running ARM operations
+  - Bicep module for worker image lookup and dynamic Bicep parameter file generation
+
+### Changed
+
+- `smb-backup-02` policy: added `policyMiResourceId` parameter to support pre-created UAMI
+- Tagging policy for UAMI now includes `Environment` and `Owner`
+- Removed Terraform support from Management Console (Bicep-only deployment)
+- Removed SignalR dependency in favor of blob-based log polling
+
+### Fixed
+
+- Cross-tenant login and Lighthouse onboarding edge cases
+- Transient MSAL popup errors and account management during authentication
+- Caching disabled for foundation templates to ensure fresh fetches from GitHub
+
 ## [0.10.0] - 2026-02-02
 
 ### Fixed

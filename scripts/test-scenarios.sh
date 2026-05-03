@@ -12,6 +12,7 @@ PROJ_DIR="/workspaces/azure-smb-rf/infra/bicep/smb-ready-foundation"
 LOG_FILE="/workspaces/azure-smb-rf/logs/test-scenarios.log"
 OWNER="jonathan@lordofthecloud.eu"
 LOCATION="swedencentral"
+SUBSCRIPTION_ID="${AZURE_SUBSCRIPTION_ID:-$(az account show --query id -o tsv 2>/dev/null || echo '')}"
 HUB_CIDR="10.0.0.0/23"
 SPOKE_CIDR="10.0.2.0/23"
 ON_PREM_CIDR="192.168.0.0/16"
@@ -69,9 +70,19 @@ configure_env() {
   local scenario="$1"
   cd "$PROJ_DIR"
 
-  # Select or create env
-  azd env select "smb-rf-${scenario}" 2>/dev/null || azd env new "smb-rf-${scenario}"
+  # Select or create env (non-interactive, silent)
+  local env_name="smb-rf-${scenario}"
+  if azd env list -o tsv 2>/dev/null | awk '{print $1}' | grep -qx "$env_name"; then
+    azd env select "$env_name" >/dev/null 2>&1
+  else
+    azd env new "$env_name" \
+      --no-prompt \
+      --location "$LOCATION" \
+      --subscription "$SUBSCRIPTION_ID" >/dev/null
+    azd env select "$env_name" >/dev/null 2>&1
+  fi
 
+  azd env set AZURE_SUBSCRIPTION_ID "$SUBSCRIPTION_ID"
   azd env set SCENARIO "$scenario"
   azd env set OWNER "$OWNER"
   azd env set AZURE_LOCATION "$LOCATION"

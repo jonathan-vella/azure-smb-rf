@@ -18,6 +18,14 @@ param location string
 @description('Region abbreviation for naming')
 param regionShort string
 
+@description('Environment name (dev/staging/prod) — included in the Key Vault and private endpoint names so each environment gets its own vault and PE.')
+@allowed([
+  'dev'
+  'staging'
+  'prod'
+])
+param environment string
+
 @description('Unique suffix for globally unique Key Vault name')
 param uniqueSuffix string
 
@@ -27,6 +35,12 @@ param pepSubnetId string
 @description('Log Analytics Workspace resource ID for diagnostic settings')
 param logAnalyticsWorkspaceId string
 
+@description('Spoke VNet resource ID. Linked to the Key Vault private DNS zone so workloads in the spoke resolve the private endpoint IP.')
+param spokeVnetId string
+
+@description('Hub VNet resource ID. Linked to the Key Vault private DNS zone so on-prem clients (via VPN) and any hub-resident DNS resolver return the private endpoint IP. Optional — leave empty to skip the hub link.')
+param hubVnetId string = ''
+
 @description('Tags to apply to all resources')
 param tags object
 
@@ -34,8 +48,16 @@ param tags object
 // Variables
 // ============================================================================
 
-var keyVaultName = 'kv-smbrf-${regionShort}-${take(uniqueSuffix, 8)}'
-var pepName = 'pep-kv-smbrf-smb-${regionShort}'
+// Abbreviate 'staging' to 'stg' so the 24-char Key Vault name budget isn't
+// blown by the environment segment alone.
+var envShort = environment == 'staging' ? 'stg' : environment
+
+// Key Vault names are globally unique and capped at 24 characters. Including
+// the environment ensures dev/staging/prod each get a distinct vault (and
+// therefore distinct private endpoints in their own spoke subnets). take()
+// guards against the 24-char ceiling as a defence-in-depth.
+var keyVaultName = take('kv-${envShort}-${regionShort}-${uniqueSuffix}', 24)
+var pepName = 'pep-kv-${envShort}-${regionShort}'
 
 // ============================================================================
 // Key Vault (AVM Module)
@@ -109,6 +131,25 @@ module privateDnsZone 'br/public:avm/res/network/private-dns-zone:0.8.1' = {
     name: 'privatelink.vaultcore.azure.net'
     location: 'global'
     tags: tags
+    // Without these links, clients in the spoke (and on-prem via the hub)
+    // resolve `*.vaultcore.azure.net` to the public name and fail because
+    // publicNetworkAccess is disabled.
+    virtualNetworkLinks: concat(
+      [
+        {
+          name: 'link-spoke'
+          virtualNetworkResourceId: spokeVnetId
+          registrationEnabled: false
+        }
+      ],
+      empty(hubVnetId) ? [] : [
+        {
+          name: 'link-hub'
+          virtualNetworkResourceId: hubVnetId
+          registrationEnabled: false
+        }
+      ]
+    )
   }
 }
 

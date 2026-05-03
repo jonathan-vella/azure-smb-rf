@@ -3,8 +3,16 @@
 // We keep the private DNS zone hand-rolled (AVM does not manage PDZ itself).
 
 locals {
-  kv_name  = "kv-smbrf-${var.region_short}-${substr(var.unique_suffix, 0, 8)}"
-  pep_name = "pep-kv-smbrf-smb-${var.region_short}"
+  # Abbreviate 'staging' to 'stg' so the 24-char Key Vault name budget isn't
+  # blown by the environment segment alone.
+  env_short = var.environment == "staging" ? "stg" : var.environment
+
+  # Key Vault names are globally unique and capped at 24 characters. Including
+  # the environment ensures dev/staging/prod each get a distinct vault (and
+  # therefore distinct private endpoints in their own spoke subnets). substr
+  # guards against the 24-char ceiling as defence-in-depth.
+  kv_name  = substr("kv-${local.env_short}-${var.region_short}-${var.unique_suffix}", 0, 24)
+  pep_name = "pep-kv-${local.env_short}-${var.region_short}"
   pdz_name = "privatelink.vaultcore.azure.net"
 }
 
@@ -12,6 +20,28 @@ resource "azurerm_private_dns_zone" "kv" {
   name                = local.pdz_name
   resource_group_name = var.resource_group_name
   tags                = var.tags
+}
+
+# Without these links, clients in the spoke (and on-prem via the hub)
+# resolve `*.vaultcore.azure.net` to the public name and fail because
+# public_network_access_enabled is false.
+resource "azurerm_private_dns_zone_virtual_network_link" "kv_spoke" {
+  name                  = "link-spoke"
+  resource_group_name   = var.resource_group_name
+  private_dns_zone_name = azurerm_private_dns_zone.kv.name
+  virtual_network_id    = var.spoke_vnet_id
+  registration_enabled  = false
+  tags                  = var.tags
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "kv_hub" {
+  count                 = var.hub_vnet_id == null ? 0 : 1
+  name                  = "link-hub"
+  resource_group_name   = var.resource_group_name
+  private_dns_zone_name = azurerm_private_dns_zone.kv.name
+  virtual_network_id    = var.hub_vnet_id
+  registration_enabled  = false
+  tags                  = var.tags
 }
 
 module "kv" {

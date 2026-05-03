@@ -60,7 +60,6 @@ if ($LASTEXITCODE -ne 0 -or -not $saShow) {
   az storage account create `
     -n $saName -g $rgName -l $Location `
     --sku Standard_LRS --kind StorageV2 `
-    --min-tls-version TLS1_2 `
     --https-only true `
     --allow-blob-public-access false `
     --allow-shared-key-access true `

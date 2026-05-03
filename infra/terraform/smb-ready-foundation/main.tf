@@ -179,10 +179,13 @@ module "keyvault" {
   location                   = var.location
   resource_group_name        = module.resource_groups.shared["security"].name
   region_short               = local.region_short
+  environment                = var.environment
   tags                       = local.shared_services_tags
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   unique_suffix              = local.unique_suffix
   pep_subnet_id              = module.network_spoke.pep_subnet_id
+  spoke_vnet_id              = module.network_spoke.vnet_id
+  hub_vnet_id                = module.network_hub.vnet_id
   log_analytics_workspace_id = module.monitoring.workspace_id
 }
 

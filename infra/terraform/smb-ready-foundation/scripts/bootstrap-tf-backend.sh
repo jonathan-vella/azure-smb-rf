@@ -62,7 +62,6 @@ if ! az storage account show -n "$SA_NAME" -g "$RG_NAME" >/dev/null 2>&1; then
     -n "$SA_NAME" -g "$RG_NAME" -l "$AZURE_LOCATION" \
     --sku Standard_LRS \
     --kind StorageV2 \
-    --min-tls-version TLS1_2 \
     --https-only true \
     --allow-blob-public-access false \
     --allow-shared-key-access true \

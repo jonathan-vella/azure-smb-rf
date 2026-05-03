@@ -1,0 +1,67 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+# Partner Management Console — azd project manifest
+name: management-console
+metadata:
+  template: management-console@0.1.0
+infra:
+  provider: bicep
+  path: infra
+  module: main
+hooks:
+  preprovision:
+    posix:
+      shell: pwsh
+      run: hooks/preprovision.ps1
+      continueOnError: false
+      interactive: true
+    windows:
+      shell: pwsh
+      run: hooks/preprovision.ps1
+      continueOnError: false
+      interactive: true
+  postprovision:
+    posix:
+      shell: pwsh
+      run: hooks/postprovision.ps1
+      continueOnError: false
+      interactive: true
+    windows:
+      shell: pwsh
+      run: hooks/postprovision.ps1
+      continueOnError: false
+      interactive: true
+services:
+  api:
+    project: api
+    language: dotnet
+    host: containerapp
+    docker:
+      path: Dockerfile
+      context: .
+      remoteBuild: true
+  web:
+    project: web
+    language: js
+    host: containerapp
+    docker:
+      path: Dockerfile
+      context: .
+      remoteBuild: true
+    hooks:
+      # MUST be `prepackage` (not `predeploy`): with `remoteBuild: true`, azd
+      # packages the source into a tarball during the `package` step and
+      # uploads it to ACR during `deploy`. `predeploy` runs AFTER `package`,
+      # so any files written by a `predeploy` hook never reach the ACR
+      # build context. `prepackage` runs first, after `preprovision` has
+      # already set Entra app IDs in the azd env (in both `azd up` and
+      # `azd deploy` flows), so the values are available here.
+      #
+      # nginx.conf is rendered at container startup by docker-entrypoint.sh
+      # from API_BASE_URL — see web/Dockerfile.
+      prepackage:
+        posix:
+          shell: pwsh
+          run: ../hooks/web-prepackage.ps1
+        windows:
+          shell: pwsh
+          run: ../hooks/web-prepackage.ps1
