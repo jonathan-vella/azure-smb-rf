@@ -1,0 +1,586 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.42.1.51946",
+      "templateHash": "769660256523089874"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "swedencentral",
+      "metadata": {
+        "description": "Location for policy assignment metadata"
+      }
+    },
+    "allowedLocations": {
+      "type": "array",
+      "defaultValue": [
+        "swedencentral",
+        "germanywestcentral",
+        "global"
+      ],
+      "metadata": {
+        "description": "Allowed Azure regions for resources"
+      }
+    },
+    "allowedVmSkus": {
+      "type": "array",
+      "defaultValue": [
+        "Standard_B1ls",
+        "Standard_B1s",
+        "Standard_B1ms",
+        "Standard_B2s",
+        "Standard_B2ms",
+        "Standard_B2ls_v2",
+        "Standard_B2s_v2",
+        "Standard_B2ms_v2",
+        "Standard_B4ms",
+        "Standard_B4ls_v2",
+        "Standard_B4s_v2",
+        "Standard_B4ms_v2",
+        "Standard_B8ms",
+        "Standard_B8ls_v2",
+        "Standard_B8s_v2",
+        "Standard_B8ms_v2",
+        "Standard_D2s_v5",
+        "Standard_D4s_v5",
+        "Standard_D8s_v5",
+        "Standard_D16s_v5",
+        "Standard_D2ds_v5",
+        "Standard_D4ds_v5",
+        "Standard_D8ds_v5",
+        "Standard_D2s_v6",
+        "Standard_D4s_v6",
+        "Standard_D8s_v6",
+        "Standard_E2s_v5",
+        "Standard_E4s_v5",
+        "Standard_E8s_v5",
+        "Standard_E2ds_v5",
+        "Standard_E4ds_v5",
+        "Standard_E2s_v6",
+        "Standard_E4s_v6"
+      ],
+      "metadata": {
+        "description": "Allowed VM SKUs (B-series and D/E v5/v6 series)"
+      }
+    }
+  },
+  "variables": {
+    "policyDefinitions": {
+      "allowedVmSkus": "/providers/Microsoft.Authorization/policyDefinitions/cccc23c7-8427-4f53-ad12-b6a63eb452b3",
+      "noPublicIpOnNic": "/providers/Microsoft.Authorization/policyDefinitions/83a86a26-fd1f-447c-b59d-e51f44264114",
+      "auditManagedDisks": "/providers/Microsoft.Authorization/policyDefinitions/06a78e20-9358-41c9-923c-fb736d382a4d",
+      "auditArmVms": "/providers/Microsoft.Authorization/policyDefinitions/1d84d5fb-01f6-4d12-ba4f-4a26081d403d",
+      "nsgOnSubnets": "/providers/Microsoft.Authorization/policyDefinitions/e71308d3-144b-4262-b144-efdc3cc90517",
+      "closeManagementPorts": "/providers/Microsoft.Authorization/policyDefinitions/22730e10-96f6-4aac-ad84-9383d35b5917",
+      "restrictNsgPorts": "/providers/Microsoft.Authorization/policyDefinitions/9daedab3-fb2d-461e-b861-71790eead4f6",
+      "disableIpForwarding": "/providers/Microsoft.Authorization/policyDefinitions/88c0b9da-ce96-4b03-9635-f29a937e2900",
+      "storageHttpsOnly": "/providers/Microsoft.Authorization/policyDefinitions/404c3081-a854-4457-ae30-26a93ef643f9",
+      "noPublicBlobAccess": "/providers/Microsoft.Authorization/policyDefinitions/4fa4b6c0-31ca-4c0d-b10d-24b96f62a751",
+      "storageTls12": "/providers/Microsoft.Authorization/policyDefinitions/fe83a0eb-a853-422d-aac2-1bffd182c5d0",
+      "restrictStorageNetwork": "/providers/Microsoft.Authorization/policyDefinitions/34c877ad-507e-4c82-993e-3452a6e0ad3c",
+      "storageArmMigration": "/providers/Microsoft.Authorization/policyDefinitions/37e0d2fe-28a5-43d6-a273-67d37d1f5606",
+      "sqlAzureAdOnly": "/providers/Microsoft.Authorization/policyDefinitions/b3a22bc9-66de-45fb-98fa-00f5df42f41a",
+      "sqlNoPublicAccess": "/providers/Microsoft.Authorization/policyDefinitions/1b8ca024-1d5c-4dec-8995-b1a932b41780",
+      "requireTag": "/providers/Microsoft.Authorization/policyDefinitions/871b6d14-10aa-478d-b590-94f262ecfa99",
+      "allowedLocations": "/providers/Microsoft.Authorization/policyDefinitions/e56962a6-4747-49cd-b67b-bf8b01975c4c",
+      "vmBackupRequired": "/providers/Microsoft.Authorization/policyDefinitions/013e242c-8828-4970-87b3-ab247555486d",
+      "diagnosticSettings": "/providers/Microsoft.Authorization/policyDefinitions/7f89b1eb-583c-429a-8828-af049802c1d9",
+      "kvSoftDelete": "/providers/Microsoft.Authorization/policyDefinitions/1e66c121-a66a-4b1f-9b83-0fd99bf0fc2d",
+      "kvDeletionProtection": "/providers/Microsoft.Authorization/policyDefinitions/0b60c0b2-2dc2-4e1c-b5c9-abbed971de53",
+      "kvRbacModel": "/providers/Microsoft.Authorization/policyDefinitions/12d4fa5e-1f9f-4c21-97a9-b99b3c6611b5",
+      "kvNoPublicNetwork": "/providers/Microsoft.Authorization/policyDefinitions/405c5871-3e91-4644-8a63-58e19d68ff5b",
+      "kvSecretsExpiration": "/providers/Microsoft.Authorization/policyDefinitions/98728c90-32c7-4049-8429-847dc0f4fe37",
+      "kvKeysExpiration": "/providers/Microsoft.Authorization/policyDefinitions/152b15f7-8e1f-4c1f-ab71-8c010ba5dbc0",
+      "kvResourceLogs": "/providers/Microsoft.Authorization/policyDefinitions/cf820ca0-f99e-4f3e-84fb-66e913812d21",
+      "nsgFlowLogs": "/providers/Microsoft.Authorization/policyDefinitions/27960feb-a23c-4577-8d36-ef8b5f35e0be",
+      "auditSystemUpdates": "/providers/Microsoft.Authorization/policyDefinitions/86b3d65f-7626-441e-b690-81a8b71cff60",
+      "auditEndpointProtection": "/providers/Microsoft.Authorization/policyDefinitions/26a828e1-e88f-464e-bbb3-c134a282b9de",
+      "auditMfaOwners": "/providers/Microsoft.Authorization/policyDefinitions/aa633080-8b72-40c4-a2d7-d00c03e80bed",
+      "auditDeprecatedAccounts": "/providers/Microsoft.Authorization/policyDefinitions/8d7e1fde-fe26-4b5f-8108-f8e432cbc2be",
+      "auditStorageGeoRedundancy": "/providers/Microsoft.Authorization/policyDefinitions/bf045164-79ba-4215-8f95-f8048dc1780b"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-compute-01",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Allowed VM SKUs",
+        "description": "Restrict VM deployments to cost-effective B-series and D/E v5/v6 series SKUs",
+        "policyDefinitionId": "[variables('policyDefinitions').allowedVmSkus]",
+        "enforcementMode": "Default",
+        "parameters": {
+          "listOfAllowedSKUs": {
+            "value": "[parameters('allowedVmSkus')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-compute-02",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: No Public IPs on NICs",
+        "description": "Prevent VMs from having public IP addresses for security",
+        "policyDefinitionId": "[variables('policyDefinitions').noPublicIpOnNic]",
+        "enforcementMode": "Default"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-compute-03",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Audit Managed Disks",
+        "description": "Audit VMs that do not use managed disks",
+        "policyDefinitionId": "[variables('policyDefinitions').auditManagedDisks]",
+        "enforcementMode": "Default"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-compute-04",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Audit ARM VMs",
+        "description": "Audit VMs created using classic deployment model",
+        "policyDefinitionId": "[variables('policyDefinitions').auditArmVms]",
+        "enforcementMode": "Default"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-compute-05",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Audit System Updates on VMs",
+        "description": "Audit VMs that are missing system updates",
+        "policyDefinitionId": "[variables('policyDefinitions').auditSystemUpdates]",
+        "enforcementMode": "Default"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-compute-06",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Audit Endpoint Protection",
+        "description": "Audit VMs that do not have endpoint protection installed",
+        "policyDefinitionId": "[variables('policyDefinitions').auditEndpointProtection]",
+        "enforcementMode": "Default"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-network-01",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: NSG on Subnets",
+        "description": "Audit subnets that do not have a Network Security Group",
+        "policyDefinitionId": "[variables('policyDefinitions').nsgOnSubnets]",
+        "enforcementMode": "Default"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-network-02",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Close Management Ports",
+        "description": "Audit VMs with management ports (22, 3389) exposed to the internet",
+        "policyDefinitionId": "[variables('policyDefinitions').closeManagementPorts]",
+        "enforcementMode": "Default"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-network-03",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Restrict NSG Ports",
+        "description": "Audit NSG rules that allow unrestricted access",
+        "policyDefinitionId": "[variables('policyDefinitions').restrictNsgPorts]",
+        "enforcementMode": "Default"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-network-04",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Disable IP Forwarding",
+        "description": "Deny enabling IP forwarding on network interfaces",
+        "policyDefinitionId": "[variables('policyDefinitions').disableIpForwarding]",
+        "enforcementMode": "Default"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-network-05",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Audit NSG Flow Logs",
+        "description": "Audit Network Security Groups that do not have flow logs configured",
+        "policyDefinitionId": "[variables('policyDefinitions').nsgFlowLogs]",
+        "enforcementMode": "Default"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-storage-01",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Storage HTTPS Only",
+        "description": "Deny storage accounts that do not require HTTPS",
+        "policyDefinitionId": "[variables('policyDefinitions').storageHttpsOnly]",
+        "enforcementMode": "Default"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-storage-02",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: No Public Blob Access",
+        "description": "Deny public blob access on storage accounts",
+        "policyDefinitionId": "[variables('policyDefinitions').noPublicBlobAccess]",
+        "enforcementMode": "Default"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-storage-03",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Storage TLS 1.2",
+        "description": "Deny storage accounts with minimum TLS version below 1.2",
+        "policyDefinitionId": "[variables('policyDefinitions').storageTls12]",
+        "enforcementMode": "Default"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-storage-04",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Restrict Storage Network",
+        "description": "Audit storage accounts with unrestricted network access",
+        "policyDefinitionId": "[variables('policyDefinitions').restrictStorageNetwork]",
+        "enforcementMode": "Default"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-storage-05",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Storage ARM Migration",
+        "description": "Audit classic storage accounts that should be migrated to ARM",
+        "policyDefinitionId": "[variables('policyDefinitions').storageArmMigration]",
+        "enforcementMode": "Default"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-identity-01",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: SQL Azure AD Only",
+        "description": "Audit SQL servers that do not use Azure AD-only authentication",
+        "policyDefinitionId": "[variables('policyDefinitions').sqlAzureAdOnly]",
+        "enforcementMode": "Default"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-identity-02",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: SQL No Public Access",
+        "description": "Audit SQL servers with public network access enabled",
+        "policyDefinitionId": "[variables('policyDefinitions').sqlNoPublicAccess]",
+        "enforcementMode": "Default"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-identity-03",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Audit MFA for Owners",
+        "description": "Audit accounts with owner permissions that do not have MFA enabled",
+        "policyDefinitionId": "[variables('policyDefinitions').auditMfaOwners]",
+        "enforcementMode": "Default"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-identity-04",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Audit Blocked Accounts",
+        "description": "Audit blocked accounts with read and write permissions on Azure resources",
+        "policyDefinitionId": "[variables('policyDefinitions').auditDeprecatedAccounts]",
+        "enforcementMode": "Default"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-tagging-01",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Require Environment Tag",
+        "description": "Deny resource creation without Environment tag",
+        "policyDefinitionId": "[variables('policyDefinitions').requireTag]",
+        "enforcementMode": "Default",
+        "parameters": {
+          "tagName": {
+            "value": "Environment"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-tagging-02",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Require Owner Tag",
+        "description": "Deny resource creation without Owner tag",
+        "policyDefinitionId": "[variables('policyDefinitions').requireTag]",
+        "enforcementMode": "Default",
+        "parameters": {
+          "tagName": {
+            "value": "Owner"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-governance-01",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Allowed Locations",
+        "description": "Restrict resource deployment to swedencentral, germanywestcentral, and global",
+        "policyDefinitionId": "[variables('policyDefinitions').allowedLocations]",
+        "enforcementMode": "Default",
+        "parameters": {
+          "listOfAllowedLocations": {
+            "value": "[parameters('allowedLocations')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-backup-01",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: VM Backup Required",
+        "description": "Audit VMs that do not have backup configured",
+        "policyDefinitionId": "[variables('policyDefinitions').vmBackupRequired]",
+        "enforcementMode": "Default"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-backup-03",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Audit Storage Geo-Redundancy",
+        "description": "Audit storage accounts that do not use geo-redundant storage",
+        "policyDefinitionId": "[variables('policyDefinitions').auditStorageGeoRedundancy]",
+        "enforcementMode": "Default"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-monitoring-01",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Diagnostic Settings Required",
+        "description": "Audit resources that do not have diagnostic settings configured",
+        "policyDefinitionId": "[variables('policyDefinitions').diagnosticSettings]",
+        "enforcementMode": "Default",
+        "parameters": {
+          "listOfResourceTypes": {
+            "value": [
+              "Microsoft.Compute/virtualMachines",
+              "Microsoft.Network/virtualNetworks",
+              "Microsoft.Network/networkSecurityGroups",
+              "Microsoft.Network/azureFirewalls",
+              "Microsoft.Network/bastionHosts",
+              "Microsoft.KeyVault/vaults",
+              "Microsoft.RecoveryServices/vaults",
+              "Microsoft.Sql/servers"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-kv-01",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Key Vault Soft Delete",
+        "description": "Audit Key Vaults that do not have soft delete enabled",
+        "policyDefinitionId": "[variables('policyDefinitions').kvSoftDelete]",
+        "enforcementMode": "Default",
+        "parameters": {
+          "effect": {
+            "value": "Audit"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-kv-02",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Key Vault Deletion Protection",
+        "description": "Audit Key Vaults without purge protection and soft delete",
+        "policyDefinitionId": "[variables('policyDefinitions').kvDeletionProtection]",
+        "enforcementMode": "Default",
+        "parameters": {
+          "effect": {
+            "value": "Audit"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-kv-03",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Key Vault RBAC Model",
+        "description": "Audit Key Vaults that do not use RBAC permission model",
+        "policyDefinitionId": "[variables('policyDefinitions').kvRbacModel]",
+        "enforcementMode": "Default",
+        "parameters": {
+          "effect": {
+            "value": "Audit"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-kv-04",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Key Vault No Public Network",
+        "description": "Audit Key Vaults that have public network access enabled",
+        "policyDefinitionId": "[variables('policyDefinitions').kvNoPublicNetwork]",
+        "enforcementMode": "Default",
+        "parameters": {
+          "effect": {
+            "value": "Audit"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-kv-05",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Key Vault Secrets Expiration",
+        "description": "Audit secrets that do not have an expiration date set",
+        "policyDefinitionId": "[variables('policyDefinitions').kvSecretsExpiration]",
+        "enforcementMode": "Default",
+        "parameters": {
+          "effect": {
+            "value": "Audit"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-kv-06",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Key Vault Keys Expiration",
+        "description": "Audit keys that do not have an expiration date set",
+        "policyDefinitionId": "[variables('policyDefinitions').kvKeysExpiration]",
+        "enforcementMode": "Default",
+        "parameters": {
+          "effect": {
+            "value": "Audit"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2024-04-01",
+      "name": "smb-kv-07",
+      "location": "[parameters('location')]",
+      "properties": {
+        "displayName": "SMB RF: Key Vault Resource Logs",
+        "description": "Audit Key Vaults that do not have resource logs enabled",
+        "policyDefinitionId": "[variables('policyDefinitions').kvResourceLogs]",
+        "enforcementMode": "Default"
+      }
+    }
+  ],
+  "outputs": {
+    "policyCount": {
+      "type": "int",
+      "metadata": {
+        "description": "Number of MG-scoped policy assignments"
+      },
+      "value": 30
+    },
+    "policyScope": {
+      "type": "string",
+      "metadata": {
+        "description": "Policy assignment scope"
+      },
+      "value": "managementGroup"
+    }
+  }
+}
