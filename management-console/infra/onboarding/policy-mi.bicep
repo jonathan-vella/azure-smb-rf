@@ -86,7 +86,11 @@ module uami 'modules/uami.bicep' = {
 
 @description('Backup Contributor at subscription scope for the policy UAMI')
 resource backupContributorRA 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(subscription().id, identityName, 'Backup Contributor')
+  // Seed the deterministic GUID with the UAMI's principalId so a recreated
+  // UAMI (new principalId) produces a new role-assignment name instead of
+  // colliding with the previous one. Azure rejects principalId updates on
+  // an existing role assignment with RoleAssignmentUpdateNotPermitted.
+  name: guid(subscription().id, uami.outputs.principalId, 'Backup Contributor')
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', backupContributorRoleId)
     principalId: uami.outputs.principalId
@@ -96,7 +100,7 @@ resource backupContributorRA 'Microsoft.Authorization/roleAssignments@2022-04-01
 
 @description('Virtual Machine Contributor at subscription scope for the policy UAMI')
 resource vmContributorRA 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(subscription().id, identityName, 'VM Contributor')
+  name: guid(subscription().id, uami.outputs.principalId, 'VM Contributor')
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', vmContributorRoleId)
     principalId: uami.outputs.principalId

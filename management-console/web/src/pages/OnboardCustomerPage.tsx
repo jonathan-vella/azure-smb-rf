@@ -1,11 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Button,
-  Field,
-  Input,
-  Spinner,
-} from "@fluentui/react-components";
+import { Button, Field, Input, Spinner } from "@fluentui/react-components";
 import {
   CheckmarkCircle24Filled,
   ErrorCircle24Filled,
@@ -28,7 +23,11 @@ interface DelegationPayload {
 
 interface SubscriptionLookup {
   subscriptionDisplayName: string | null;
-  existingCustomer: { id: string; displayName: string; tenantId: string } | null;
+  existingCustomer: {
+    id: string;
+    displayName: string;
+    tenantId: string;
+  } | null;
 }
 
 interface TenantLookup {
@@ -52,7 +51,10 @@ interface Step {
 }
 
 const STEP_DEFS: Array<Pick<Step, "key" | "label">> = [
-  { key: "preflight", label: "Pre-flight: validate inputs and check duplicates" },
+  {
+    key: "preflight",
+    label: "Pre-flight: validate inputs and check duplicates",
+  },
   { key: "payload", label: "Fetch delegation payload" },
   { key: "signin", label: "Sign in to customer tenant" },
   { key: "subaccess", label: "Verify access to customer subscription" },
@@ -90,9 +92,14 @@ export function OnboardCustomerPage() {
   const subLookupRef = useRef<SubscriptionLookup | null>(null);
   const subReqIdRef = useRef(0);
   const tenantReqIdRef = useRef(0);
-  const GUID_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-  useEffect(() => { tenantLookupRef.current = tenantLookup; }, [tenantLookup]);
-  useEffect(() => { subLookupRef.current = lookup; }, [lookup]);
+  const GUID_RE =
+    /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+  useEffect(() => {
+    tenantLookupRef.current = tenantLookup;
+  }, [tenantLookup]);
+  useEffect(() => {
+    subLookupRef.current = lookup;
+  }, [lookup]);
 
   function update(key: string, status: StepStatus, detail?: string) {
     setSteps((prev) =>
@@ -142,20 +149,40 @@ export function OnboardCustomerPage() {
       // Graph call dominates and benefits from being kicked off immediately.
       const apiPromise = api<TenantLookup>(
         `/customers/lookup-tenant/${encodeURIComponent(t)}`,
-      ).catch(() => ({ tenantDisplayName: null, defaultDomainName: null } as TenantLookup));
+      ).catch(
+        () =>
+          ({
+            tenantDisplayName: null,
+            defaultDomainName: null,
+          }) as TenantLookup,
+      );
       const oidcPromise = fetch(
         `https://login.microsoftonline.com/${encodeURIComponent(t)}/v2.0/.well-known/openid-configuration`,
-      ).then(async (r) => {
-        if (!r.ok) return { ok: false } as const;
-        const j = (await r.json()) as { issuer?: string; tenant_region_scope?: string };
-        return { ok: true, issuer: j.issuer ?? null, region: j.tenant_region_scope ?? null } as const;
-      }).catch(() => ({ ok: false } as const));
+      )
+        .then(async (r) => {
+          if (!r.ok) return { ok: false } as const;
+          const j = (await r.json()) as {
+            issuer?: string;
+            tenant_region_scope?: string;
+          };
+          return {
+            ok: true,
+            issuer: j.issuer ?? null,
+            region: j.tenant_region_scope ?? null,
+          } as const;
+        })
+        .catch(() => ({ ok: false }) as const);
       const [apiResult, oidc] = await Promise.all([apiPromise, oidcPromise]);
       if (reqId !== tenantReqIdRef.current) return;
       let result: TenantLookup = apiResult;
       if (!result.tenantDisplayName) {
         if (oidc.ok) {
-          result = { ...result, oidcResolved: true, oidcIssuer: oidc.issuer, oidcRegion: oidc.region };
+          result = {
+            ...result,
+            oidcResolved: true,
+            oidcIssuer: oidc.issuer,
+            oidcRegion: oidc.region,
+          };
         } else {
           result = { ...result, unresolved: true };
         }
@@ -173,17 +200,29 @@ export function OnboardCustomerPage() {
   // typing.
   useEffect(() => {
     const v = subscriptionId.trim();
-    if (!v) { setLookup(null); subLookupRef.current = null; return; }
+    if (!v) {
+      setLookup(null);
+      subLookupRef.current = null;
+      return;
+    }
     if (!GUID_RE.test(v)) return;
-    const handle = setTimeout(() => { void lookupSubscription(v); }, 300);
+    const handle = setTimeout(() => {
+      void lookupSubscription(v);
+    }, 300);
     return () => clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subscriptionId]);
   useEffect(() => {
     const v = customerTenantId.trim();
-    if (!v) { setTenantLookup(null); tenantLookupRef.current = null; return; }
+    if (!v) {
+      setTenantLookup(null);
+      tenantLookupRef.current = null;
+      return;
+    }
     if (!GUID_RE.test(v)) return;
-    const handle = setTimeout(() => { void lookupTenant(v); }, 300);
+    const handle = setTimeout(() => {
+      void lookupTenant(v);
+    }, 300);
     return () => clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customerTenantId]);
@@ -223,7 +262,8 @@ export function OnboardCustomerPage() {
       // we validate the user's GUID inputs locally so we don't get a popup
       // for a typo'd tenant id.
       start("preflight");
-      const guid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+      const guid =
+        /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
       const sub = subscriptionId.trim();
       const tid = customerTenantId.trim();
       if (!guid.test(sub)) {
@@ -555,92 +595,96 @@ export function OnboardCustomerPage() {
         }}
       >
         <div style={{ flex: "1 1 420px", maxWidth: 480, minWidth: 320 }}>
-      <Field label="Customer subscription ID">
-        <Input
-          value={subscriptionId}
-          onChange={(_, d) => {
-            setSubscriptionId(d.value);
-            setLookup(null);
-          }}
-          onBlur={() => lookupSubscription(subscriptionId)}
-        />
-      </Field>
-      {lookupBusy && <small>Checking subscription…</small>}
-      {lookup?.subscriptionDisplayName && (
-        <p style={{ color: "#107c10", margin: "4px 0" }}>
-          Subscription name: <strong>{lookup.subscriptionDisplayName}</strong>
-        </p>
-      )}
-      {lookup?.existingCustomer && (
-        <div
-          style={{
-            margin: "8px 0",
-            padding: 12,
-            border: "1px solid #a4262c",
-            background: "#fde7e9",
-            borderRadius: 4,
-          }}
-        >
-          <strong>Already onboarded</strong> as{" "}
-          <em>{lookup.existingCustomer.displayName}</em>.{" "}
-          <a
-            href={`/customers/${lookup.existingCustomer.id}?tenantId=${lookup.existingCustomer.tenantId}`}
-          >
-            Open existing customer
-          </a>
-        </div>
-      )}
-      <Field label="Customer tenant ID">
-        <Input
-          value={customerTenantId}
-          onChange={(_, d) => {
-            setCustomerTenantId(d.value);
-            setTenantLookup(null);
-          }}
-          onBlur={() => lookupTenant(customerTenantId)}
-        />
-      </Field>
-      {tenantLookupBusy && <small>Checking tenant…</small>}
-      {tenantLookup?.tenantDisplayName && (
-        <p style={{ color: "#107c10", margin: "4px 0" }}>
-          Tenant: <strong>{tenantLookup.tenantDisplayName}</strong>
-          {tenantLookup.defaultDomainName && (
-            <> ({tenantLookup.defaultDomainName})</>
+          <Field label="Customer subscription ID">
+            <Input
+              value={subscriptionId}
+              onChange={(_, d) => {
+                setSubscriptionId(d.value);
+                setLookup(null);
+              }}
+              onBlur={() => lookupSubscription(subscriptionId)}
+            />
+          </Field>
+          {lookupBusy && <small>Checking subscription…</small>}
+          {lookup?.subscriptionDisplayName && (
+            <p style={{ color: "#107c10", margin: "4px 0" }}>
+              Subscription name:{" "}
+              <strong>{lookup.subscriptionDisplayName}</strong>
+            </p>
           )}
-        </p>
-      )}
-      {tenantLookup &&
-        !tenantLookup.tenantDisplayName &&
-        tenantLookup.oidcResolved && (
-          <p style={{ color: "#797775", margin: "4px 0", fontSize: 12 }}>
-            Tenant exists
-            {tenantLookup.oidcRegion ? <> ({tenantLookup.oidcRegion})</> : null}
-            . Display name unavailable — grant the partner identity Microsoft
-            Graph <code>CrossTenantInformation.ReadBasic.All</code> to resolve
-            tenant names automatically.
-          </p>
-        )}
-      {tenantLookup?.unresolved && (
-        <p style={{ color: "#a4262c", margin: "4px 0", fontSize: 12 }}>
-          Tenant could not be resolved. Verify the GUID is a real Microsoft
-          Entra tenant id.
-        </p>
-      )}
-      <div style={{ marginTop: 12 }}>
-        <Button
-          appearance="primary"
-          disabled={busy || !!lookup?.existingCustomer}
-          onClick={go}
-        >
-          Start onboarding
-        </Button>
-      </div>
+          {lookup?.existingCustomer && (
+            <div
+              style={{
+                margin: "8px 0",
+                padding: 12,
+                border: "1px solid #a4262c",
+                background: "#fde7e9",
+                borderRadius: 4,
+              }}
+            >
+              <strong>Already onboarded</strong> as{" "}
+              <em>{lookup.existingCustomer.displayName}</em>.{" "}
+              <a
+                href={`/customers/${lookup.existingCustomer.id}?tenantId=${lookup.existingCustomer.tenantId}`}
+              >
+                Open existing customer
+              </a>
+            </div>
+          )}
+          <Field label="Customer tenant ID">
+            <Input
+              value={customerTenantId}
+              onChange={(_, d) => {
+                setCustomerTenantId(d.value);
+                setTenantLookup(null);
+              }}
+              onBlur={() => lookupTenant(customerTenantId)}
+            />
+          </Field>
+          {tenantLookupBusy && <small>Checking tenant…</small>}
+          {tenantLookup?.tenantDisplayName && (
+            <p style={{ color: "#107c10", margin: "4px 0" }}>
+              Tenant: <strong>{tenantLookup.tenantDisplayName}</strong>
+              {tenantLookup.defaultDomainName && (
+                <> ({tenantLookup.defaultDomainName})</>
+              )}
+            </p>
+          )}
+          {tenantLookup &&
+            !tenantLookup.tenantDisplayName &&
+            tenantLookup.oidcResolved && (
+              <p style={{ color: "#797775", margin: "4px 0", fontSize: 12 }}>
+                Tenant exists
+                {tenantLookup.oidcRegion ? (
+                  <> ({tenantLookup.oidcRegion})</>
+                ) : null}
+                . Display name unavailable — grant the partner identity
+                Microsoft Graph{" "}
+                <code>CrossTenantInformation.ReadBasic.All</code> to resolve
+                tenant names automatically.
+              </p>
+            )}
+          {tenantLookup?.unresolved && (
+            <p style={{ color: "#a4262c", margin: "4px 0", fontSize: 12 }}>
+              Tenant could not be resolved. Verify the GUID is a real Microsoft
+              Entra tenant id.
+            </p>
+          )}
+          <div style={{ marginTop: 12 }}>
+            <Button
+              appearance="primary"
+              disabled={busy || !!lookup?.existingCustomer}
+              onClick={go}
+            >
+              Start onboarding
+            </Button>
+          </div>
 
-      {error && (
-        <p style={{ marginTop: 16, color: "#a4262c" }}>
-          <strong>Error:</strong> {error}
-        </p>
-      )}
+          {error && (
+            <p style={{ marginTop: 16, color: "#a4262c" }}>
+              <strong>Error:</strong> {error}
+            </p>
+          )}
         </div>
 
         {anyStarted && (

@@ -124,7 +124,9 @@ export function CustomerDetailPage() {
           body: JSON.stringify({ displayName: name }),
         },
       );
-      await queryClient.invalidateQueries({ queryKey: ["customer", id, tenantId] });
+      await queryClient.invalidateQueries({
+        queryKey: ["customer", id, tenantId],
+      });
       setEditing(false);
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : String(e));
@@ -136,7 +138,8 @@ export function CustomerDetailPage() {
   const prerequisites = customer.data?.prerequisites;
   const prerequisitesLink = `/customers/${id}/prerequisites?tenantId=${tenantId}`;
   const delegationOk = delegation.data?.ok === true;
-  const canDeployScenario = delegationOk && !!prerequisites && prerequisites.status === "Succeeded";
+  const canDeployScenario =
+    delegationOk && !!prerequisites && prerequisites.status === "Succeeded";
   const canDeployPrereq = delegationOk;
 
   return (
@@ -150,14 +153,35 @@ export function CustomerDetailPage() {
               appearance="subtle"
               onClick={startEdit}
               aria-label="Edit display name"
-            >
-              Edit
-            </Button>
+              title="Edit display name"
+              icon={
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    d="M11.13 1.92a1.5 1.5 0 0 1 2.12 0l.83.83a1.5 1.5 0 0 1 0 2.12l-8.2 8.2a2 2 0 0 1-.88.51l-2.7.77a.5.5 0 0 1-.62-.62l.77-2.7a2 2 0 0 1 .51-.88l8.2-8.2Zm1.41.71a.5.5 0 0 0-.7 0l-1.06 1.06 1.53 1.53 1.06-1.06a.5.5 0 0 0 0-.7l-.83-.83Zm-.94 3.3L10.07 4.4l-6.43 6.43a1 1 0 0 0-.26.44l-.5 1.78 1.78-.5a1 1 0 0 0 .44-.26l6.43-6.43Z"
+                    fill="currentColor"
+                  />
+                </svg>
+              }
+            />
           )}
         </div>
       )}
       {editing && (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            flexWrap: "wrap",
+          }}
+        >
           <Input
             value={draftName}
             onChange={(_, d) => setDraftName(d.value)}
@@ -184,10 +208,14 @@ export function CustomerDetailPage() {
 
       <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
         <Link to={`/customers/${id}/deploy?tenantId=${tenantId}`}>
-          <Button appearance="primary" disabled={!canDeployScenario}>Deploy scenario</Button>
+          <Button appearance="primary" disabled={!canDeployScenario}>
+            Deploy scenario
+          </Button>
         </Link>
         <Link to={prerequisitesLink}>
-          <Button disabled={!canDeployPrereq}>{prerequisites ? "Manage prerequisites" : "Deploy prerequisites"}</Button>
+          <Button disabled={!canDeployPrereq}>
+            {prerequisites ? "Manage prerequisites" : "Deploy prerequisites"}
+          </Button>
         </Link>
       </div>
 
@@ -207,8 +235,9 @@ export function CustomerDetailPage() {
           <MessageBarBody>
             <MessageBarTitle>Prerequisites not deployed</MessageBarTitle>
             The customer subscription does not yet have the smb-rf management
-            group, policies, or baseline. <Link to={prerequisitesLink}>Deploy them</Link>{" "}
-            before running scenario deployments.
+            group, policies, or baseline.{" "}
+            <Link to={prerequisitesLink}>Deploy them</Link> before running
+            scenario deployments.
           </MessageBarBody>
         </MessageBar>
       )}
@@ -224,9 +253,11 @@ export function CustomerDetailPage() {
           style={{ marginBottom: 16 }}
         >
           <MessageBarBody>
-            <MessageBarTitle>Prerequisites {prerequisites.status.toLowerCase()}</MessageBarTitle>
-            Template <code>{prerequisites.templateVersion}</code> &middot; deployed{" "}
-            {fmt(prerequisites.deployedAt)} &middot;{" "}
+            <MessageBarTitle>
+              Prerequisites {prerequisites.status.toLowerCase()}
+            </MessageBarTitle>
+            Template <code>{prerequisites.templateVersion}</code> &middot;
+            deployed {fmt(prerequisites.deployedAt)} &middot;{" "}
             <Link to={prerequisitesLink}>Review or update</Link>
           </MessageBarBody>
         </MessageBar>
