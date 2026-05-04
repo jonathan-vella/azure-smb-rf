@@ -33,7 +33,10 @@ hooks:
 services:
   api:
     project: api
-    language: dotnet
+    # `language: docker` skips azd's .NET language plugin (which would
+    # otherwise require a local .NET 10 SDK to evaluate the csproj). The
+    # actual build is done inside the container by the Dockerfile.
+    language: docker
     host: containerapp
     docker:
       path: Dockerfile
@@ -41,7 +44,9 @@ services:
       remoteBuild: true
   web:
     project: web
-    language: js
+    # `language: docker` skips azd's Node language plugin. The build runs
+    # inside the container.
+    language: docker
     host: containerapp
     docker:
       path: Dockerfile

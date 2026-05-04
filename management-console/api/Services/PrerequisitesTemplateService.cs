@@ -1,4 +1,4 @@
-using System.IO.Compression;
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -7,11 +7,12 @@ using Microsoft.Extensions.Options;
 namespace ManagementConsole.Api.Services;
 
 /// <summary>
-/// Configuration for the prerequisites template source. Templates are
-/// fetched from a GitHub release zipball, NOT bundled with the API, so
-/// partners can pin to a specific version without redeploying the console.
-/// Defaults point at <c>jonathan-vella/azure-smb-rf</c>'s latest release,
-/// with the MG-creation template <c>deploy-mg.json</c>.
+/// Configuration for the prerequisites template source. Bicep sources are
+/// fetched from a GitHub zipball and compiled on demand by the bicep CLI
+/// bundled in the API image, so partners can pin to a specific version
+/// without redeploying the console and the repo no longer ships compiled
+/// ARM JSON. Defaults point at <c>jonathan-vella/azure-smb-rf@main</c>,
+/// with the MG-creation template <c>deploy-mg.bicep</c>.
 ///
 /// Note: the upstream artifact in the repo is called "SMB Ready Foundation";
 /// these templates are the prerequisites that must be deployed in the
@@ -33,28 +34,26 @@ public sealed class PrerequisitesTemplateSource
     public string Tag { get; set; } = "main";
 
     /// <summary>
-    /// Path inside the release zipball to the ARM JSON template (the file
-    /// produced by <c>az bicep build</c> from <c>deploy-mg.bicep</c>).
+    /// Path inside the zipball to the MG-creation Bicep template. Compiled
+    /// to ARM JSON in-process via the bundled <c>bicep</c> CLI.
     /// </summary>
-    public string TemplatePath { get; set; } = "infra/bicep/smb-ready-foundation/deploy-mg.json";
+    public string TemplatePath { get; set; } = "infra/bicep/smb-ready-foundation/deploy-mg.bicep";
 
     /// <summary>
-    /// Path inside the release zipball to the MG-scoped policy initiative
-    /// template (compiled from <c>policy-assignments-mg-initiative.bicep</c>).
-    /// Deployed against the newly-created <c>smb-rf</c> MG immediately after
-    /// <see cref="TemplatePath"/>.
+    /// Path inside the zipball to the MG-scoped policy initiative Bicep
+    /// template. Deployed against the newly-created <c>smb-rf</c> MG
+    /// immediately after <see cref="TemplatePath"/>.
     /// </summary>
-    public string PolicyTemplatePath { get; set; } = "infra/bicep/smb-ready-foundation/modules/policy-assignments-mg-initiative.json";
+    public string PolicyTemplatePath { get; set; } = "infra/bicep/smb-ready-foundation/modules/policy-assignments-mg-initiative.bicep";
 
     /// <summary>
     /// Path to the customer-onboarding sub-scope template that pre-creates a
     /// User-Assigned Managed Identity for the smb-backup-02 DINE policy and
     /// grants it Backup/VM Contributor at subscription scope. Deployed by the
     /// customer admin during onboarding (the partner UAMI cannot grant these
-    /// roles via Lighthouse). Compiled from
-    /// <c>management-console/infra/onboarding/policy-mi.bicep</c>.
+    /// roles via Lighthouse).
     /// </summary>
-    public string PolicyMiTemplatePath { get; set; } = "management-console/infra/onboarding/policy-mi.json";
+    public string PolicyMiTemplatePath { get; set; } = "management-console/infra/onboarding/policy-mi.bicep";
 
     /// <summary>How long to cache the resolved template before re-fetching.</summary>
     public int CacheMinutes { get; set; } = 60;
@@ -173,58 +172,148 @@ public sealed class PrerequisitesTemplateService
             resolvedTag = opts.Tag;
         }
 
-        // 2. Download the zipball. The /zipball/{ref} endpoint works for
-        // tags, branches, and commit SHAs and redirects to codeload.
-        var zipUrl = $"https://api.github.com/repos/{opts.Repo}/zipball/{Uri.EscapeDataString(resolvedTag)}";
-        _log.LogInformation("Fetching prerequisites template from {Url}", zipUrl);
-
-        // Don't keep the previous Accept header on the binary download.
-        http.DefaultRequestHeaders.Accept.Clear();
-        using var zipResp = await http.GetAsync(zipUrl, HttpCompletionOption.ResponseHeadersRead, ct);
-        if (!zipResp.IsSuccessStatusCode)
+        // 2. Recursively fetch the requested .bicep file plus its module
+        // dependencies into a temp working directory mirroring repo layout.
+        // Using raw.githubusercontent.com is dramatically faster than the
+        // multi-MB zipball — typically 2-3 small file downloads instead of
+        // ~5 MB. Module references are resolved from `module x 'rel/path.bicep'`
+        // declarations.
+        var workDir = Path.Combine(Path.GetTempPath(), "smb-rf-prereq", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(workDir);
+        try
         {
+            var fetched = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            await FetchBicepRecursiveAsync(http, opts, resolvedTag, NormalizePath(templatePath), workDir, fetched, ct);
+            _log.LogInformation(
+                "Fetched {Count} bicep file(s) for {Path} @ {Tag}; compiling…",
+                fetched.Count, templatePath, resolvedTag);
+
+            // 3. Compile with the bundled bicep CLI.
+            var localBicepPath = Path.Combine(workDir, NormalizePath(templatePath).Replace('/', Path.DirectorySeparatorChar));
+            var compiledJson = await RunBicepBuildAsync(localBicepPath, ct);
+            using var doc = JsonDocument.Parse(compiledJson);
+            var template = doc.RootElement.Clone();
+
+            return new PrerequisitesTemplate(
+                Version: resolvedTag,
+                SourceRepo: opts.Repo,
+                TemplatePath: templatePath,
+                Template: template);
+        }
+        finally
+        {
+            try { Directory.Delete(workDir, recursive: true); } catch { /* best-effort cleanup */ }
+        }
+    }
+
+    // Pattern: `module <symbol> '<relative-path>.bicep' = ...` — captures
+    // the relative path. We deliberately ignore registry references
+    // (`br/public:...`) and bicep-module aliases (`br:...`).
+    private static readonly System.Text.RegularExpressions.Regex ModuleRefRegex = new(
+        @"^\s*module\s+\w+\s+'((?!br[/:])[^']+\.bicep)'",
+        System.Text.RegularExpressions.RegexOptions.Compiled |
+        System.Text.RegularExpressions.RegexOptions.Multiline);
+
+    private async Task FetchBicepRecursiveAsync(
+        HttpClient http,
+        PrerequisitesTemplateSource opts,
+        string resolvedTag,
+        string repoRelativePath,
+        string workDir,
+        HashSet<string> fetched,
+        CancellationToken ct)
+    {
+        if (!fetched.Add(repoRelativePath)) return;
+
+        var rawUrl = $"https://raw.githubusercontent.com/{opts.Repo}/{Uri.EscapeDataString(resolvedTag)}/{repoRelativePath}";
+        using var resp = await http.GetAsync(rawUrl, ct);
+        if (!resp.IsSuccessStatusCode)
+        {
+            if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                throw new InvalidOperationException(
+                    $"Bicep file '{repoRelativePath}' was not found at ref '{resolvedTag}' of repo '{opts.Repo}'. " +
+                    $"Open the management console's Settings page and verify that 'Repository URL' and " +
+                    $"'Repository ref' point at a branch or release that contains this file " +
+                    $"(the default 'jonathan-vella/azure-smb-rf@main' does). If you are using a fork, " +
+                    $"either merge the latest upstream changes or switch the ref to a branch/tag that includes it.");
+            }
             throw new InvalidOperationException(
-                $"Failed to download release zip {zipUrl}: {(int)zipResp.StatusCode} {zipResp.ReasonPhrase}");
+                $"Failed to download {rawUrl}: {(int)resp.StatusCode} {resp.ReasonPhrase}");
         }
 
-        await using var zipStream = await zipResp.Content.ReadAsStreamAsync(ct);
-        // ZipArchive needs a seekable stream.
-        using var ms = new MemoryStream();
-        await zipStream.CopyToAsync(ms, ct);
-        ms.Position = 0;
+        var content = await resp.Content.ReadAsStringAsync(ct);
+        var localPath = Path.Combine(workDir, repoRelativePath.Replace('/', Path.DirectorySeparatorChar));
+        Directory.CreateDirectory(Path.GetDirectoryName(localPath)!);
+        await File.WriteAllTextAsync(localPath, content, ct);
 
-        using var archive = new ZipArchive(ms, ZipArchiveMode.Read);
-
-        // GitHub zipballs nest everything under a top-level "<repo>-<tag>/"
-        // folder. Match the entry by suffix instead of computing the prefix.
-        var suffix = "/" + templatePath.Replace('\\', '/').TrimStart('/');
-        var entry = archive.Entries.FirstOrDefault(e =>
-            e.FullName.Replace('\\', '/').EndsWith(suffix, StringComparison.OrdinalIgnoreCase));
-        if (entry is null)
+        // Resolve module references relative to the current file's directory,
+        // re-rooted at the repo. Skip registry references.
+        var currentDir = Path.GetDirectoryName(repoRelativePath.Replace('\\', '/'))?.Replace('\\', '/') ?? string.Empty;
+        foreach (System.Text.RegularExpressions.Match m in ModuleRefRegex.Matches(content))
         {
-            // Most common cause: the configured RepoUrl / RepoRef (in the
-            // console's Settings page) points at a fork or branch that
-            // doesn't contain this template yet — for example, the upstream
-            // 'main' before the management-console onboarding templates were
-            // merged. Give the operator a clear, actionable message instead
-            // of a bare "not found".
+            var relRef = m.Groups[1].Value.Replace('\\', '/');
+            var combined = string.IsNullOrEmpty(currentDir) ? relRef : currentDir + "/" + relRef;
+            var resolved = NormalizePath(combined);
+            await FetchBicepRecursiveAsync(http, opts, resolvedTag, resolved, workDir, fetched, ct);
+        }
+    }
+
+    // Collapse "a/b/../c" segments into "a/c" so HashSet de-duplicates and the
+    // local filesystem layout stays clean.
+    private static string NormalizePath(string path)
+    {
+        var parts = path.Replace('\\', '/').TrimStart('/').Split('/');
+        var stack = new Stack<string>();
+        foreach (var p in parts)
+        {
+            if (p == "." || p.Length == 0) continue;
+            if (p == ".." && stack.Count > 0) { stack.Pop(); continue; }
+            stack.Push(p);
+        }
+        return string.Join('/', stack.Reverse());
+    }
+
+    private async Task<string> RunBicepBuildAsync(string bicepFilePath, CancellationToken ct)
+    {
+        var psi = new ProcessStartInfo
+        {
+            FileName = "bicep",
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            WorkingDirectory = Path.GetDirectoryName(bicepFilePath)!,
+        };
+        psi.ArgumentList.Add("build");
+        psi.ArgumentList.Add("--stdout");
+        psi.ArgumentList.Add(bicepFilePath);
+
+        using var proc = new Process { StartInfo = psi };
+        try { proc.Start(); }
+        catch (System.ComponentModel.Win32Exception ex)
+        {
             throw new InvalidOperationException(
-                $"Template '{templatePath}' was not found at ref '{resolvedTag}' of repo '{opts.Repo}'. " +
-                $"Open the management console's Settings page and verify that 'Repository URL' and " +
-                $"'Repository ref' point at a branch or release that contains this file " +
-                $"(the default 'jonathan-vella/azure-smb-rf@main' does). If you are using a fork, " +
-                $"either merge the latest upstream changes or switch the ref to a branch/tag that includes it.");
+                "The 'bicep' CLI was not found on PATH. The management-console API image must " +
+                "include the bicep CLI (see management-console/api/Dockerfile).", ex);
         }
 
-        await using var entryStream = entry.Open();
-        using var doc = await JsonDocument.ParseAsync(entryStream, cancellationToken: ct);
-        // Clone so the document can be disposed.
-        var template = doc.RootElement.Clone();
+        var stdoutTask = proc.StandardOutput.ReadToEndAsync(ct);
+        var stderrTask = proc.StandardError.ReadToEndAsync(ct);
+        await proc.WaitForExitAsync(ct);
+        var stdout = await stdoutTask;
+        var stderr = await stderrTask;
 
-        return new PrerequisitesTemplate(
-            Version: resolvedTag,
-            SourceRepo: opts.Repo,
-            TemplatePath: templatePath,
-            Template: template);
+        if (proc.ExitCode != 0)
+        {
+            throw new InvalidOperationException(
+                $"bicep build failed (exit {proc.ExitCode}) for '{bicepFilePath}':{Environment.NewLine}{stderr}");
+        }
+        if (!string.IsNullOrWhiteSpace(stderr))
+        {
+            // Warnings only (e.g. BCP187) — log but don't fail.
+            _log.LogInformation("bicep build warnings for {File}: {Stderr}", bicepFilePath, stderr.Trim());
+        }
+        return stdout;
     }
 }
