@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Badge,
   Button,
+  Input,
   MessageBar,
   MessageBarBody,
   MessageBarTitle,
@@ -67,6 +69,7 @@ export function CustomerDetailPage() {
   const { id } = useParams();
   const [sp] = useSearchParams();
   const tenantId = sp.get("tenantId") ?? "";
+  const queryClient = useQueryClient();
 
   const customer = useQuery({
     queryKey: ["customer", id, tenantId],
@@ -88,6 +91,48 @@ export function CustomerDetailPage() {
     retry: false,
   });
 
+  // Inline display-name editor state. Kept local because the edit is
+  // ephemeral: on save we PATCH and invalidate the customer query so the
+  // canonical value comes back from the server.
+  const [editing, setEditing] = useState(false);
+  const [draftName, setDraftName] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  function startEdit() {
+    setDraftName(customer.data?.displayName ?? "");
+    setSaveError(null);
+    setEditing(true);
+  }
+  function cancelEdit() {
+    setEditing(false);
+    setSaveError(null);
+  }
+  async function saveEdit() {
+    const name = draftName.trim();
+    if (!name) {
+      setSaveError("Display name is required.");
+      return;
+    }
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await api<Customer>(
+        `/customers/${id}?tenantId=${encodeURIComponent(tenantId)}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({ displayName: name }),
+        },
+      );
+      await queryClient.invalidateQueries({ queryKey: ["customer", id, tenantId] });
+      setEditing(false);
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSaving(false);
+    }
+  }
+
   const prerequisites = customer.data?.prerequisites;
   const prerequisitesLink = `/customers/${id}/prerequisites?tenantId=${tenantId}`;
   const delegationOk = delegation.data?.ok === true;
@@ -96,7 +141,43 @@ export function CustomerDetailPage() {
 
   return (
     <div>
-      <h1>{customer.data?.displayName}</h1>
+      {!editing && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <h1 style={{ margin: 0 }}>{customer.data?.displayName}</h1>
+          {customer.data && (
+            <Button
+              size="small"
+              appearance="subtle"
+              onClick={startEdit}
+              aria-label="Edit display name"
+            >
+              Edit
+            </Button>
+          )}
+        </div>
+      )}
+      {editing && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <Input
+            value={draftName}
+            onChange={(_, d) => setDraftName(d.value)}
+            disabled={saving}
+            style={{ minWidth: 320 }}
+            aria-label="Display name"
+          />
+          <Button appearance="primary" onClick={saveEdit} disabled={saving}>
+            {saving ? "Saving…" : "Save"}
+          </Button>
+          <Button onClick={cancelEdit} disabled={saving}>
+            Cancel
+          </Button>
+        </div>
+      )}
+      {saveError && (
+        <p style={{ color: "#a4262c", margin: "4px 0" }}>
+          <strong>Error:</strong> {saveError}
+        </p>
+      )}
       <p>
         <small>{customer.data?.subscriptionId}</small>
       </p>

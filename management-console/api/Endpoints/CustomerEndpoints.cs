@@ -158,7 +158,8 @@ public static class CustomerEndpoints
             [FromBody] CreateCustomerRequest req,
             CustomerRepository repo,
             LighthouseService lh,
-            ILoggerFactory lf) =>
+            ILoggerFactory lf,
+            CancellationToken ct) =>
         {
             // Block double-onboarding of the same subscription. Two rows for
             // the same subscription would race on Cosmos partition keys and
@@ -199,16 +200,64 @@ public static class CustomerEndpoints
                     req.SubscriptionId);
             }
 
+            // Compose displayName from <tenantName>/<subName> if the client
+            // didn't pass one. Delegation is in place by now, so the partner
+            // UAMI can read the customer subscription. Falls back gracefully
+            // if either lookup fails (Graph perms missing, propagation lag).
+            var displayName = (req.DisplayName ?? "").Trim();
+            if (string.IsNullOrEmpty(displayName))
+            {
+                string? subName = null;
+                string? tenantName = null;
+                try { subName = await lh.GetSubscriptionDisplayNameAsync(req.SubscriptionId, ct); }
+                catch { /* best-effort */ }
+                try
+                {
+                    var info = await lh.GetTenantInfoAsync(req.CustomerTenantId, ct);
+                    tenantName = info.DisplayName ?? info.DefaultDomainName;
+                }
+                catch { /* best-effort */ }
+                displayName = (tenantName, subName) switch
+                {
+                    (string t, string s) when !string.IsNullOrWhiteSpace(t) && !string.IsNullOrWhiteSpace(s) => $"{t}/{s}",
+                    (string t, _) when !string.IsNullOrWhiteSpace(t) => t,
+                    (_, string s) when !string.IsNullOrWhiteSpace(s) => s,
+                    _ => req.SubscriptionId
+                };
+            }
+
             var c = new Customer
             {
                 TenantId = req.CustomerTenantId,
                 SubscriptionId = req.SubscriptionId,
-                DisplayName = req.DisplayName,
+                DisplayName = displayName,
                 ManagedByTenantId = req.PartnerTenantId,
                 PolicyMiResourceId = req.PolicyMiResourceId ?? ""
             };
             var saved = await repo.UpsertAsync(c);
             return Results.Created($"/customers/{saved.Id}", saved);
+        });
+
+        // Edit the customer-facing display name. Other fields (subscription
+        // id, tenant id, policy MI) are immutable post-onboarding; renaming
+        // is the only safe in-place mutation.
+        g.MapPatch("/{id}", async (
+            string id,
+            [FromQuery] string tenantId,
+            [FromBody] UpdateCustomerRequest req,
+            CustomerRepository repo,
+            CancellationToken ct) =>
+        {
+            var c = await repo.GetAsync(id, tenantId);
+            if (c is null) return Results.NotFound();
+            var name = (req.DisplayName ?? "").Trim();
+            if (string.IsNullOrEmpty(name))
+            {
+                return Results.BadRequest(new { error = "DisplayName is required" });
+            }
+            c.DisplayName = name;
+            var saved = await repo.UpsertAsync(c, ct);
+            return Results.Ok(saved);
         });
     }
 
@@ -216,8 +265,10 @@ public static class CustomerEndpoints
         string SubscriptionId,
         string CustomerTenantId,
         string PartnerTenantId,
-        string DisplayName,
+        string? DisplayName = null,
         string? PolicyMiResourceId = null);
+
+    public sealed record UpdateCustomerRequest(string DisplayName);
 
     /// <summary>
     /// List item that pairs a Cosmos-stored customer with the live Lighthouse
