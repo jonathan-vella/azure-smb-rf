@@ -7,11 +7,13 @@ COPY . .
 RUN dotnet publish -c Release -o /app /p:UseAppHost=false
 
 # Fetch the official Bicep CLI single-file binary. Bicep is a self-contained
-# NativeAOT executable, so it runs in distroless runtimes that have the
-# expected glibc / icu / openssl native libraries (azurelinux3 ships them).
+# .NET binary that requires ICU at runtime, OR globalization-invariant mode.
+# We use invariant mode (DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1) so the
+# distroless runtime doesn't need libicu installed. ICU is still needed in
+# this builder stage just for the `--version` smoke test below.
 FROM mcr.microsoft.com/azurelinux/base/core:3.0 AS bicep
 ARG BICEP_VERSION=latest
-RUN tdnf install -y ca-certificates curl tar && tdnf clean all
+RUN tdnf install -y ca-certificates curl tar icu && tdnf clean all
 RUN set -eux; \
     if [ "$BICEP_VERSION" = "latest" ]; then \
         URL="https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64"; \
@@ -20,7 +22,7 @@ RUN set -eux; \
     fi; \
     curl -fsSL -o /usr/local/bin/bicep "$URL"; \
     chmod +x /usr/local/bin/bicep; \
-    /usr/local/bin/bicep --version
+    DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 /usr/local/bin/bicep --version
 
 # Distroless runtime: smaller image, non-root by default, no shell or package
 # manager. Listens on :8080 out of the box (ASPNETCORE_HTTP_PORTS=8080).

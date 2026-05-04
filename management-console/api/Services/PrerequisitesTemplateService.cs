@@ -288,6 +288,11 @@ public sealed class PrerequisitesTemplateService
         psi.ArgumentList.Add("build");
         psi.ArgumentList.Add("--stdout");
         psi.ArgumentList.Add(bicepFilePath);
+        // Bicep is a managed .NET app and fails on systems without ICU
+        // (libicu). Compiling templates doesn't need locale-aware string
+        // operations, so run it in invariant globalization mode. This
+        // affects the bicep subprocess only — the API host is unaffected.
+        psi.Environment["DOTNET_SYSTEM_GLOBALIZATION_INVARIANT"] = "1";
 
         using var proc = new Process { StartInfo = psi };
         try { proc.Start(); }
