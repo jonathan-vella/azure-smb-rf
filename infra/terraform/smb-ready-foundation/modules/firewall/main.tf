@@ -105,21 +105,25 @@ resource "azurerm_firewall_policy_rule_collection_group" "network" {
   }
 }
 
-resource "azurerm_firewall_policy_rule_collection_group" "on_premises" {
+# Hybrid (spoke <-> on-prem) allow rules — naming and priority kept in lock-step
+# with the Bicep template (modules/firewall.bicep -> hybridRuleCollectionGroup)
+# so cross-IaC parity audits and operator runbooks can reference a single set
+# of resource names regardless of which IaC tool deployed the firewall.
+resource "azurerm_firewall_policy_rule_collection_group" "hybrid" {
   count = var.enabled && local.has_on_premises ? 1 : 0
 
-  name               = "OnPremisesRuleCollectionGroup"
+  name               = "HybridRuleCollectionGroup"
   firewall_policy_id = azurerm_firewall_policy.hub[0].id
-  priority           = 300
+  priority           = 150
 
   network_rule_collection {
-    name     = "AllowOnPremisesTraffic"
+    name     = "AllowHybrid"
     priority = 100
     action   = "Allow"
 
     rule {
-      name                  = "AllowAzureToOnPrem"
-      description           = "Allow Azure spoke resources to reach on-premises"
+      name                  = "AllowSpokeToOnprem"
+      description           = "Allow spoke -> on-prem traffic forced through firewall (scenario=full)"
       protocols             = ["Any"]
       source_addresses      = [var.spoke_vnet_address_space]
       destination_addresses = [var.on_premises_address_space]
@@ -127,8 +131,8 @@ resource "azurerm_firewall_policy_rule_collection_group" "on_premises" {
     }
 
     rule {
-      name                  = "AllowOnPremToAzure"
-      description           = "Allow on-premises to reach Azure spoke resources"
+      name                  = "AllowOnpremToSpoke"
+      description           = "Allow on-prem -> spoke return traffic forced through firewall (scenario=full)"
       protocols             = ["Any"]
       source_addresses      = [var.on_premises_address_space]
       destination_addresses = [var.spoke_vnet_address_space]
@@ -182,7 +186,7 @@ module "fw" {
 
   depends_on = [
     azurerm_firewall_policy_rule_collection_group.network,
-    azurerm_firewall_policy_rule_collection_group.on_premises,
+    azurerm_firewall_policy_rule_collection_group.hybrid,
   ]
 }
 
