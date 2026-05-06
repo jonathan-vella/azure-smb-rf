@@ -29,6 +29,13 @@ $SubscriptionId = if ($env:AZURE_SUBSCRIPTION_ID) {
 } else {
     (az account show --query id -o tsv 2>$null)
 }
+# Resolve tenant for the target subscription so azd doesn't fall back to the
+# user's home tenant when the sub lives in a different (guest) tenant.
+$TenantId = if ($env:AZURE_TENANT_ID) {
+    $env:AZURE_TENANT_ID
+} elseif (-not [string]::IsNullOrWhiteSpace($SubscriptionId)) {
+    (az account show --subscription $SubscriptionId --query tenantId -o tsv 2>$null)
+} else { '' }
 $HubCidr     = '10.0.0.0/23'
 $SpokeCidr   = '10.0.2.0/23'
 $OnPremCidr  = '192.168.0.0/16'
@@ -79,6 +86,47 @@ function Invoke-Tee {
 }
 
 # ---- Teardown ----------------------------------------------------------------
+# Remove the MG-scoped baseline initiative assignment + policy set definition.
+# Terraform deploys these as a single Policy Set (`smb-baseline`) plus one
+# assignment of the same name; tear them down as the initiative, not as the
+# 30+ individual policies that used to be assigned in the legacy layout.
+function Remove-MgInitiative {
+    param([string]$Scenario)
+
+    $mgScope = "/providers/Microsoft.Management/managementGroups/$MgId"
+
+    Write-Log "TEARDOWN [$Scenario]: Deleting MG initiative assignment 'smb-baseline'..."
+    az policy assignment delete --name 'smb-baseline' --scope $mgScope 2>$null | Out-Null
+
+    Write-Log "TEARDOWN [$Scenario]: Deleting MG policy set definition 'smb-baseline'..."
+    az policy set-definition delete --name 'smb-baseline' --management-group $MgId 2>$null | Out-Null
+}
+
+# Ensure the target management group exists and the test subscription is
+# associated with it. Phase 0 normally creates this once per tenant; doing it
+# here makes the script self-bootstrapping for fresh subscriptions.
+function Confirm-ManagementGroup {
+    $existing = az account management-group show --name $MgId --query name -o tsv 2>$null
+    if ($existing -eq $MgId) {
+        Write-Log "MG '$MgId' exists."
+    } else {
+        Write-Log "MG '$MgId' not found — creating..."
+        az account management-group create --name $MgId --display-name 'SMB Ready Foundations' 2>$null | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            Write-Log "ERROR: failed to create MG '$MgId'. Run scripts/Setup-ManagementGroupPermissions.ps1 first to grant tenant-root permissions."
+            exit 1
+        }
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($SubscriptionId)) {
+        $assoc = az account management-group subscription show --name $MgId --subscription $SubscriptionId --query id -o tsv 2>$null
+        if (-not $assoc) {
+            Write-Log "Adding subscription $SubscriptionId to MG '$MgId'..."
+            az account management-group subscription add --name $MgId --subscription $SubscriptionId 2>$null | Out-Null
+        }
+    }
+}
+
 function Invoke-Teardown {
     param([string]$Scenario)
 
@@ -116,6 +164,10 @@ function Invoke-Teardown {
 
     # Delete budget (best effort — azd down normally handles it)
     az consumption budget delete --budget-name budget-smb-monthly 2>$null | Out-Null
+
+    # MG-scope cleanup: remove the baseline initiative (assignment + set def)
+    # in case `terraform destroy` left it behind (e.g. import block adopted it).
+    Remove-MgInitiative -Scenario $Scenario
 
     # Local backend: wipe per-env state file so the next apply starts clean
     $stateDir = Join-Path $ProjDir ".azure/$envName"
@@ -162,6 +214,9 @@ function Invoke-ConfigureEnv {
     azd env set AZURE_LOCATION $Location | Out-Null
     if (-not [string]::IsNullOrWhiteSpace($SubscriptionId)) {
         azd env set AZURE_SUBSCRIPTION_ID $SubscriptionId | Out-Null
+    }
+    if (-not [string]::IsNullOrWhiteSpace($TenantId)) {
+        azd env set AZURE_TENANT_ID $TenantId | Out-Null
     }
     azd env set ENVIRONMENT prod | Out-Null
     azd env set HUB_VNET_ADDRESS_SPACE $HubCidr | Out-Null
@@ -348,6 +403,9 @@ Write-Hr
 Write-Log 'SMB Ready Foundations (Terraform) — Scenario Test Runner'
 Write-Log "Scenarios: $($Scenarios -join ' ')"
 Write-Hr
+
+# Phase 0: ensure MG exists and sub is associated
+Confirm-ManagementGroup
 
 # First: tear down whatever is currently deployed (any prior scenario env)
 Write-Log 'Pre-flight: detecting existing TF deployments to tear down cleanly...'
