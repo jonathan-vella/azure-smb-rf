@@ -61,8 +61,8 @@ param spokeVnetAddressSpace string = '10.1.0.0/16'
 @description('On-premises network address space CIDR. Required when scenario in (vpn, full) for the Local Network Gateway. Routing behaviour: in scenarios `vpn` and `firewall`, spoke<->on-prem traffic uses gateway-propagated routes from the Local Network Gateway and bypasses the firewall (BGP is disabled; treated as trusted east-west). In scenario `full`, this CIDR is used to install UDRs and firewall network rules that force spoke<->on-prem traffic through Azure Firewall in both directions.')
 param onPremisesAddressSpace string = ''
 
-@description('Public IP address of the on-premises VPN device. Default is a non routable IP for template validation; must be overridden to deploy VPN Gateway and Local Network Gateway resources when scenario in (vpn, full).')
-param onPremisesGatewayPublicIp string = '192.168.0.1'
+@description('Public IP address of the on-premises VPN device. Default is RFC 5737 TEST-NET-1 (192.0.2.1) for template validation; must be overridden to deploy VPN Gateway and Local Network Gateway resources when scenario in (vpn, full).')
+param onPremisesGatewayPublicIp string = '192.0.2.1'
 
 @description('Log Analytics daily ingestion cap in GB (decimal, e.g. 0.5 for ~500MB)')
 param logAnalyticsDailyCapGb string = '0.5'

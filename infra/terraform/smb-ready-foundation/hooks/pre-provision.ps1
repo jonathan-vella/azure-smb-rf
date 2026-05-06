@@ -117,6 +117,20 @@ az account management-group show --name $mgName 2>$null | Out-Null
 $adoptExistingMg = ($LASTEXITCODE -eq 0)
 Write-HookSub "management_group '$mgName' exists: $adoptExistingMg"
 
+# Auto-detect orphaned subscription-scoped resources that survive past partial
+# applies (policy assignment, AA diag setting). If either exists we toggle the
+# adopt flag so import blocks in main.tf bring them under TF management.
+$subScope = "/subscriptions/$subId"
+az policy assignment show --name 'smb-backup-02' --scope $subScope 2>$null | Out-Null
+$adoptSubResources = ($LASTEXITCODE -eq 0)
+if (-not $adoptSubResources) {
+    $aaName = "aa-smbrf-smb-$(if ($location -eq 'germanywestcentral') { 'gwc' } elseif ($location -eq 'swedencentral') { 'swc' } else { $location.Substring(0,3) })"
+    $aaRg   = "rg-monitor-smb-$(if ($location -eq 'germanywestcentral') { 'gwc' } elseif ($location -eq 'swedencentral') { 'swc' } else { $location.Substring(0,3) })"
+    az monitor diagnostic-settings show --name 'aa-diag-law' --resource "/subscriptions/$subId/resourceGroups/$aaRg/providers/Microsoft.Automation/automationAccounts/$aaName" 2>$null | Out-Null
+    $adoptSubResources = ($LASTEXITCODE -eq 0)
+}
+Write-HookSub "adopt_existing_subscription_resources: $adoptSubResources"
+
 $tfvars = [ordered]@{
     subscription_id                  = $subId
     location                         = $location
@@ -131,7 +145,8 @@ $tfvars = [ordered]@{
     budget_start_date                = $budgetStartDate
     deploy_firewall                  = $flags.Firewall
     deploy_vpn                       = $flags.Vpn
-    adopt_existing_management_group  = $adoptExistingMg
+    adopt_existing_management_group       = $adoptExistingMg
+    adopt_existing_subscription_resources = $adoptSubResources
 }
 $tfvars | ConvertTo-Json -Depth 3 | Set-Content -Path (Join-Path $iacDir 'terraform.auto.tfvars.json') -Encoding UTF8
 Write-HookSub "budget_start_date=$budgetStartDate, deploy_firewall=$($flags.Firewall), deploy_vpn=$($flags.Vpn)"

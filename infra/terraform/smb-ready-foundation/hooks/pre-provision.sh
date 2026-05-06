@@ -161,6 +161,25 @@ else
 fi
 log_substep "management_group '$MG_NAME' exists: $ADOPT_EXISTING_MG"
 
+# Auto-detect orphaned subscription-scoped resources from past partial applies.
+# If the policy assignment or the AA diag setting already exists, flip the
+# adopt flag so main.tf import blocks fire.
+ADOPT_EXISTING_SUB_RESOURCES=false
+if az policy assignment show --name 'smb-backup-02' --scope "/subscriptions/$SUB_ID" >/dev/null 2>&1; then
+  ADOPT_EXISTING_SUB_RESOURCES=true
+else
+  case "$AZURE_LOCATION" in
+    swedencentral)      _RS=swc ;;
+    germanywestcentral) _RS=gwc ;;
+    *)                  _RS="${AZURE_LOCATION:0:3}" ;;
+  esac
+  _AA_ID="/subscriptions/$SUB_ID/resourceGroups/rg-monitor-smb-${_RS}/providers/Microsoft.Automation/automationAccounts/aa-smbrf-smb-${_RS}"
+  if az monitor diagnostic-settings show --name 'aa-diag-law' --resource "$_AA_ID" >/dev/null 2>&1; then
+    ADOPT_EXISTING_SUB_RESOURCES=true
+  fi
+fi
+log_substep "adopt_existing_subscription_resources: $ADOPT_EXISTING_SUB_RESOURCES"
+
 # Build allowed_vm_skus JSON array from azd env if set (comma-separated).
 if [[ -n "${ALLOWED_VM_SKUS:-}" ]]; then
   # Pure-bash CSV->JSON conversion; avoids awk dependency on minimal images.
@@ -196,7 +215,8 @@ cat > "$IAC_DIR/terraform.auto.tfvars.json" <<JSON
   "budget_start_date": "$BUDGET_START_DATE",
   "deploy_firewall": $DEPLOY_FIREWALL,
   "deploy_vpn": $DEPLOY_VPN,
-  "adopt_existing_management_group": $ADOPT_EXISTING_MG
+  "adopt_existing_management_group": $ADOPT_EXISTING_MG,
+  "adopt_existing_subscription_resources": $ADOPT_EXISTING_SUB_RESOURCES
 }
 JSON
 log_substep "budget_start_date=$BUDGET_START_DATE, deploy_firewall=$DEPLOY_FIREWALL, deploy_vpn=$DEPLOY_VPN"

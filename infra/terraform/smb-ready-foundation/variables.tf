@@ -171,6 +171,12 @@ variable "adopt_existing_management_group" {
   default     = false
 }
 
+variable "adopt_existing_subscription_resources" {
+  description = "Set true when the subscription-scoped policy assignment 'smb-backup-02' and the Automation Account 'aa-diag-law' diagnostic setting already exist (typically from a prior partial apply with lost state) and should be imported instead of created. Default false. Pre-provision hooks auto-detect and override this."
+  type        = bool
+  default     = false
+}
+
 variable "assignment_location" {
   description = "Location for policy assignment metadata."
   type        = string

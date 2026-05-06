@@ -189,6 +189,26 @@ module "policy_backup_auto" {
   default_vm_policy_id     = module.backup.default_vm_policy_id
 }
 
+# Adopt subscription-scoped resources that were created by a prior partial
+# apply (and whose state was subsequently lost, e.g. backend re-bootstrap).
+# Gated by var.adopt_existing_subscription_resources so fresh-subscription
+# deploys don't try to import non-existent IDs. Pre-provision hooks detect
+# the policy assignment via `az policy assignment show` and set the flag.
+import {
+  for_each = var.adopt_existing_subscription_resources ? toset(["smb-backup-02"]) : toset([])
+  to       = module.policy_backup_auto.azurerm_subscription_policy_assignment.backup_auto
+  id       = "/subscriptions/${var.subscription_id}/providers/Microsoft.Authorization/policyAssignments/smb-backup-02"
+}
+
+# AVM diagnostic setting on the Automation Account. The Azure resource ID for
+# diagnostic settings uses the `<target>|<name>` form. Same flag — when the
+# AA already exists, its `aa-diag-law` setting was created with it.
+import {
+  for_each = var.adopt_existing_subscription_resources ? toset(["law"]) : toset([])
+  to       = module.automation.module.aa.azurerm_monitor_diagnostic_setting.this["law"]
+  id       = "/subscriptions/${var.subscription_id}/resourceGroups/${local.rg_names.monitor}/providers/Microsoft.Automation/automationAccounts/aa-smbrf-smb-${local.region_short}|aa-diag-law"
+}
+
 module "migrate" {
   source = "./modules/migrate"
 
