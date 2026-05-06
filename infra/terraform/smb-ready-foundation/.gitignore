@@ -15,6 +15,7 @@ backend_override.tf
 
 # Ignore partner-specific tfvars; keep the example
 *.tfvars
+*.tfvars.json
 !terraform.tfvars.example
 
 # azd env state (mirrors Bicep project's gitignore)

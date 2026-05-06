@@ -17,12 +17,22 @@ param backupContributorRoleId string
 @description('Built-in Virtual Machine Contributor role definition id (GUID only).')
 param vmContributorRoleId string
 
-// Seed the deterministic GUID with the UAMI's principalId so a recreated
-// UAMI (new principalId) produces a new role-assignment name instead of
-// colliding with the previous one. Azure rejects principalId updates on
-// an existing role assignment with RoleAssignmentUpdateNotPermitted.
+// Seed: canonical Microsoft pattern `guid(principalId, roleDefId, scope)`.
+// Stable across redeploys for the same UAMI principal, and matches what
+// most Azure tooling/samples generate so it's more likely to align with
+// pre-existing assignments created elsewhere.
+//
+// Note on RBAC idempotency: Azure rejects creating a second role
+// assignment for the same (scope, principal, role) tuple even with a
+// different name (RoleAssignmentExists / "The role assignment already
+// exists"). Bicep cannot detect that pre-existing state at compile time.
+// If a partner hits this on first deploy, an assignment for this UAMI's
+// principalId already exists at the subscription scope from another
+// source — delete it once via:
+//   az role assignment delete --ids <existingAssignmentId>
+// then redeploy. Subsequent redeploys are idempotent.
 resource backupContributorRA 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(subscription().id, principalId, 'Backup Contributor')
+  name: guid(principalId, backupContributorRoleId, subscription().id)
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', backupContributorRoleId)
     principalId: principalId
@@ -31,7 +41,7 @@ resource backupContributorRA 'Microsoft.Authorization/roleAssignments@2022-04-01
 }
 
 resource vmContributorRA 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(subscription().id, principalId, 'VM Contributor')
+  name: guid(principalId, vmContributorRoleId, subscription().id)
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', vmContributorRoleId)
     principalId: principalId

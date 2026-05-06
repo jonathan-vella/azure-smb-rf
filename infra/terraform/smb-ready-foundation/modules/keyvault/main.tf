@@ -34,8 +34,10 @@ resource "azurerm_private_dns_zone_virtual_network_link" "kv_spoke" {
   tags                  = var.tags
 }
 
+# Hub VNet is always deployed in this composition, so the link is unconditional.
+# (Using a count predicated on var.hub_vnet_id breaks plan because the value is
+# only known after apply.)
 resource "azurerm_private_dns_zone_virtual_network_link" "kv_hub" {
-  count                 = var.hub_vnet_id == null ? 0 : 1
   name                  = "link-hub"
   resource_group_name   = var.resource_group_name
   private_dns_zone_name = azurerm_private_dns_zone.kv.name

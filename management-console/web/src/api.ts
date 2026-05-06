@@ -25,22 +25,51 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   });
   if (!resp.ok) {
     // Prefer ProblemDetails / structured error bodies (UseExceptionHandler +
-    // AddProblemDetails on the API). Fall back to raw text on parse failure.
+    // AddProblemDetails on the API). Fall back to raw text, then statusText.
     const text = await resp.text();
-    let message = `${resp.status}`;
+    const statusLabel = resp.statusText
+      ? `${resp.status} ${resp.statusText}`
+      : `${resp.status}`;
+    let message = statusLabel;
     try {
       const body = JSON.parse(text) as {
         title?: string;
         detail?: string;
         message?: string;
         error?: string;
+        innerError?: string;
+        traceId?: string;
+        errors?: Record<string, string[]>;
       };
+      // Validation errors (400 from ASP.NET model binding) come as
+      // { errors: { field: ["msg1", "msg2"] } } — flatten to a readable list.
+      const validationMsgs = body.errors
+        ? Object.entries(body.errors)
+            .flatMap(([field, msgs]) =>
+              (msgs as string[]).map((m) => `${field}: ${m}`),
+            )
+            .join("; ")
+        : "";
+      // Prefer the most specific signal: detail > message > validation > title > error.
       const summary =
-        body.detail || body.message || body.title || body.error;
-      if (summary) message = `${resp.status} ${summary}`;
-      else if (text) message = `${resp.status} ${text}`;
+        body.detail ||
+        body.message ||
+        validationMsgs ||
+        body.title ||
+        body.error;
+      const parts: string[] = [statusLabel];
+      if (summary) parts.push(summary);
+      if (body.innerError && body.innerError !== summary) {
+        parts.push(`(${body.innerError})`);
+      }
+      if (body.traceId) parts.push(`[trace ${body.traceId}]`);
+      message = parts.join(" ");
+      // If body parsed but yielded nothing useful, fall through to raw text.
+      if (!summary && !validationMsgs && text) {
+        message = `${statusLabel} ${text}`;
+      }
     } catch {
-      if (text) message = `${resp.status} ${text}`;
+      if (text) message = `${statusLabel} ${text}`;
     }
     throw new Error(message);
   }

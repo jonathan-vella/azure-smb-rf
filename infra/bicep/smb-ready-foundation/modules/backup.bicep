@@ -28,6 +28,9 @@ param regionShort string
 @description('Tags to apply to all resources')
 param tags object
 
+@description('Log Analytics Workspace resource ID for diagnostic settings')
+param logAnalyticsWorkspaceId string
+
 // ============================================================================
 // Variables
 // ============================================================================
@@ -39,7 +42,7 @@ var vaultName = 'rsv-smbrf-${environment}-${regionShort}'
 // Recovery Services Vault (AVM Module)
 // ============================================================================
 // Schedule: Daily at 02:00 UTC
-// Retention: 30 days daily, 12 weeks weekly (Sunday), 12 months monthly (1st)
+// Retention: 30 days daily, 12 weeks weekly (Sunday), 12 months monthly (first Sunday)
 // ============================================================================
 
 @description('Recovery Services Vault using AVM module with VM backup policy')
@@ -55,6 +58,22 @@ module recoveryVault 'br/public:avm/res/recovery-services/vault:0.11.1' = {
       softDeleteState: 'Enabled'
       softDeleteRetentionPeriodInDays: 14
     }
+    diagnosticSettings: [
+      {
+        name: 'rsv-diag-law'
+        workspaceResourceId: logAnalyticsWorkspaceId
+        logCategoriesAndGroups: [
+          {
+            categoryGroup: 'allLogs'
+          }
+        ]
+        metricCategories: [
+          {
+            category: 'AllMetrics'
+          }
+        ]
+      }
+    ]
     // Backup policies for Azure VMs
     backupPolicies: [
       {
@@ -93,13 +112,13 @@ module recoveryVault 'br/public:avm/res/recovery-services/vault:0.11.1' = {
               }
             }
             monthlySchedule: {
-              retentionScheduleFormatType: 'Daily'
-              retentionScheduleDaily: {
-                daysOfTheMonth: [
-                  {
-                    date: 1
-                    isLast: false
-                  }
+              retentionScheduleFormatType: 'Weekly'
+              retentionScheduleWeekly: {
+                daysOfTheWeek: [
+                  'Sunday'
+                ]
+                weeksOfTheMonth: [
+                  'First'
                 ]
               }
               retentionTimes: [

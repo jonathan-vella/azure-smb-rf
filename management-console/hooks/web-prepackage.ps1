@@ -30,14 +30,18 @@ $webDir = Join-Path $PSScriptRoot '..' 'web'
 # into the ACR build. Keeping .env.production here is fine because it is
 # explicitly re-included via web/.dockerignore (`!.env.production`).
 $envFile = Join-Path $webDir '.env.production'
+# Feature flags: default to disabled. Override via `azd env set FEATURE_VPN true`.
+$featureVpn = if ($env:FEATURE_VPN) { $env:FEATURE_VPN } else { 'false' }
 @(
     "VITE_TENANT_ID=$tenantId",
     "VITE_SPA_CLIENT_ID=$spaId",
-    "VITE_API_CLIENT_ID=$apiId"
+    "VITE_API_CLIENT_ID=$apiId",
+    "VITE_FEATURE_VPN=$featureVpn"
 ) | Set-Content -Path $envFile -Encoding utf8
 
 Write-Host "Wrote $envFile"
 Write-Host "  VITE_TENANT_ID=$tenantId"
 Write-Host "  VITE_SPA_CLIENT_ID=$spaId"
 Write-Host "  VITE_API_CLIENT_ID=$apiId"
+Write-Host "  VITE_FEATURE_VPN=$featureVpn"
 Write-Host "nginx.conf will be rendered at container startup from API_BASE_URL=$apiBaseUrl"

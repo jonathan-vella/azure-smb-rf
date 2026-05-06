@@ -17,11 +17,21 @@ module "management_group" {
 }
 
 # Import block lives in the root (import blocks are not allowed in child
-# modules). The target addresses the resource inside the module so Terraform
-# adopts a pre-existing MG instead of failing with "already exists".
+# modules). Gated by var.adopt_existing_management_group: when true, Terraform
+# adopts a pre-existing MG; when false (default), the resource is created
+# normally.
 import {
-  to = module.management_group.azurerm_management_group.smb_rf
-  id = "/providers/Microsoft.Management/managementGroups/${var.management_group_name}"
+  for_each = var.adopt_existing_management_group ? toset(["smb_rf"]) : toset([])
+  to       = module.management_group.azurerm_management_group.smb_rf
+  id       = "/providers/Microsoft.Management/managementGroups/${var.management_group_name}"
+}
+
+# When adopting an existing MG, its policy set definition was almost certainly
+# created by a previous deploy too. Import it on the same flag.
+import {
+  for_each = var.adopt_existing_management_group ? toset(["smb-baseline"]) : toset([])
+  to       = module.policy_assignments_mg.azurerm_management_group_policy_set_definition.smb_baseline
+  id       = "/providers/Microsoft.Management/managementGroups/${var.management_group_name}/providers/Microsoft.Authorization/policySetDefinitions/smb-baseline"
 }
 
 module "policy_assignments_mg" {
@@ -44,6 +54,15 @@ module "resource_groups" {
 
 module "defender" {
   source = "./modules/defender"
+}
+
+# Defender pricing resources always pre-exist on every Azure subscription
+# (the Free/Standard tier setting is a singleton per plan), so import them
+# unconditionally to bring them under Terraform management without conflict.
+import {
+  for_each = toset(["VirtualMachines", "StorageAccounts", "KeyVaults", "Arm"])
+  to       = module.defender.azurerm_security_center_subscription_pricing.free[each.key]
+  id       = "/subscriptions/${var.subscription_id}/providers/Microsoft.Security/pricings/${each.key}"
 }
 
 module "budget" {
@@ -100,14 +119,18 @@ module "firewall" {
 module "route_tables" {
   source = "./modules/route-tables"
 
-  enabled                   = var.deploy_firewall
-  location                  = var.location
-  resource_group_name       = module.resource_groups.shared["hub"].name
-  region_short              = local.region_short
-  tags                      = local.shared_services_tags
-  firewall_private_ip       = module.firewall.private_ip
-  spoke_vnet_address_space  = var.spoke_vnet_address_space
-  on_premises_address_space = var.on_premises_address_space
+  enabled                       = var.deploy_firewall
+  location                      = var.location
+  resource_group_name           = module.resource_groups.shared["hub"].name
+  region_short                  = local.region_short
+  tags                          = local.shared_services_tags
+  firewall_private_ip           = module.firewall.private_ip
+  spoke_vnet_address_space      = var.spoke_vnet_address_space
+  on_premises_address_space     = var.on_premises_address_space
+  route_hybrid_through_firewall = var.route_hybrid_through_firewall
+  hub_vnet_id                   = module.network_hub.vnet_id
+  hub_vnet_name                 = module.network_hub.vnet_name
+  gateway_subnet_address_prefix = module.network_hub.gateway_subnet_address_prefix
 }
 
 module "vpn_gateway" {
@@ -120,6 +143,8 @@ module "vpn_gateway" {
   tags                            = local.shared_services_tags
   gateway_subnet_id               = module.network_hub.gateway_subnet_id
   firewall_serialisation_sentinel = module.firewall.id
+  on_premises_address_space       = var.on_premises_address_space
+  on_premises_gateway_public_ip   = var.on_premises_gateway_public_ip
 }
 
 module "peering" {

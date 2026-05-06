@@ -8,6 +8,11 @@ RUN npm install -g npm@11
 COPY package.json package-lock.json* ./
 RUN npm install --no-audit --no-fund
 COPY . .
+# Feature flags baked into the SPA bundle at build time by Vite.
+# Default to disabled; override via --build-arg or via .env.production
+# (the latter is written by hooks/web-prepackage.ps1 from azd env vars).
+ARG VITE_FEATURE_VPN=false
+ENV VITE_FEATURE_VPN=${VITE_FEATURE_VPN}
 RUN npm run build
 
 # Use MCR's nginx mirror for the same reason.

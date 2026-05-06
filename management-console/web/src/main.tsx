@@ -20,6 +20,8 @@ import { DeployPage } from "./pages/DeployPage";
 import { DeploymentDetailPage } from "./pages/DeploymentDetailPage";
 import { CustomerPrerequisitesPage } from "./pages/CustomerPrerequisitesPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { VpnPage } from "./pages/VpnPage";
+import { featureFlags } from "./featureFlags";
 import "./theme.css";
 
 const qc = new QueryClient();
@@ -161,6 +163,9 @@ function Root() {
               element={<CustomerPrerequisitesPage />}
             />
             <Route path="/customers/:id/deploy" element={<DeployPage />} />
+            {featureFlags.vpn && (
+              <Route path="/customers/:id/vpn" element={<VpnPage />} />
+            )}
             <Route
               path="/customers/:id/deployments/:depId"
               element={<DeploymentDetailPage />}

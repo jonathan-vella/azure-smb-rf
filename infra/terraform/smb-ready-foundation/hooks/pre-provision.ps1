@@ -77,10 +77,24 @@ $providers = @(
 )
 foreach ($rp in $providers) {
     $state = az provider show -n $rp --query registrationState -o tsv 2>$null
-    if ($state -ne 'Registered') {
+    if ($state -eq 'Registered') { continue }
+    if ($state -ne 'Registering') {
         Write-HookSub "Registering $rp (state: $state)..."
-        az provider register -n $rp --wait 2>&1 | Out-Null
+        az provider register -n $rp 2>&1 | Out-Null
+    } else {
+        Write-HookSub "Waiting for in-progress registration: $rp"
     }
+    # Poll until Registered (az --wait can race when state is already Registering)
+    $deadline = (Get-Date).AddMinutes(10)
+    while ((Get-Date) -lt $deadline) {
+        Start-Sleep -Seconds 5
+        $state = az provider show -n $rp --query registrationState -o tsv 2>$null
+        if ($state -eq 'Registered') { break }
+    }
+    if ($state -ne 'Registered') {
+        throw "Provider $rp did not reach Registered state within 10 minutes (last state: $state)"
+    }
+    Write-HookSub "  $rp -> Registered"
 }
 
 # ---- 4. Enable azd alpha.terraform ------------------------------------------
@@ -95,20 +109,29 @@ Write-HookStep 5 'Bootstrapping Terraform state backend'
 Write-HookStep 6 'Writing terraform.auto.tfvars.json'
 $budgetStartDate = (Get-Date).ToUniversalTime().ToString('yyyy-MM-01')
 
+# Auto-detect whether the target management group already exists. If it does,
+# the import block in main.tf needs to fire; otherwise it must stay no-op so
+# Terraform creates the MG fresh.
+$mgName = if ($env:MANAGEMENT_GROUP_NAME) { $env:MANAGEMENT_GROUP_NAME } else { 'smb-rf' }
+az account management-group show --name $mgName 2>$null | Out-Null
+$adoptExistingMg = ($LASTEXITCODE -eq 0)
+Write-HookSub "management_group '$mgName' exists: $adoptExistingMg"
+
 $tfvars = [ordered]@{
-    subscription_id            = $subId
-    location                   = $location
-    environment                = $environment
-    owner                      = $owner
-    hub_vnet_address_space     = $hubCidr
-    spoke_vnet_address_space   = $spokeCidr
-    on_premises_address_space  = $onPremCidr
-    log_analytics_daily_cap_gb = $lawCap
-    budget_amount              = $budgetAmount
-    budget_alert_email         = $budgetEmail
-    budget_start_date          = $budgetStartDate
-    deploy_firewall            = $flags.Firewall
-    deploy_vpn                 = $flags.Vpn
+    subscription_id                  = $subId
+    location                         = $location
+    environment                      = $environment
+    owner                            = $owner
+    hub_vnet_address_space           = $hubCidr
+    spoke_vnet_address_space         = $spokeCidr
+    on_premises_address_space        = $onPremCidr
+    log_analytics_daily_cap_gb       = $lawCap
+    budget_amount                    = $budgetAmount
+    budget_alert_email               = $budgetEmail
+    budget_start_date                = $budgetStartDate
+    deploy_firewall                  = $flags.Firewall
+    deploy_vpn                       = $flags.Vpn
+    adopt_existing_management_group  = $adoptExistingMg
 }
 $tfvars | ConvertTo-Json -Depth 3 | Set-Content -Path (Join-Path $iacDir 'terraform.auto.tfvars.json') -Encoding UTF8
 Write-HookSub "budget_start_date=$budgetStartDate, deploy_firewall=$($flags.Firewall), deploy_vpn=$($flags.Vpn)"
@@ -143,9 +166,38 @@ if ((az group exists --name $hubRg) -eq 'true') {
     }
 }
 
-# ---- 8. terraform init -------------------------------------------------------
-Write-HookStep 8 'terraform init -reconfigure'
+# ---- 8. Write provider.conf.json for azd alpha.terraform --------------------
+# azd's terraform provider generates its own backend config from this template
+# (separate from backend.hcl). Values must match bootstrap-tf-backend output.
+# Mirrors step 8 of pre-provision.sh.
+Write-HookStep 8 'Writing provider.conf.json (azd backend template)'
 $backendFile = Join-Path $iacDir (".azure/" + ($env:AZURE_ENV_NAME ?? 'smb-ready-foundation') + '/backend.hcl')
+function Get-HclValue {
+    param([string]$Key, [string]$File)
+    foreach ($line in (Get-Content -Path $File)) {
+        $trimmed = $line.TrimStart()
+        if ($trimmed -match "^$Key\s*=\s*`"?([^`"]+)`"?\s*$") {
+            return $Matches[1]
+        }
+    }
+    return ''
+}
+$backendRg  = Get-HclValue 'resource_group_name'  $backendFile
+$backendSa  = Get-HclValue 'storage_account_name' $backendFile
+$backendCt  = Get-HclValue 'container_name'       $backendFile
+$backendKey = Get-HclValue 'key'                  $backendFile
+$providerConf = [ordered]@{
+    resource_group_name  = $backendRg
+    storage_account_name = $backendSa
+    container_name       = $backendCt
+    key                  = $backendKey
+    use_azuread_auth     = $true
+}
+$providerConf | ConvertTo-Json -Depth 3 | Set-Content -Path (Join-Path $iacDir 'provider.conf.json') -Encoding UTF8
+Write-HookSub "provider.conf.json written (sa=$backendSa, key=$backendKey)"
+
+# ---- 9. terraform init ------------------------------------------------------
+Write-HookStep 9 'terraform init -reconfigure'
 Push-Location $iacDir
 try {
     terraform init -reconfigure -backend-config="$backendFile" -input=false | Out-Null

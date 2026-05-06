@@ -183,8 +183,12 @@ module kv 'br/public:avm/res/key-vault/vault:0.10.0' = {
     }
     roleAssignments: [
       {
+        // Officer (read+write) is required because the API generates and
+        // stores VPN pre-shared keys here per customer environment when the
+        // partner connects the customer's foundation to their on-prem VPN
+        // appliance. Without write, only read of pre-existing secrets works.
         principalId: uami.outputs.principalId
-        roleDefinitionIdOrName: 'Key Vault Secrets User'
+        roleDefinitionIdOrName: 'Key Vault Secrets Officer'
         principalType: 'ServicePrincipal'
       }
     ]

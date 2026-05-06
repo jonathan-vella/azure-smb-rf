@@ -18,6 +18,11 @@ module "rsv" {
 
   # storage_mode_type defaults to GeoRedundant — matches prior config.
   # soft_delete_enabled defaults to true — matches prior config.
+  # Note: AVM-TF v1.0.2 does not expose soft-delete retention days or the
+  # enhanced-security toggle as inputs. Azure platform defaults already
+  # apply 14-day retention with enhanced security enabled when soft delete
+  # is on, which matches the explicit Bicep settings (softDeleteState=Enabled,
+  # enhancedSecurityState=Enabled, softDeleteRetentionPeriodInDays=14).
 
   vm_backup_policy = {
     (local.vm_policy_name) = {

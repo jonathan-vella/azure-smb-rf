@@ -31,6 +31,12 @@ param regionShort string
 @description('Gateway Subnet resource ID')
 param gatewaySubnetId string
 
+@description('On-premises address space CIDR (used to create a Local Network Gateway when onPremisesGatewayPublicIp is also set)')
+param onPremisesAddressSpace string = ''
+
+@description('Public IP of the on-premises VPN device. Required to create the Local Network Gateway.')
+param onPremisesGatewayPublicIp string = ''
+
 @description('Tags to apply to all resources')
 param tags object
 
@@ -41,6 +47,15 @@ param tags object
 // Resource naming
 var gatewayName = 'vpng-hub-${environment}-${regionShort}'
 var gatewayPublicIpName = 'pip-vpn-${environment}-${regionShort}'
+var localNetworkGatewayName = 'lng-onprem-${environment}-${regionShort}'
+
+// Always deploy a Local Network Gateway in vpn/full scenarios so the partner
+// has a placeholder to attach the IPsec connection to. If the partner did not
+// supply a peer IP / on-prem CIDR yet, fall back to RFC 5737 documentation
+// ranges (192.0.2.0/24 / 192.0.2.1) so the resource is structurally valid but
+// clearly non-functional until the real values are filled in post-deploy.
+var effectiveOnPremCidr = empty(onPremisesAddressSpace) ? '192.0.2.0/24' : onPremisesAddressSpace
+var effectiveOnPremGatewayIp = empty(onPremisesGatewayPublicIp) ? '192.0.2.1' : onPremisesGatewayPublicIp
 
 // AVM virtual-network-gateway 0.10.1 defaults the public IP's domainNameLabel to
 // the PIP name when none is supplied, which collides across deployments
@@ -85,6 +100,33 @@ module vpnGateway 'br/public:avm/res/network/virtual-network-gateway:0.10.1' = {
 }
 
 // ============================================================================
+// Local Network Gateway
+// ============================================================================
+// Defines the on-premises side of the VPN. Always created so the partner has
+// a placeholder to attach an IPsec connection to. If the on-prem CIDR / peer
+// IP are not supplied, RFC 5737 documentation ranges are used as placeholders
+// (must be overwritten post-deploy before the tunnel will work).
+// Connection (with shared key) is intentionally NOT created here to keep
+// secrets out of the template; wire it up post-deploy or via a Key
+// Vault-backed extension.
+// ============================================================================
+
+@description('Local Network Gateway describing the on-premises network')
+resource localNetworkGateway 'Microsoft.Network/localNetworkGateways@2024-05-01' = {
+  name: localNetworkGatewayName
+  location: location
+  tags: tags
+  properties: {
+    localNetworkAddressSpace: {
+      addressPrefixes: [
+        effectiveOnPremCidr
+      ]
+    }
+    gatewayIpAddress: effectiveOnPremGatewayIp
+  }
+}
+
+// ============================================================================
 // Outputs
 // ============================================================================
 
@@ -96,3 +138,9 @@ output gatewayName string = vpnGateway.outputs.name
 
 @description('VPN Gateway public IP address')
 output gatewayPublicIp string = vpnGateway.outputs.?primaryPublicIpAddress ?? ''
+
+@description('Local Network Gateway resource ID')
+output localNetworkGatewayId string = localNetworkGateway.id
+
+@description('Local Network Gateway name')
+output localNetworkGatewayName string = localNetworkGateway.name

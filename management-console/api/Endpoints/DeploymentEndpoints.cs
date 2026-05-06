@@ -83,9 +83,11 @@ public static class DeploymentEndpoints
                 var prevHub = Get(lastSucceeded.Parameters, "HUB_VNET_ADDRESS_SPACE");
                 var prevSpoke = Get(lastSucceeded.Parameters, "SPOKE_VNET_ADDRESS_SPACE");
                 var prevOnPrem = Get(lastSucceeded.Parameters, "ON_PREMISES_ADDRESS_SPACE");
+                var prevOnPremGwIp = Get(lastSucceeded.Parameters, "ON_PREMISES_GATEWAY_PUBLIC_IP");
                 var newHub = Get(req.Parameters, "HUB_VNET_ADDRESS_SPACE");
                 var newSpoke = Get(req.Parameters, "SPOKE_VNET_ADDRESS_SPACE");
                 var newOnPrem = Get(req.Parameters, "ON_PREMISES_ADDRESS_SPACE");
+                var newOnPremGwIp = Get(req.Parameters, "ON_PREMISES_GATEWAY_PUBLIC_IP");
                 if (prevHub is not null && newHub is not null && prevHub != newHub)
                 {
                     return Results.BadRequest(new
@@ -108,6 +110,14 @@ public static class DeploymentEndpoints
                     {
                         error = "NetworkRangeLocked",
                         message = $"ON_PREMISES_ADDRESS_SPACE is locked to '{prevOnPrem}' for this environment.",
+                    });
+                }
+                if (!string.IsNullOrEmpty(prevOnPremGwIp) && !string.IsNullOrEmpty(newOnPremGwIp) && prevOnPremGwIp != newOnPremGwIp)
+                {
+                    return Results.BadRequest(new
+                    {
+                        error = "NetworkRangeLocked",
+                        message = $"ON_PREMISES_GATEWAY_PUBLIC_IP is locked to '{prevOnPremGwIp}' for this environment.",
                     });
                 }
             }

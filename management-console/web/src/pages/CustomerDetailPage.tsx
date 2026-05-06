@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@fluentui/react-components";
 import { api } from "../api";
+import { featureFlags } from "../featureFlags";
 
 interface Deployment {
   id: string;
@@ -141,6 +142,24 @@ export function CustomerDetailPage() {
   const canDeployScenario =
     delegationOk && !!prerequisites && prerequisites.status === "Succeeded";
   const canDeployPrereq = delegationOk;
+  // The "Configure VPN" entry point is only meaningful once a vpn-bearing
+  // foundation has actually succeeded — placeholder LNG values are written
+  // by the foundation template and the page edits live Azure resources.
+  const lastVpnDep = (deps.data ?? [])
+    .filter(
+      (d) =>
+        d.status === "Succeeded" &&
+        (d.scenario === "Vpn" || d.scenario === "Full"),
+    )
+    .sort((a, b) =>
+      (b.completedAt ?? b.createdAt).localeCompare(
+        a.completedAt ?? a.createdAt,
+      ),
+    )[0];
+  const canConfigureVpn = !!lastVpnDep;
+  const vpnLink = lastVpnDep
+    ? `/customers/${id}/vpn?tenantId=${tenantId}&env=${encodeURIComponent(lastVpnDep.environmentName)}`
+    : `/customers/${id}/vpn?tenantId=${tenantId}`;
 
   return (
     <div>
@@ -217,6 +236,11 @@ export function CustomerDetailPage() {
             {prerequisites ? "Manage prerequisites" : "Deploy prerequisites"}
           </Button>
         </Link>
+        {featureFlags.vpn && (
+          <Link to={vpnLink}>
+            <Button disabled={!canConfigureVpn}>Configure VPN</Button>
+          </Link>
+        )}
       </div>
 
       {delegation.data && !delegation.data.ok && (

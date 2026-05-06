@@ -18,8 +18,11 @@ terraform {
       version = "~> 4.0"
     }
 
-    # azapi is required for Azure Migrate (no AVM-TF module exists for
-    # Microsoft.Migrate/assessmentProjects). See Phase 4 row for migrate.bicep.
+    # azapi is required for:
+    #   - Azure Migrate (no AVM-TF module exists for
+    #     Microsoft.Migrate/assessmentProjects). See Phase 4 row for migrate.bicep.
+    #   - GatewaySubnet route-table PATCH in modules/route-tables (avoids
+    #     two-writer drift with the AVM hub VNet module).
     azapi = {
       source  = "Azure/azapi"
       version = "~> 2.0"

@@ -41,9 +41,8 @@ variable "spoke_vnet_id" {
 }
 
 variable "hub_vnet_id" {
-  description = "Hub VNet resource ID. Linked to the Key Vault private DNS zone so on-prem clients (via VPN) and any hub-resident DNS resolver return the private endpoint IP. Optional — leave null to skip the hub link."
+  description = "Hub VNet resource ID. Linked to the Key Vault private DNS zone so on-prem clients (via VPN) and any hub-resident DNS resolver return the private endpoint IP."
   type        = string
-  default     = null
 }
 
 variable "log_analytics_workspace_id" {
