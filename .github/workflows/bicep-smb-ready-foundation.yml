@@ -54,7 +54,7 @@ jobs:
       # `bicep build-params` validates the parameter file against its target
       # template (typed parameters, required values, expression evaluation).
       - name: bicep build-params main.bicepparam
-        run: az bicep build-params --file main.bicepparam --no-restore false
+        run: az bicep build-params --file main.bicepparam
 
       # Lint surfaces best-practice violations (naming, secure params, etc.)
       # using the rules in any nearest bicepconfig.json (defaults if absent).
