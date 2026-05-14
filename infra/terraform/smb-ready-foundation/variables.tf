@@ -134,6 +134,23 @@ variable "deploy_vpn" {
   default     = false
 }
 
+variable "route_hybrid_through_firewall" {
+  description = "Force spoke<->on-prem traffic through the Azure Firewall (scenario=full). Adds a more-specific spoke->on-prem UDR and attaches a return-path UDR to the GatewaySubnet. Requires deploy_firewall=true and on_premises_address_space set."
+  type        = bool
+  default     = false
+}
+
+variable "on_premises_gateway_public_ip" {
+  description = "Public IP of the on-premises VPN device. When set together with on_premises_address_space, a Local Network Gateway is created with these values. When empty, RFC 5737 placeholders (192.0.2.0/24 / 192.0.2.1) are used so the LNG can still be provisioned for partners to update post-deploy."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.on_premises_gateway_public_ip == "" || can(regex("^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$", var.on_premises_gateway_public_ip))
+    error_message = "on_premises_gateway_public_ip must be empty or a valid IPv4 address."
+  }
+}
+
 # ----- Management group + policy assignments ---------------------------------
 
 variable "management_group_name" {
@@ -146,6 +163,18 @@ variable "management_group_display_name" {
   description = "Display name of the management group."
   type        = string
   default     = "SMB Ready Foundations"
+}
+
+variable "adopt_existing_management_group" {
+  description = "Set true when the management group named by var.management_group_name already exists in the tenant and should be imported instead of created. Default false (fresh deploy creates the MG)."
+  type        = bool
+  default     = false
+}
+
+variable "adopt_existing_subscription_resources" {
+  description = "Set true when the subscription-scoped policy assignment 'smb-backup-02' and the Automation Account 'aa-diag-law' diagnostic setting already exist (typically from a prior partial apply with lost state) and should be imported instead of created. Default false. Pre-provision hooks auto-detect and override this."
+  type        = bool
+  default     = false
 }
 
 variable "assignment_location" {

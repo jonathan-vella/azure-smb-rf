@@ -85,10 +85,25 @@ for rp in Microsoft.Compute Microsoft.Network Microsoft.Storage Microsoft.KeyVau
           Microsoft.Insights Microsoft.Authorization Microsoft.Management \
           Microsoft.PolicyInsights Microsoft.Migrate Microsoft.Security Microsoft.Consumption; do
   state="$(az provider show -n "$rp" --query registrationState -o tsv 2>/dev/null || echo NotRegistered)"
-  if [[ "$state" != "Registered" ]]; then
+  if [[ "$state" == "Registered" ]]; then continue; fi
+  if [[ "$state" != "Registering" ]]; then
     log_substep "Registering $rp (state: $state)..."
-    az provider register -n "$rp" --wait >/dev/null || true
+    az provider register -n "$rp" >/dev/null || true
+  else
+    log_substep "Waiting for in-progress registration: $rp"
   fi
+  # Poll until Registered (az --wait can race when state is already Registering)
+  deadline=$(( $(date +%s) + 600 ))
+  while [[ $(date +%s) -lt $deadline ]]; do
+    sleep 5
+    state="$(az provider show -n "$rp" --query registrationState -o tsv 2>/dev/null || echo Unknown)"
+    if [[ "$state" == "Registered" ]]; then break; fi
+  done
+  if [[ "$state" != "Registered" ]]; then
+    echo "ERROR: Provider $rp did not reach Registered within 10 minutes (last: $state)" >&2
+    exit 1
+  fi
+  log_substep "  $rp -> Registered"
 done
 
 # ---- 4. Enable azd alpha.terraform ------------------------------------------
@@ -135,6 +150,36 @@ fi
 log_step 6 'Writing terraform.auto.tfvars.json'
 BUDGET_START_DATE="$(date -u +%Y-%m-01)"
 
+# Auto-detect whether the target management group already exists. If it does,
+# the import block in main.tf needs to fire; otherwise it must stay no-op so
+# Terraform creates the MG fresh.
+MG_NAME="${MANAGEMENT_GROUP_NAME:-smb-rf}"
+if az account management-group show --name "$MG_NAME" >/dev/null 2>&1; then
+  ADOPT_EXISTING_MG=true
+else
+  ADOPT_EXISTING_MG=false
+fi
+log_substep "management_group '$MG_NAME' exists: $ADOPT_EXISTING_MG"
+
+# Auto-detect orphaned subscription-scoped resources from past partial applies.
+# If the policy assignment or the AA diag setting already exists, flip the
+# adopt flag so main.tf import blocks fire.
+ADOPT_EXISTING_SUB_RESOURCES=false
+if az policy assignment show --name 'smb-backup-02' --scope "/subscriptions/$SUB_ID" >/dev/null 2>&1; then
+  ADOPT_EXISTING_SUB_RESOURCES=true
+else
+  case "$AZURE_LOCATION" in
+    swedencentral)      _RS=swc ;;
+    germanywestcentral) _RS=gwc ;;
+    *)                  _RS="${AZURE_LOCATION:0:3}" ;;
+  esac
+  _AA_ID="/subscriptions/$SUB_ID/resourceGroups/rg-monitor-smb-${_RS}/providers/Microsoft.Automation/automationAccounts/aa-smbrf-smb-${_RS}"
+  if az monitor diagnostic-settings show --name 'aa-diag-law' --resource "$_AA_ID" >/dev/null 2>&1; then
+    ADOPT_EXISTING_SUB_RESOURCES=true
+  fi
+fi
+log_substep "adopt_existing_subscription_resources: $ADOPT_EXISTING_SUB_RESOURCES"
+
 # Build allowed_vm_skus JSON array from azd env if set (comma-separated).
 if [[ -n "${ALLOWED_VM_SKUS:-}" ]]; then
   # Pure-bash CSV->JSON conversion; avoids awk dependency on minimal images.
@@ -169,7 +214,9 @@ cat > "$IAC_DIR/terraform.auto.tfvars.json" <<JSON
   "budget_alert_email": "$BUDGET_ALERT_EMAIL",
   "budget_start_date": "$BUDGET_START_DATE",
   "deploy_firewall": $DEPLOY_FIREWALL,
-  "deploy_vpn": $DEPLOY_VPN
+  "deploy_vpn": $DEPLOY_VPN,
+  "adopt_existing_management_group": $ADOPT_EXISTING_MG,
+  "adopt_existing_subscription_resources": $ADOPT_EXISTING_SUB_RESOURCES
 }
 JSON
 log_substep "budget_start_date=$BUDGET_START_DATE, deploy_firewall=$DEPLOY_FIREWALL, deploy_vpn=$DEPLOY_VPN"
@@ -257,7 +304,8 @@ else
   "resource_group_name": "$BACKEND_RG",
   "storage_account_name": "$BACKEND_SA",
   "container_name": "$BACKEND_CT",
-  "key": "$BACKEND_KEY"
+  "key": "$BACKEND_KEY",
+  "use_azuread_auth": true
 }
 JSON
   log_substep "provider.conf.json written (sa=$BACKEND_SA, key=$BACKEND_KEY)"

@@ -83,24 +83,17 @@ module uami 'modules/uami.bicep' = {
 // ----------------------------------------------------------------------------
 // Role Assignments at Subscription Scope
 // ----------------------------------------------------------------------------
+// Delegated to a module so `principalId` is a module parameter and therefore
+// considered known at deployment-start in the role-assignment `name` GUID
+// seed. Inlining role assignments here trips BCP120 because Bicep can't
+// statically prove that `uami.outputs.principalId` is available at start.
 
-@description('Backup Contributor at subscription scope for the policy UAMI')
-resource backupContributorRA 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(subscription().id, identityName, 'Backup Contributor')
-  properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', backupContributorRoleId)
+module roles 'modules/policy-mi-roles.bicep' = {
+  name: 'policy-mi-roles'
+  params: {
     principalId: uami.outputs.principalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-@description('Virtual Machine Contributor at subscription scope for the policy UAMI')
-resource vmContributorRA 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(subscription().id, identityName, 'VM Contributor')
-  properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', vmContributorRoleId)
-    principalId: uami.outputs.principalId
-    principalType: 'ServicePrincipal'
+    backupContributorRoleId: backupContributorRoleId
+    vmContributorRoleId: vmContributorRoleId
   }
 }
 

@@ -53,6 +53,7 @@ builder.Services.AddSingleton<SettingsRepository>();
 builder.Services.AddSingleton<LighthouseService>();
 builder.Services.AddSingleton<DeploymentJobLauncher>();
 builder.Services.AddSingleton<DeploymentLogStore>();
+builder.Services.AddSingleton<VpnService>();
 builder.Services.AddHttpClient("arm");
 
 // Prerequisites template (fetched from GitHub release; see appsettings).
@@ -61,7 +62,30 @@ builder.Services.Configure<PrerequisitesOptions>(
 builder.Services.AddHttpClient("github");
 builder.Services.AddSingleton<PrerequisitesTemplateService>();
 
-builder.Services.AddProblemDetails();
+// Surface the exception message and type to the SPA so the user sees something
+// more actionable than "500 An error occurred while processing your request.".
+// This is internal partner-staff tooling — exposing exception details is an
+// acceptable trade-off for faster diagnosis.
+builder.Services.AddProblemDetails(options =>
+{
+    options.CustomizeProblemDetails = ctx =>
+    {
+        var ex = ctx.HttpContext.Features
+            .Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
+        if (ex is not null)
+        {
+            ctx.ProblemDetails.Title = ex.GetType().Name;
+            ctx.ProblemDetails.Detail = ex.Message;
+            // Include inner exception message if present — ARM/KV errors often
+            // wrap the useful text in InnerException.
+            if (ex.InnerException is { } inner)
+            {
+                ctx.ProblemDetails.Extensions["innerError"] = inner.Message;
+            }
+        }
+        ctx.ProblemDetails.Extensions["traceId"] = ctx.HttpContext.TraceIdentifier;
+    };
+});
 builder.Services.AddHealthChecks();
 
 // Telemetry (App Insights via OpenTelemetry; no-op if connection string unset)
@@ -93,6 +117,7 @@ app.MapLighthouseEndpoints();
 app.MapScenarioEndpoints();
 app.MapPrerequisitesEndpoints();
 app.MapSettingsEndpoints();
+app.MapVpnEndpoints();
 
 app.Run();
 

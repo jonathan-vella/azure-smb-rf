@@ -57,6 +57,8 @@ else
 fi
 
 # ---- storage account ---------------------------------------------------------
+# Tenant policy forbids shared-key auth — create with --allow-shared-key-access false
+# and use Entra ID (use_azuread_auth) for both bootstrap and Terraform backend ops.
 if ! az storage account show -n "$SA_NAME" -g "$RG_NAME" >/dev/null 2>&1; then
   az storage account create \
     -n "$SA_NAME" -g "$RG_NAME" -l "$AZURE_LOCATION" \
@@ -64,24 +66,41 @@ if ! az storage account show -n "$SA_NAME" -g "$RG_NAME" >/dev/null 2>&1; then
     --kind StorageV2 \
     --https-only true \
     --allow-blob-public-access false \
-    --allow-shared-key-access true \
+    --allow-shared-key-access false \
+    --min-tls-version TLS1_2 \
     --tags Environment=smb Owner=platform Project=smb-ready-foundation ManagedBy=Terraform Purpose=tfstate \
     >/dev/null
-  echo "    + storage account created"
+  echo "    + storage account created (shared-key disabled)"
 else
+  # Ensure existing SA also has shared key disabled (idempotent re-apply).
+  az storage account update -n "$SA_NAME" -g "$RG_NAME" --allow-shared-key-access false >/dev/null 2>&1 || true
   echo "    . storage account exists"
 fi
 
-# ---- blob container ----------------------------------------------------------
-SA_KEY="$(az storage account keys list -n "$SA_NAME" -g "$RG_NAME" --query '[0].value' -o tsv)"
+# ---- RBAC: Storage Blob Data Contributor for current principal --------------
+SA_ID="$(az storage account show -n "$SA_NAME" -g "$RG_NAME" --query id -o tsv)"
+PRINCIPAL_ID="$(az ad signed-in-user show --query id -o tsv 2>/dev/null || true)"
+if [[ -n "$PRINCIPAL_ID" ]]; then
+  if ! az role assignment list --assignee "$PRINCIPAL_ID" --scope "$SA_ID" \
+        --role 'Storage Blob Data Contributor' --query '[0].id' -o tsv 2>/dev/null | grep -q .; then
+    az role assignment create --assignee-object-id "$PRINCIPAL_ID" --assignee-principal-type User \
+      --role 'Storage Blob Data Contributor' --scope "$SA_ID" >/dev/null
+    echo "    + granted Storage Blob Data Contributor to current user (propagation: ~30s)"
+    sleep 30
+  else
+    echo "    . Storage Blob Data Contributor already assigned"
+  fi
+fi
+
+# ---- blob container (Entra ID auth) ------------------------------------------
 if ! az storage container show \
       --name "$CONTAINER_NAME" \
       --account-name "$SA_NAME" \
-      --account-key "$SA_KEY" >/dev/null 2>&1; then
+      --auth-mode login >/dev/null 2>&1; then
   az storage container create \
     --name "$CONTAINER_NAME" \
     --account-name "$SA_NAME" \
-    --account-key "$SA_KEY" \
+    --auth-mode login \
     >/dev/null
   echo "    + container created"
 else
@@ -95,6 +114,7 @@ resource_group_name  = "${RG_NAME}"
 storage_account_name = "${SA_NAME}"
 container_name       = "${CONTAINER_NAME}"
 key                  = "smb-ready-foundation.tfstate"
+use_azuread_auth     = true
 HCL
 echo "    + wrote $BACKEND_FILE"
 

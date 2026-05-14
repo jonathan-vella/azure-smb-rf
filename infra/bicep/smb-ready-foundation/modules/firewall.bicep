@@ -34,8 +34,11 @@ param hubVnetId string
 @description('Spoke VNet address space for firewall rules')
 param spokeAddressSpace string
 
-@description('On-premises address space for VPN routing (optional)')
+@description('On-premises address space CIDR. When non-empty, bidirectional spoke<->on-prem allow rules are added so traffic forced through the firewall (scenario=full) is permitted. Leave empty for scenarios where hybrid traffic bypasses the firewall.')
 param onPremisesAddressSpace string = ''
+
+@description('Log Analytics workspace ID for firewall diagnostic settings (smb-monitoring-01 compliance).')
+param logAnalyticsWorkspaceId string
 
 @description('Tags to apply to all resources')
 param tags object
@@ -50,8 +53,11 @@ var firewallPolicyName = 'fwpol-hub-${environment}-${regionShort}'
 var firewallPublicIpName = 'pip-fw-${environment}-${regionShort}'
 var firewallMgmtPublicIpName = 'pip-fw-mgmt-${environment}-${regionShort}'
 
-// Determine if on-prem rules are needed
-var hasOnPremises = !empty(onPremisesAddressSpace)
+// Hybrid traffic (spoke <-> on-prem) bypasses the firewall in scenarios
+// `firewall` and `vpn` and is routed directly via the VPN Gateway. In
+// scenario `full`, route-tables.bicep installs UDRs that force hybrid
+// traffic through this firewall; the AllowHybrid rule collection below is
+// added (gated on a non-empty onPremisesAddressSpace) to permit it.
 
 // Availability zones for zone-redundant deployment
 var availabilityZones = [
@@ -183,24 +189,36 @@ resource networkRuleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleColl
   ]
 }
 
-@description('Network rules for on-premises connectivity (conditional)')
-resource onPremRuleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleCollectionGroups@2024-01-01' = if (hasOnPremises) {
-  name: '${firewallPolicyName}/OnPremisesRuleCollectionGroup'
+// Note: On-premises rule collection group removed. Hybrid traffic
+// (spoke <-> on-prem) bypasses the firewall and routes via the VPN Gateway
+// (BGP/system routes). See route-tables.bicep and vpn-gateway.bicep.
+
+// ----------------------------------------------------------------------------
+// Hybrid (spoke <-> on-prem) allow rules - scenario=full only
+// ----------------------------------------------------------------------------
+// Deployed only when the caller passes a non-empty onPremisesAddressSpace.
+// In scenario=full, route-tables.bicep adds UDRs that force hybrid traffic
+// through this firewall; without these rules, that traffic would be dropped.
+// In scenarios `firewall` and `vpn`, hybrid traffic bypasses the firewall
+// (no UDR) and these rules are not deployed.
+@description('Bidirectional spoke<->on-prem allow rules (scenario=full)')
+resource hybridRuleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleCollectionGroups@2024-01-01' = if (!empty(onPremisesAddressSpace)) {
+  name: '${firewallPolicyName}/HybridRuleCollectionGroup'
   properties: {
-    priority: 300
+    priority: 150
     ruleCollections: [
       {
         ruleCollectionType: 'FirewallPolicyFilterRuleCollection'
         action: {
           type: 'Allow'
         }
-        name: 'AllowOnPremisesTraffic'
+        name: 'AllowHybrid'
         priority: 100
         rules: [
           {
             ruleType: 'NetworkRule'
-            name: 'AllowAzureToOnPrem'
-            description: 'Allow Azure spoke resources to reach on-premises'
+            name: 'AllowSpokeToOnprem'
+            description: 'Allow spoke -> on-prem traffic forced through firewall (scenario=full)'
             ipProtocols: ['Any']
             sourceAddresses: [spokeAddressSpace]
             destinationAddresses: [onPremisesAddressSpace]
@@ -208,8 +226,8 @@ resource onPremRuleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleColle
           }
           {
             ruleType: 'NetworkRule'
-            name: 'AllowOnPremToAzure'
-            description: 'Allow on-premises to reach Azure spoke resources'
+            name: 'AllowOnpremToSpoke'
+            description: 'Allow on-prem -> spoke return traffic forced through firewall (scenario=full)'
             ipProtocols: ['Any']
             sourceAddresses: [onPremisesAddressSpace]
             destinationAddresses: [spokeAddressSpace]
@@ -220,6 +238,7 @@ resource onPremRuleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleColle
     ]
   }
   dependsOn: [
+    firewallPolicy
     networkRuleCollectionGroup
   ]
 }
@@ -243,10 +262,26 @@ module firewall 'br/public:avm/res/network/azure-firewall:0.10.1' = {
     // Zone redundancy for High Availability
     availabilityZones: availabilityZones
     tags: tags
+    diagnosticSettings: [
+      {
+        name: 'afw-diag-law'
+        workspaceResourceId: logAnalyticsWorkspaceId
+        logCategoriesAndGroups: [
+          {
+            categoryGroup: 'allLogs'
+          }
+        ]
+        metricCategories: [
+          {
+            category: 'AllMetrics'
+          }
+        ]
+      }
+    ]
   }
   dependsOn: [
     networkRuleCollectionGroup
-    onPremRuleCollectionGroup
+    hybridRuleCollectionGroup
   ]
 }
 

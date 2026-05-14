@@ -1,3 +1,7 @@
 {
-  "path": "/workspaces/azure-smb-rf/infra/terraform/smb-ready-foundation/.azure/smb-rf-tf-full/terraform.tfstate"
+  "resource_group_name": "rg-tfstate-smb-swc",
+  "storage_account_name": "sttfstatesmb883235935909",
+  "container_name": "tfstate",
+  "key": "smb-ready-foundation.tfstate",
+  "use_azuread_auth": true
 }

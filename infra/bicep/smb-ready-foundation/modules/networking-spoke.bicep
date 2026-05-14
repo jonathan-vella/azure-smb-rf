@@ -44,6 +44,9 @@ param routeTableId string = ''
 @description('Tags to apply to all resources')
 param tags object
 
+@description('Log Analytics Workspace resource ID for diagnostic settings')
+param logAnalyticsWorkspaceId string
+
 // ============================================================================
 // Variables
 // ============================================================================
@@ -123,6 +126,17 @@ module spokeNsg 'br/public:avm/res/network/network-security-group:0.5.3' = {
         }
       }
     ]
+    diagnosticSettings: [
+      {
+        name: 'nsg-diag-law'
+        workspaceResourceId: logAnalyticsWorkspaceId
+        logCategoriesAndGroups: [
+          {
+            categoryGroup: 'allLogs'
+          }
+        ]
+      }
+    ]
   }
 }
 
@@ -192,6 +206,17 @@ module spokeVnet 'br/public:avm/res/network/virtual-network:0.8.0' = {
         addressPrefix: pepSubnetPrefix
         networkSecurityGroupResourceId: spokeNsg.outputs.resourceId
         privateEndpointNetworkPolicies: 'Disabled'
+      }
+    ]
+    diagnosticSettings: [
+      {
+        name: 'vnet-diag-law'
+        workspaceResourceId: logAnalyticsWorkspaceId
+        metricCategories: [
+          {
+            category: 'AllMetrics'
+          }
+        ]
       }
     ]
   }

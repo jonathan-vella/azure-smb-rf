@@ -34,6 +34,9 @@ param vnetAddressSpace string
 @description('Tags to apply to all resources')
 param tags object
 
+@description('Log Analytics Workspace resource ID for diagnostic settings')
+param logAnalyticsWorkspaceId string
+
 // ============================================================================
 // Variables
 // ============================================================================
@@ -83,6 +86,17 @@ module hubNsg 'br/public:avm/res/network/network-security-group:0.5.3' = {
         }
       }
     ]
+    diagnosticSettings: [
+      {
+        name: 'nsg-diag-law'
+        workspaceResourceId: logAnalyticsWorkspaceId
+        logCategoriesAndGroups: [
+          {
+            categoryGroup: 'allLogs'
+          }
+        ]
+      }
+    ]
   }
 }
 
@@ -121,6 +135,17 @@ module hubVnet 'br/public:avm/res/network/virtual-network:0.8.0' = {
         name: 'snet-management'
         addressPrefix: managementSubnetPrefix
         networkSecurityGroupResourceId: hubNsg.outputs.resourceId
+      }
+    ]
+    diagnosticSettings: [
+      {
+        name: 'vnet-diag-law'
+        workspaceResourceId: logAnalyticsWorkspaceId
+        metricCategories: [
+          {
+            category: 'AllMetrics'
+          }
+        ]
       }
     ]
   }
@@ -165,6 +190,9 @@ output firewallManagementSubnetId string = hubVnet.outputs.subnetResourceIds[1]
 
 @description('Gateway Subnet resource ID')
 output gatewaySubnetId string = hubVnet.outputs.subnetResourceIds[2]
+
+@description('Gateway Subnet address prefix (used when re-PATCHing GatewaySubnet to attach a route table)')
+output gatewaySubnetAddressPrefix string = gatewaySubnetPrefix
 
 @description('Management Subnet resource ID')
 output managementSubnetId string = hubVnet.outputs.subnetResourceIds[3]

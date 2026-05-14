@@ -3,8 +3,7 @@
 // ============================================================================
 // Purpose: Mirror of infra/terraform/.../modules/policy-assignments-mg/main.tf.
 //          Defines ONE custom Policy Set (Initiative) containing 33 built-in
-//          policy references and ONE MG-scoped assignment, replacing the
-//          30-individual-assignment approach in policy-assignments-mg.bicep.
+//          policy references and ONE MG-scoped assignment.
 //
 // Rationale (same as the Terraform version):
 //   - Atomic lifecycle: all policies enable/disable/version together.

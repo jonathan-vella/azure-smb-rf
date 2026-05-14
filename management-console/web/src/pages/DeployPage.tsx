@@ -39,7 +39,9 @@ const ALLOWED_NEXT: Record<Scenario, readonly Scenario[]> = {
 function normalizeScenario(s: string | undefined | null): Scenario | null {
   if (!s) return null;
   const lc = s.toLowerCase();
-  return (SCENARIOS as readonly string[]).includes(lc) ? (lc as Scenario) : null;
+  return (SCENARIOS as readonly string[]).includes(lc)
+    ? (lc as Scenario)
+    : null;
 }
 
 interface DelegationCheck {
@@ -81,6 +83,7 @@ export function DeployPage() {
   const [hubCidr, setHubCidr] = useState("10.0.0.0/23");
   const [spokeCidr, setSpokeCidr] = useState("10.0.2.0/23");
   const [onPremCidr, setOnPremCidr] = useState("");
+  const [onPremGwIp, setOnPremGwIp] = useState("");
   const [logCapGb, setLogCapGb] = useState("0.5");
   const [budgetAmount, setBudgetAmount] = useState("500");
   const [busy, setBusy] = useState(false);
@@ -163,6 +166,11 @@ export function DeployPage() {
   // redeploys.
   const lockedOnPrem =
     lastSucceeded?.parameters?.ON_PREMISES_ADDRESS_SPACE ?? null;
+  // Same lock rationale as the on-prem CIDR — once an LNG is bound to a
+  // partner-supplied peer IP, redeploying with a different one would
+  // silently retarget the tunnel.
+  const lockedOnPremGwIp =
+    lastSucceeded?.parameters?.ON_PREMISES_GATEWAY_PUBLIC_IP ?? null;
   // Region is locked once an environment has succeeded — same reason as the
   // CIDRs: redeploying a different region would not extend the existing
   // network, it would build a parallel one.
@@ -181,6 +189,7 @@ export function DeployPage() {
       if (lockedHub) setHubCidr(lockedHub);
       if (lockedSpoke) setSpokeCidr(lockedSpoke);
       if (lockedOnPrem) setOnPremCidr(lockedOnPrem);
+      if (lockedOnPremGwIp) setOnPremGwIp(lockedOnPremGwIp);
       if (lockedRegion) setRegion(lockedRegion);
       // Owner is locked too — changing the resource owner across redeploys
       // would orphan the tag-based cost views.
@@ -219,6 +228,7 @@ export function DeployPage() {
       const hub = lockedHub ?? hubCidr;
       const spoke = lockedSpoke ?? spokeCidr;
       const onPrem = (lockedOnPrem ?? onPremCidr).trim();
+      const onPremGw = (lockedOnPremGwIp ?? onPremGwIp).trim();
       const requiresOnPrem = scenario === "vpn" || scenario === "full";
       if (requiresOnPrem && !onPrem) {
         throw new Error(
@@ -258,6 +268,7 @@ export function DeployPage() {
         BUDGET_AMOUNT: budget,
       };
       if (onPrem) parameters.ON_PREMISES_ADDRESS_SPACE = onPrem;
+      if (onPremGw) parameters.ON_PREMISES_GATEWAY_PUBLIC_IP = onPremGw;
       const created = await api<{ id: string }>("/deployments", {
         method: "POST",
         body: JSON.stringify({
@@ -299,7 +310,9 @@ export function DeployPage() {
       {delegation.data && !delegation.data.ok && (
         <MessageBar intent="error">
           <MessageBarBody>
-            <MessageBarTitle>Partner UAMI cannot access this subscription</MessageBarTitle>
+            <MessageBarTitle>
+              Partner UAMI cannot access this subscription
+            </MessageBarTitle>
             {delegation.data.message ??
               "The Lighthouse delegation appears to be missing or revoked. Re-onboard the customer before deploying."}
           </MessageBarBody>
@@ -308,7 +321,8 @@ export function DeployPage() {
       {delegation.data?.ok && delegation.data.subscriptionDisplayName && (
         <MessageBar intent="success">
           <MessageBarBody>
-            Connected to <strong>{delegation.data.subscriptionDisplayName}</strong>.
+            Connected to{" "}
+            <strong>{delegation.data.subscriptionDisplayName}</strong>.
           </MessageBarBody>
         </MessageBar>
       )}
@@ -340,7 +354,8 @@ export function DeployPage() {
           selectedOptions={[envName]}
           onOptionSelect={(_, d) => {
             const next = (d.optionValue ?? "") as EnvName;
-            if ((ENV_NAMES as readonly string[]).includes(next)) setEnvName(next);
+            if ((ENV_NAMES as readonly string[]).includes(next))
+              setEnvName(next);
           }}
         >
           {ENV_NAMES.map((x) => (
@@ -438,10 +453,10 @@ export function DeployPage() {
           disabled={!!lockedSpoke}
         />
       </Field>
-      {(scenario === "vpn" || scenario === "full" || lockedOnPrem) && (
+      {(scenario === "vpn" || scenario === "full") && (
         <Field
           label="On-premises address space"
-          required={scenario === "vpn" || scenario === "full"}
+          required
           hint={
             lockedOnPrem
               ? "Locked — established by the first successful deployment for this environment."
@@ -454,6 +469,24 @@ export function DeployPage() {
             placeholder="192.168.0.0/16"
             readOnly={!!lockedOnPrem}
             disabled={!!lockedOnPrem}
+          />
+        </Field>
+      )}
+      {(scenario === "vpn" || scenario === "full") && (
+        <Field
+          label="On-premises VPN device public IP"
+          hint={
+            lockedOnPremGwIp
+              ? "Locked — established by the first successful deployment for this environment."
+              : "Optional. Public IP of the on-prem VPN device. When set, a Local Network Gateway is created automatically. Leave empty to wire up post-deploy."
+          }
+        >
+          <Input
+            value={onPremGwIp}
+            onChange={(_, d) => setOnPremGwIp(d.value)}
+            placeholder="203.0.113.10"
+            readOnly={!!lockedOnPremGwIp}
+            disabled={!!lockedOnPremGwIp}
           />
         </Field>
       )}
@@ -484,7 +517,12 @@ export function DeployPage() {
       <div style={{ marginTop: 12 }}>
         <Button
           appearance="primary"
-          disabled={busy || delegation.isLoading || !delegation.data?.ok || !prerequisitesReady}
+          disabled={
+            busy ||
+            delegation.isLoading ||
+            !delegation.data?.ok ||
+            !prerequisitesReady
+          }
           onClick={submit}
         >
           Deploy

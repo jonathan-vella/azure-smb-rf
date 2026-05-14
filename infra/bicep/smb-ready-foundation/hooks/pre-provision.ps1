@@ -6,7 +6,7 @@
     1. CIDR validation (hub/spoke/on-prem overlap detection)
     2. Azure pre-flight checks (CLI, Bicep, resource providers)
     3. Management group existence verification
-    4. MG creation (deploy-mg.bicep) + MG-scope policy deployment (policy-assignments-mg.bicep)
+    4. MG creation (deploy-mg.bicep) + MG-scope policy initiative (policy-assignments-mg-initiative.bicep)
     5. Budget deletion workaround (Azure API limitation)
     6. Faulted resource cleanup (Firewall, VPN Gateway)
     7. Orphaned role assignment cleanup
@@ -32,7 +32,7 @@ $onPremCidr = $env:ON_PREMISES_ADDRESS_SPACE ?? ''
 $managementGroupId = $env:MANAGEMENT_GROUP_ID ?? 'smb-rf'
 # When set to 'true' (e.g. by the management-console worker, which has no
 # rights at parent-MG / tenant-root scope), skip steps 5a (deploy-mg.bicep)
-# and 5b (policy-assignments-mg.bicep). Step 4 still verifies the MG exists.
+# and 5b (policy-assignments-mg-initiative.bicep). Step 4 still verifies the MG exists.
 $skipMgDeploy = ($env:SKIP_MG_DEPLOY ?? '').ToLowerInvariant() -in @('true','1','yes')
 
 # Derived flags
@@ -327,36 +327,36 @@ if ($LASTEXITCODE -ne 0) {
     }
 }
 
-# 5b. Deploy 30 MG-scoped policies
-Write-Step "5b" "Deploying 30 management group-scoped policies..."
-$mgPolicyTemplatePath = Join-Path $projectDir 'modules' 'policy-assignments-mg.bicep'
+# 5b. Deploy MG-scoped policy initiative (one Policy Set + one assignment)
+Write-Step "5b" "Deploying management group-scoped policy initiative..."
+$mgPolicyTemplatePath = Join-Path $projectDir 'modules' 'policy-assignments-mg-initiative.bicep'
 
 if (-not (Test-Path $mgPolicyTemplatePath)) {
-    Write-Host "  ERROR: policy-assignments-mg.bicep not found at $mgPolicyTemplatePath" -ForegroundColor Red
+    Write-Host "  ERROR: policy-assignments-mg-initiative.bicep not found at $mgPolicyTemplatePath" -ForegroundColor Red
     exit 1
 }
 
-Write-SubStep "Running what-if for MG policies..."
+Write-SubStep "Running what-if for MG policy initiative..."
 az deployment mg what-if `
     --management-group-id $managementGroupId `
     --location $location `
     --template-file $mgPolicyTemplatePath `
     --parameters location=$location 2>$null
 
-Write-SubStep "Deploying MG policies..."
+Write-SubStep "Deploying MG policy initiative..."
 $mgPolicyResult = az deployment mg create `
     --management-group-id $managementGroupId `
     --location $location `
-    --name "smb-rf-mg-policies-$(Get-Date -Format 'yyyyMMdd-HHmmss')" `
+    --name "smb-rf-mg-initiative-$(Get-Date -Format 'yyyyMMdd-HHmmss')" `
     --template-file $mgPolicyTemplatePath `
     --parameters location=$location 2>&1
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "  ERROR: MG policy deployment failed:" -ForegroundColor Red
+    Write-Host "  ERROR: MG policy initiative deployment failed:" -ForegroundColor Red
     Write-Host ($mgPolicyResult | Out-String) -ForegroundColor Red
     exit 1
 }
-Write-SubStep "30 MG-scope policies deployed successfully"
+Write-SubStep "MG policy initiative deployed successfully"
 
 } # end skipMgDeploy guard
 

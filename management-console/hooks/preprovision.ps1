@@ -35,6 +35,37 @@ if ($LASTEXITCODE -ne 0) {
     Stop-Hook 'az CLI is not signed in. Run: az login --tenant <partner-tenant-id>'
 }
 
+$signedInTenant = ConvertTo-TrimmedString (& az account show --query tenantId -o tsv 2>$null)
+
+# `az account show` only validates the ARM token. Graph (`az ad ...`) uses a
+# separate token that Conditional Access / CAE can revoke independently
+# (TokenCreatedWithOutdatedPolicies, InteractionRequired). Probe Graph
+# explicitly so we fail fast with a clear message instead of cascading
+# through every Graph call with empty `--id ""` arguments.
+$graphProbe = & az ad signed-in-user show --query id -o tsv 2>&1
+if ($LASTEXITCODE -ne 0) {
+    $msg = ($graphProbe | Out-String).Trim()
+    if ($msg -match 'InteractionRequired|TokenCreatedWithOutdatedPolicies|AADSTS|Unauthorized|InvalidAuthenticationToken') {
+        Stop-Hook "Microsoft Graph token is invalid or expired (Conditional Access / CAE challenge). Run: az logout; az login --tenant $signedInTenant`nDetails: $msg"
+    }
+    Stop-Hook "Unable to call Microsoft Graph as signed-in user. Details: $msg"
+}
+
+# Wrapper for Graph-touching `az ad` calls. Stops the hook on auth errors so
+# we don't cascade `--id ""` failures across every subsequent command.
+function Invoke-AzAd {
+    param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Args)
+    $output = & az @Args 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $msg = ($output | Out-String).Trim()
+        if ($msg -match 'InteractionRequired|TokenCreatedWithOutdatedPolicies|AADSTS|Unauthorized|InvalidAuthenticationToken') {
+            Stop-Hook "Auth error during 'az $($Args -join ' ')'. Run: az logout; az login --tenant $signedInTenant`nDetails: $msg"
+        }
+        Stop-Hook "'az $($Args -join ' ')' failed.`nDetails: $msg"
+    }
+    return $output
+}
+
 # Read all azd env values once into a hashtable.
 $envDump = & azd env get-values 2>$null
 $envMap  = @{}

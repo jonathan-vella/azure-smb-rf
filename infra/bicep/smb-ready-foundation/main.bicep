@@ -30,10 +30,15 @@ targetScope = 'subscription'
 param scenario string = 'baseline'
 
 @description('Primary deployment region')
-@allowed([
-  'swedencentral'
-  'germanywestcentral'
-])
+// we now allow all regions, no restriction at template level
+// allthough we advise to stick to swedencentral and germanywestcentral. The template has
+// been tested and validated in those regions, but should work in any region that supports the deployed services. 
+// We removed the allowed values constraint to give users flexibility to deploy in their preferred region,
+ // but they should be aware of potential service availability differences and test accordingly.
+// @allowed([
+//   'swedencentral'
+//   'germanywestcentral'
+// ])
 param location string = 'swedencentral'
 
 @description('Environment name for resource naming and tagging')
@@ -53,8 +58,11 @@ param hubVnetAddressSpace string = '10.0.0.0/16'
 @description('Spoke VNet address space CIDR')
 param spokeVnetAddressSpace string = '10.1.0.0/16'
 
-@description('On-premises network address space CIDR (for VPN routing)')
+@description('On-premises network address space CIDR. Required when scenario in (vpn, full) for the Local Network Gateway. Routing behaviour: in scenarios `vpn` and `firewall`, spoke<->on-prem traffic uses gateway-propagated routes from the Local Network Gateway and bypasses the firewall (BGP is disabled; treated as trusted east-west). In scenario `full`, this CIDR is used to install UDRs and firewall network rules that force spoke<->on-prem traffic through Azure Firewall in both directions.')
 param onPremisesAddressSpace string = ''
+
+@description('Public IP address of the on-premises VPN device. Default is RFC 5737 TEST-NET-1 (192.0.2.1) for template validation; must be overridden to deploy VPN Gateway and Local Network Gateway resources when scenario in (vpn, full).')
+param onPremisesGatewayPublicIp string = '192.0.2.1'
 
 @description('Log Analytics daily ingestion cap in GB (decimal, e.g. 0.5 for ~500MB)')
 param logAnalyticsDailyCapGb string = '0.5'
@@ -80,6 +88,10 @@ param policyMiResourceId string = ''
 // Derive feature flags from scenario parameter
 var deployFirewall = scenario == 'firewall' || scenario == 'full'
 var deployVpnGateway = scenario == 'vpn' || scenario == 'full'
+
+// scenario=full: force spoke<->on-prem traffic through the firewall in both
+// directions. Requires firewall + VPN gateway + a non-empty on-prem CIDR.
+var routeHybridThroughFirewall = scenario == 'full' && !empty(onPremisesAddressSpace)
 
 // Unique suffix for globally unique resource names
 var uniqueSuffix = uniqueString(subscription().subscriptionId)
@@ -129,8 +141,9 @@ var rgNames = {
 
 // ----------------------------------------------------------------------------
 // Phase 1: Subscription-Scope Resources (Budget + Defender)
-// Note: 30 MG-scoped policies are deployed via the preprovision hook using
-//       az deployment mg create. See modules/policy-assignments-mg.bicep.
+// Note: The MG-scoped baseline initiative (33 policies, 1 assignment) is
+//       deployed via the preprovision hook using az deployment mg create.
+//       See modules/policy-assignments-mg-initiative.bicep.
 //       The auto-backup policy (smb-backup-02) is deployed in Phase 4
 //       after the Recovery Services Vault is created.
 // ----------------------------------------------------------------------------
@@ -165,6 +178,27 @@ module resourceGroups 'modules/resource-groups.bicep' = {
 }
 
 // ----------------------------------------------------------------------------
+// Phase 2.5: Log Analytics (deployed early so dependent modules can wire
+// diagnostic settings during initial create)
+// ----------------------------------------------------------------------------
+
+@description('Deploy Log Analytics Workspace with daily cap')
+module monitoring 'modules/monitoring.bicep' = {
+  name: 'monitoring-${uniqueSuffix}'
+  scope: resourceGroup(rgNames.monitor)
+  params: {
+    location: location
+    environment: 'smb'
+    regionShort: regionShort
+    dailyCapGb: logAnalyticsDailyCapGb
+    tags: sharedServicesTags
+  }
+  dependsOn: [
+    resourceGroups
+  ]
+}
+
+// ----------------------------------------------------------------------------
 // Phase 3: Core Networking
 // ----------------------------------------------------------------------------
 
@@ -177,6 +211,7 @@ module networkingHub 'modules/networking-hub.bicep' = {
     environment: 'smb'
     regionShort: regionShort
     vnetAddressSpace: hubVnetAddressSpace
+    logAnalyticsWorkspaceId: monitoring.outputs.workspaceId
     tags: sharedServicesTags
   }
   dependsOn: [
@@ -196,6 +231,7 @@ module networkingSpoke 'modules/networking-spoke.bicep' = {
     deployNatGateway: deploySpokeNatGateway
     #disable-next-line BCP318
     routeTableId: deployFirewall ? routeTables.outputs.spokeRouteTableId : ''
+    logAnalyticsWorkspaceId: monitoring.outputs.workspaceId
     tags: spokeTags
   }
   dependsOn: [
@@ -207,22 +243,6 @@ module networkingSpoke 'modules/networking-spoke.bicep' = {
 // Phase 4: Supporting Services
 // ----------------------------------------------------------------------------
 
-@description('Deploy Log Analytics Workspace with daily cap')
-module monitoring 'modules/monitoring.bicep' = {
-  name: 'monitoring-${uniqueSuffix}'
-  scope: resourceGroup(rgNames.monitor)
-  params: {
-    location: location
-    environment: 'smb'
-    regionShort: regionShort
-    dailyCapGb: logAnalyticsDailyCapGb
-    tags: sharedServicesTags
-  }
-  dependsOn: [
-    resourceGroups
-  ]
-}
-
 @description('Deploy Recovery Services Vault for VM backup')
 module backup 'modules/backup.bicep' = {
   name: 'backup-${uniqueSuffix}'
@@ -231,6 +251,7 @@ module backup 'modules/backup.bicep' = {
     location: location
     environment: 'smb'
     regionShort: regionShort
+    logAnalyticsWorkspaceId: monitoring.outputs.workspaceId
     tags: sharedServicesTags
   }
   dependsOn: [
@@ -321,7 +342,8 @@ module firewall 'modules/firewall.bicep' = if (deployFirewall) {
     regionShort: regionShort
     hubVnetId: networkingHub.outputs.vnetId
     spokeAddressSpace: spokeVnetAddressSpace
-    onPremisesAddressSpace: onPremisesAddressSpace
+    onPremisesAddressSpace: routeHybridThroughFirewall ? onPremisesAddressSpace : ''
+    logAnalyticsWorkspaceId: monitoring.outputs.workspaceId
     tags: sharedServicesTags
   }
 }
@@ -336,13 +358,16 @@ module routeTables 'modules/route-tables.bicep' = if (deployFirewall) {
     regionShort: regionShort
     #disable-next-line BCP318
     firewallPrivateIp: firewall.outputs.firewallPrivateIp
-    spokeAddressSpace: spokeVnetAddressSpace
     onPremisesAddressSpace: onPremisesAddressSpace
+    spokeVnetAddressSpace: spokeVnetAddressSpace
+    hubVnetName: networkingHub.outputs.vnetName
+    gatewaySubnetAddressPrefix: networkingHub.outputs.gatewaySubnetAddressPrefix
+    routeHybridThroughFirewall: routeHybridThroughFirewall
     tags: sharedServicesTags
   }
 }
 
-@description('Deploy VPN Gateway VpnGw1AZ (optional, zone-redundant)')
+@description('Deploy VPN Gateway VpnGw1AZ (optional, zone-redundant) and an optional Local Network Gateway')
 module vpnGateway 'modules/vpn-gateway.bicep' = if (deployVpnGateway) {
   name: 'vpn-gateway-${uniqueSuffix}'
   scope: resourceGroup(rgNames.hub)
@@ -351,13 +376,18 @@ module vpnGateway 'modules/vpn-gateway.bicep' = if (deployVpnGateway) {
     environment: 'smb'
     regionShort: regionShort
     gatewaySubnetId: networkingHub.outputs.gatewaySubnetId
+    onPremisesAddressSpace: onPremisesAddressSpace
+    onPremisesGatewayPublicIp: onPremisesGatewayPublicIp
     tags: sharedServicesTags
   }
   // CRITICAL: Serialize VPN Gateway after Firewall to avoid VNet update race condition
   // Both modify hub VNet subnets; parallel deployment causes InternalServerError
-  // See ADR-0004 for root cause analysis
+  // See ADR-0004 for root cause analysis. In scenario=full we additionally wait
+  // for routeTables, which PATCHes GatewaySubnet to attach the gateway route
+  // table; running VPN gateway provisioning in parallel with that PATCH would
+  // cause "subnet in use" conflicts.
   #disable-next-line BCP319
-  dependsOn: deployFirewall ? [firewall] : []
+  dependsOn: routeHybridThroughFirewall ? [firewall, routeTables] : (deployFirewall ? [firewall] : [])
 }
 
 // ----------------------------------------------------------------------------

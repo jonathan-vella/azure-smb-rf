@@ -25,8 +25,12 @@ param environment = 'prod'
 param hubVnetAddressSpace = '10.0.0.0/23'
 param spokeVnetAddressSpace = '10.0.2.0/23'
 
-// On-premises CIDR for VPN routing (required for vpn/full scenarios)
+// On-premises CIDR for hybrid routing (used in vpn/full scenarios).
+// When paired with onPremisesGatewayPublicIp, a Local Network Gateway is
+// created. Spoke->on-prem traffic is routed via the VPN Gateway (gateway-propagated static route),
+// bypassing the firewall.
 param onPremisesAddressSpace = ''  // e.g., '192.168.0.0/16'
+param onPremisesGatewayPublicIp = ''  // e.g., '203.0.113.10' (on-prem VPN device public IP)
 
 // Monitoring and cost controls
 param logAnalyticsDailyCapGb = '0.5'  // ~500 MB/day

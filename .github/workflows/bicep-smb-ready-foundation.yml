@@ -1,0 +1,65 @@
+# =============================================================================
+# Bicep CI for infra/bicep/smb-ready-foundation
+# =============================================================================
+# Runs bicep build + lint on PR + push when Bicep sources or this workflow
+# change. Validation only — no Azure authentication, no what-if, no deploy.
+# Mirrors the Terraform CI workflow's scope.
+# =============================================================================
+name: Bicep — smb-ready-foundation
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "infra/bicep/smb-ready-foundation/**"
+      - ".github/workflows/bicep-smb-ready-foundation.yml"
+  pull_request:
+    paths:
+      - "infra/bicep/smb-ready-foundation/**"
+      - ".github/workflows/bicep-smb-ready-foundation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+    working-directory: infra/bicep/smb-ready-foundation
+
+jobs:
+  validate:
+    name: build + lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Azure CLI (pre-installed on ubuntu-latest) ships with Bicep, but we
+      # explicitly upgrade to make the version deterministic across runners.
+      - name: Install/upgrade Bicep CLI
+        run: az bicep install || az bicep upgrade
+
+      - name: bicep --version
+        run: az bicep version
+
+      # Compile both top-level templates. `bicep build` fails on any error
+      # diagnostic and reports warnings, so it doubles as a syntax + type check.
+      - name: bicep build main.bicep
+        run: az bicep build --file main.bicep
+
+      - name: bicep build deploy-mg.bicep
+        run: az bicep build --file deploy-mg.bicep
+
+      # `bicep build-params` validates the parameter file against its target
+      # template (typed parameters, required values, expression evaluation).
+      - name: bicep build-params main.bicepparam
+        run: az bicep build-params --file main.bicepparam
+
+      # Lint surfaces best-practice violations (naming, secure params, etc.)
+      # using the rules in any nearest bicepconfig.json (defaults if absent).
+      - name: bicep lint main.bicep
+        run: az bicep lint --file main.bicep
+
+      - name: bicep lint deploy-mg.bicep
+        run: az bicep lint --file deploy-mg.bicep

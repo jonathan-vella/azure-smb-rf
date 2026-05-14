@@ -54,7 +54,7 @@ if ($rgExists -ne 'true') {
   Write-Host '    . resource group exists'
 }
 
-# Storage account
+# Storage account — tenant policy forbids shared-key auth, use Entra ID throughout.
 $saShow = az storage account show -n $saName -g $rgName 2>$null
 if ($LASTEXITCODE -ne 0 -or -not $saShow) {
   az storage account create `
@@ -62,30 +62,46 @@ if ($LASTEXITCODE -ne 0 -or -not $saShow) {
     --sku Standard_LRS --kind StorageV2 `
     --https-only true `
     --allow-blob-public-access false `
-    --allow-shared-key-access true `
+    --allow-shared-key-access false `
+    --min-tls-version TLS1_2 `
     --tags Environment=smb Owner=platform Project=smb-ready-foundation ManagedBy=Terraform Purpose=tfstate | Out-Null
-  Write-Host '    + storage account created'
+  Write-Host '    + storage account created (shared-key disabled)'
 } else {
+  az storage account update -n $saName -g $rgName --allow-shared-key-access false 2>$null | Out-Null
   Write-Host '    . storage account exists'
 }
 
-$saKey = az storage account keys list -n $saName -g $rgName --query '[0].value' -o tsv
+# RBAC: Storage Blob Data Contributor for current principal (required for use_azuread_auth)
+$saId = az storage account show -n $saName -g $rgName --query id -o tsv
+$principalId = az ad signed-in-user show --query id -o tsv 2>$null
+if (-not [string]::IsNullOrWhiteSpace($principalId)) {
+  $existing = az role assignment list --assignee $principalId --scope $saId --role 'Storage Blob Data Contributor' --query '[0].id' -o tsv 2>$null
+  if ([string]::IsNullOrWhiteSpace($existing)) {
+    az role assignment create --assignee-object-id $principalId --assignee-principal-type User `
+      --role 'Storage Blob Data Contributor' --scope $saId | Out-Null
+    Write-Host '    + granted Storage Blob Data Contributor to current user (propagation: ~30s)'
+    Start-Sleep -Seconds 30
+  } else {
+    Write-Host '    . Storage Blob Data Contributor already assigned'
+  }
+}
 
-$containerShow = az storage container show --name $containerName --account-name $saName --account-key $saKey 2>$null
+$containerShow = az storage container show --name $containerName --account-name $saName --auth-mode login 2>$null
 if ($LASTEXITCODE -ne 0 -or -not $containerShow) {
-  az storage container create --name $containerName --account-name $saName --account-key $saKey | Out-Null
+  az storage container create --name $containerName --account-name $saName --auth-mode login | Out-Null
   Write-Host '    + container created'
 } else {
   Write-Host '    . container exists'
 }
 
-# Write backend.hcl
+# Write backend.hcl (use_azuread_auth=true so Terraform uses Entra ID, not keys)
 New-Item -ItemType Directory -Force -Path $backendDir | Out-Null
 $backendContent = @"
 resource_group_name  = "$rgName"
 storage_account_name = "$saName"
 container_name       = "$containerName"
 key                  = "smb-ready-foundation.tfstate"
+use_azuread_auth     = true
 "@
 Set-Content -Path $backendFile -Value $backendContent -Encoding UTF8
 Write-Host "    + wrote $backendFile"
