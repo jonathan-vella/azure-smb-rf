@@ -234,27 +234,7 @@ infra/bicep/smb-ready-foundation/
 
 ## 📚 Documentation
 
-Full documentation is available in the [docs site](site/src/content/docs/):
-
-| Section                                                                  | Content                           |
-| ------------------------------------------------------------------------ | --------------------------------- |
-| [Quick Start](site/src/content/docs/getting-started/quick-start.mdx)     | First deployment in 5 commands    |
-| [Scenarios & Costs](site/src/content/docs/deploying/scenarios.mdx)       | 4 scenarios with cost comparison  |
-| [Configuration](site/src/content/docs/deploying/configuration.mdx)       | All 11 parameters, CIDR planning  |
-| [Management Group](site/src/content/docs/deploying/management-group.mdx) | MG setup, 33 policies             |
-| [Customization](site/src/content/docs/operating/customization.mdx)       | Adding modules, regions, policies |
-| [Teardown](site/src/content/docs/operating/teardown.mdx)                 | Cleanup and removal               |
-| [Troubleshooting](site/src/content/docs/operating/troubleshooting.mdx)   | Common errors and fixes           |
-| [Policy Catalog](site/src/content/docs/reference/policies.mdx)           | Complete 33-policy reference      |
-| [Cost Comparison](site/src/content/docs/reference/costs.mdx)             | Detailed cost breakdown           |
-
-Build the docs locally:
-
-```bash
-cd site && npm install && npm run build
-```
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+Full documentation is available in the [docs site](https://jonathan-vella.github.io/azure-smb-rf/):
 
 ---
 
