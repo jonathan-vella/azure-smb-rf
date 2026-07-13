@@ -17,7 +17,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/jonathan-vella/azure-smb-rf">
-    <img src="site/public/images/Azure-SMB-RF.png" alt="Azure SMB Ready Foundations" width="520">
+    <img src="docs/images/architecture.png" alt="Azure SMB Ready Foundations" width="520">
   </a>
 
   <h1 align="center">Azure SMB Ready Foundations</h1>
