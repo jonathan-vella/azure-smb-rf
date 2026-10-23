@@ -24,5 +24,6 @@
     <!-- Pin transitive OpenTelemetry packages to a patched version for GHSA-g94r-2vxg-569j (CVE-2026-40894). -->
     <PackageReference Include="OpenTelemetry.Api" Version="1.15.3" />
     <PackageReference Include="OpenTelemetry.Extensions.Propagators" Version="1.15.3" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
   </ItemGroup>
 </Project>
